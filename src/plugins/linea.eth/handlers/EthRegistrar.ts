@@ -2,6 +2,7 @@ import { ponder } from "ponder:registry";
 import schema from "ponder:schema";
 import { zeroAddress } from "viem";
 import { makeRegistrarHandlers } from "../../../handlers/Registrar";
+import { upsertAccount } from "../../../lib/db-helpers";
 import { makeSubnodeNamehash, tokenIdToLabel } from "../../../lib/subname-helpers";
 import { ownedName, pluginNamespace } from "../ponder.config";
 
@@ -22,6 +23,8 @@ export default function () {
     const { tokenId, from, to } = event.args;
 
     if (event.args.from === zeroAddress) {
+      // ensure owner account
+      await upsertAccount(context, to);
       // The ens-subgraph `handleNameTransferred` handler implementation
       // assumes an indexed record for the domain already exists. However,
       // when an NFT token is minted (transferred from `0x0` address),
