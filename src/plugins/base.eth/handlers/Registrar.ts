@@ -28,7 +28,8 @@ export default function () {
     const { id: tokenId, from, to } = event.args;
 
     if (event.args.from === zeroAddress) {
-      // ensure owner account
+      // Each domain must reference an account of its owner,
+      // so we ensure the account exists before inserting the domain
       await upsertAccount(context, to);
       // The ens-subgraph `handleNameTransferred` handler implementation
       // assumes an indexed record for the domain already exists. However,
