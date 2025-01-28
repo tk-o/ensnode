@@ -1,0 +1,22 @@
+{
+  "name": "@ensnode/ensrainbow",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "ingest": "node dist/ingest.js",
+    "docker:build": "docker build -t ensnode/ensrainbow .",
+    "docker:push": "docker push ensnode/ensrainbow"
+  },
+  "dependencies": {
+    "classic-level": "^1.4.1",
+    "hono": "^4.0.5",
+    "progress": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "@types/progress": "^2.0.7",
+    "typescript": "^5.3.3"
+  }
+} 
