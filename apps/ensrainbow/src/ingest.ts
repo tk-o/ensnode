@@ -9,10 +9,10 @@ const DATA_DIR = process.env.DATA_DIR || join(process.cwd(), 'data');
 const INPUT_FILE = process.env.INPUT_FILE || join(process.cwd(), 'ens_names.sql.gz');
 
 async function loadEnsNamesToLevelDB(): Promise<void> {
-    // Initialize LevelDB
-    const db = new ClassicLevel(DATA_DIR, {
+    // Initialize LevelDB with proper types for key and value
+    const db = new ClassicLevel<Buffer, string>(DATA_DIR, {
         valueEncoding: 'utf8',
-        keyEncoding: 'utf8'  // Store keys as hex strings to avoid Buffer issues
+        keyEncoding: 'binary'
     });
 
     const TOTAL_LINES = 140_000_000; // Approximate total lines
@@ -54,8 +54,9 @@ async function loadEnsNamesToLevelDB(): Promise<void> {
                 const [hashVal, name] = parts;
                 if (hashVal && name) {
                     try {
-                        // Store the hash as a hex string
-                        batch.put(hashVal, name);
+                        // Convert hex string to Buffer, stripping '0x' prefix
+                        const hashBytes = Buffer.from(hashVal.slice(2), 'hex');
+                        batch.put(hashBytes, name);
                         batchSize++;
 
                         if (batchSize >= MAX_BATCH_SIZE) {

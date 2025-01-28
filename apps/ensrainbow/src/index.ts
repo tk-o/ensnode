@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { serve } from '@hono/node-server';
 import { ClassicLevel } from 'classic-level';
 import { join } from 'path';
 import type { Context } from 'hono';
@@ -6,17 +7,19 @@ import type { Context } from 'hono';
 const app = new Hono();
 const DATA_DIR = process.env.DATA_DIR || join(process.cwd(), 'data');
 
-// Initialize LevelDB
-const db = new ClassicLevel(DATA_DIR, {
+// Initialize LevelDB with proper types for key and value
+const db = new ClassicLevel<Buffer, string>(DATA_DIR, {
     valueEncoding: 'utf8',
-    keyEncoding: 'utf8'  // Store keys as hex strings
+    keyEncoding: 'binary'
 });
 
 app.get('/v1/heal/:labelhash', async (c: Context) => {
     const labelhash = c.req.param('labelhash');
     
     try {
-        const label = await db.get(labelhash);
+        // Convert hex string to Buffer, stripping '0x' prefix if present
+        const hashBytes = Buffer.from(labelhash.replace(/^0x/, ''), 'hex');
+        const label = await db.get(hashBytes);
         return c.json({ healed: label });
     } catch (error) {
         if ((error as any).code === 'LEVEL_NOT_FOUND') {
@@ -30,7 +33,9 @@ app.get('/v1/heal/:labelhash', async (c: Context) => {
 // Health check endpoint
 app.get('/health', (c: Context) => c.json({ status: 'ok' }));
 
-export default {
-    port: process.env.PORT || 3000,
+const port = parseInt(process.env.PORT || '3001', 10);
+console.log(`Server starting on port ${port}...`);
+serve({
     fetch: app.fetch,
-}; 
+    port: port
+}); 

@@ -10,6 +10,7 @@
     "docker:push": "docker push ensnode/ensrainbow"
   },
   "dependencies": {
+    "@hono/node-server": "^1.4.1",
     "classic-level": "^1.4.1",
     "hono": "^4.0.5",
     "progress": "^2.0.3"
