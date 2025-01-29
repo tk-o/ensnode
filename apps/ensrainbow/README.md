@@ -8,23 +8,12 @@ Special thanks to [The Graph Protocol](https://github.com/graphprotocol/ens-rain
 
 - Docker installed on your system
 - Node.js v20 or later (for local development)
-- git-annex installed (`apt-get install git-annex` on Ubuntu/Debian)
 
 ## Getting the Rainbow Tables
 
 The rainbow tables (6.37 GB) are stored in a public bucket. To download them:
 
-1. Initialize git-annex:
-```bash
-git annex init
-```
-
-2. Add the public remote:
-```bash
-git annex initremote r2 type=S3 encryption=none host=https://bucket.ensrainbow.io publicurl=https://bucket.ensrainbow.io
-```
-
-3. Download the rainbow table and verify checksum:
+1. Download the rainbow table and verify checksum:
 ```bash
 # Download files
 wget https://bucket.ensrainbow.io/ens_names.sql.gz
