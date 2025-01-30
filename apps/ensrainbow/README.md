@@ -21,14 +21,14 @@ Special thanks to [The Graph Protocol](https://github.com/graphprotocol/ens-rain
 
 ## Architecture Overview
 
-For backwards compatibility with the ENS Subgraph, the current rainbow tables (6.37 GB) are exactly the same as those published by [The Graph Protocol](https://github.com/graphprotocol/ens-rainbow). Our copies are stored in a public bucket. To download them:
+For backwards compatibility with the ENS Subgraph, the current rainbow tables (6.37 GB) are exactly the same as those published by [The Graph Protocol](https://github.com/graphprotocol/ens-rainbow). 
 
 - **Storage Layer**: Uses LevelDB as an embedded key-value store to efficiently map labelhashes to their original labels
 - **API Layer**: Exposes a REST API endpoint that accepts labelhashes and returns the corresponding original label
 - **Data Ingestion**: Processes a pre-computed rainbow table (SQL dump) to populate the LevelDB store
 - **Performance**: Provides fast, constant-time lookups for known ENS labels through LevelDB's efficient indexing
 
-The service is designed to be run as a sidecar alongside ENSNode, helping to "heal" labelhashes by finding their original text labels when available.
+The service is designed to be run as a sidecar alongside ENSNode, helping to "heal" the labelhashes of unknown labels by finding their original labels when available.
 
 ### Current Release & Future Direction
 
@@ -36,7 +36,7 @@ The initial release of ENSRainbow focuses on backwards compatibility with the EN
 
 ## Getting the Rainbow Tables
 
-The rainbow tables (6.37 GB) are stored in a public bucket. To download them:
+Our copies of the rainbow tables (6.37 GB) are stored in a public bucket. To download them:
 
 1. Download the rainbow tables and verify checksum:
 ```bash
