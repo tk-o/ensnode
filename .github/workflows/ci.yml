@@ -103,6 +103,6 @@ jobs:
           TAG: ${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/alpha' && 'alpha' || github.ref == 'refs/heads/subgraph' && 'subgraph' || github.ref == 'refs/heads/fix/ensrainbow-docker' && 'tko-test' }}
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker build -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:${{ github.sha }} .
+          docker build -f apps/ensrainbow/Dockerfile -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:${{ github.sha }} .
           docker push $IMAGE_NAME:$TAG
           docker push $IMAGE_NAME:${{ github.sha }}
