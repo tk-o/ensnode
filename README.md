@@ -9,10 +9,10 @@ The ENSNode monorepo contains multiple modules in the following subdirectories:
 ## Applications
 
 ### [`apps/ensnode`](apps/ensnode)
-The main ENSNode indexer application. This is a multichain indexer for ENS data, providing comprehensive indexing of ENS events and state across multiple networks.
+The main ENSNode indexer application enabling multichain indexing for ENS.
 
 ### [`apps/ensrainbow`](apps/ensrainbow)
-A sidecar service for healing ENS labels. It provides a simple API to recover original labels from their hashes, which is essential for ENS data analysis and integration. See the [ENSRainbow documentation](apps/ensrainbow/README.md) for more details.
+A sidecar service for healing ENS labels. It provides a simple API to recover labels from their hashes. This optimizes a number of ENS use cases, including indexing of ENS data. See the [ENSRainbow documentation](apps/ensrainbow/README.md) for more details.
 
 ## Libraries
 

@@ -42,7 +42,7 @@ app.get("/v1/heal/:labelhash", async (c: Context) => {
     return c.text(label);
   } catch (error) {
     if ((error as any).code === "LEVEL_NOT_FOUND") {
-      console.info(`Unhealable labelhash requested: ${labelhash}`);
+      console.info(`Unhealable labelhash request: ${labelhash}`);
       return c.json({ error: "Not found" }, 404);
     }
     console.error("Error healing label:", error);
