@@ -3,7 +3,7 @@ import { join } from "path";
 import { createInterface } from "readline";
 import { createGunzip } from "zlib";
 import { ClassicLevel } from "classic-level";
-import * as ProgressBar from "progress";
+import ProgressBar from "progress";
 
 const DATA_DIR = process.env.DATA_DIR || join(process.cwd(), "data");
 const INPUT_FILE = process.env.INPUT_FILE || join(process.cwd(), "ens_names.sql.gz");
