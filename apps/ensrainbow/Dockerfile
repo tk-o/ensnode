@@ -7,8 +7,8 @@ WORKDIR /app
 
 # Data stage
 FROM base AS ensrainbow.data
-RUN wget https://bucket.ensrainbow.io/ens_names.sql.gz
-RUN wget https://bucket.ensrainbow.io/ens_names.sql.gz.sha256sum
+RUN wget -nv https://bucket.ensrainbow.io/ens_names.sql.gz
+RUN wget -nv https://bucket.ensrainbow.io/ens_names.sql.gz.sha256sum
 RUN sha256sum -c ens_names.sql.gz.sha256sum
 
 # Runtime dependencies stage
