@@ -6,7 +6,21 @@ The ENSNode monorepo contains multiple modules in the following subdirectories:
 - [`apps`](apps)  executable applications.
 - [`packages`](packages) for libraries that can be embedded into apps.
 
-The main module of this repository is the ENSNode app found in [`apps/ensnode`](apps/ensnode).
+## Applications
+
+### [`apps/ensnode`](apps/ensnode)
+The main ENSNode indexer application. This is a multichain indexer for ENS data, providing comprehensive indexing of ENS events and state across multiple networks.
+
+### [`apps/ensrainbow`](apps/ensrainbow)
+A sidecar service for healing ENS labels. It provides a simple API to recover original labels from their hashes, which is essential for ENS data analysis and integration. See the [ENSRainbow documentation](apps/ensrainbow/README.md) for more details.
+
+## Libraries
+
+The [`packages`](packages) directory contains shared libraries that can be embedded into apps:
+- `ensnode-utils`: Common utilities used across ENSNode applications
+- `ponder-schema`: Shared Ponder schema definitions
+- `ponder-subgraph-api`: Subgraph API compatibility layer
+- `shared-configs`: Shared configuration files
 
 ## Quick start
 

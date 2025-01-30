@@ -105,9 +105,37 @@ Example:
 ```bash
 curl http://localhost:3001/v1/heal/0xaf2caa1c2ca1d027f1ac823b529d0a67cd144264b2789fa2ea4d63a67c7103cc
 ```
-Response: `{"healed":"vitalik"}`
+Response: `vitalik`
 
-If no label is found for the labelhash, a 404 status code is returned.
+Note on returned labels: The service returns labels exactly as they appear in the source data. This means:
+- Labels may or may not be ENS-normalized
+- Labels can contain any valid string, including dots, null bytes, or be empty
+- Clients should handle all possible string values appropriately
+
+Error Responses:
+- `400 Bad Request`: When the labelhash parameter is missing or invalid
+  ```json
+  {
+    "error": "Missing labelhash parameter"
+  }
+  ```
+  ```json
+  {
+    "error": "Invalid labelhash - must be a 32 byte hex string"
+  }
+  ```
+- `404 Not Found`: When no label is found for the given labelhash
+  ```json
+  {
+    "error": "Not found"
+  }
+  ```
+- `500 Internal Server Error`: When an unexpected error occurs
+  ```json
+  {
+    "error": "Internal server error"
+  }
+  ```
 
 ### Get Count of Healable Labels
 ```bash
@@ -147,7 +175,6 @@ pnpm ingest:prod
 
 - `PORT`: Server port (default: 3001)
 - `DATA_DIR`: Directory for LevelDB data (default: './data')
-- `NODE_ENV`: Node environment (default: 'production' in Docker)
 
 ## License
 
