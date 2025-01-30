@@ -15,7 +15,7 @@ async function loadEnsNamesToLevelDB(): Promise<void> {
         keyEncoding: 'binary'
     });
 
-    const TOTAL_LINES = 133_856_480;
+    const TOTAL_LINES = 133_856_898;
     const bar = new ProgressBar('Processing [:bar] :current/:total lines (:percent) - :rate lines/sec - :etas remaining', {
         complete: '=',
         incomplete: ' ',
