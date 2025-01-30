@@ -75,7 +75,7 @@ app.get('/v1/labels/count', async (c: Context) => {
 });
 
 // Only start the server if this file is being run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     const port = parseInt(process.env.PORT || '3001', 10);
     console.log(`ENS Rainbow server starting on port ${port}...`);
 
