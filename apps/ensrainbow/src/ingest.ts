@@ -15,7 +15,7 @@ async function loadEnsNamesToLevelDB(): Promise<void> {
         keyEncoding: 'binary'
     });
 
-    const TOTAL_LINES = 140_000_000; // Approximate total lines
+    const TOTAL_LINES = 133_856_480;
     const bar = new ProgressBar('Processing [:bar] :current/:total lines (:percent) - :rate lines/sec - :etas remaining', {
         complete: '=',
         incomplete: ' ',
@@ -85,7 +85,8 @@ async function loadEnsNamesToLevelDB(): Promise<void> {
     console.log('\nData loading complete!');
 }
 
-if (require.main === module) {
+// Check if this module is being run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
     loadEnsNamesToLevelDB()
         .then(() => console.log('Done!'))
         .catch(console.error);
