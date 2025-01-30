@@ -10,7 +10,7 @@ on:
 
 jobs:
   static-analysis:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-32vcpu-ubuntu-2204-arm
 
     steps:
       - name: Checkout repository
@@ -20,7 +20,7 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: useblacksmith/setup-node@v5
         with:
           node-version-file: .nvmrc
 
@@ -65,7 +65,7 @@ jobs:
           fi
 
   unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-32vcpu-ubuntu-2204-arm
 
     steps:
       - name: Checkout repository
@@ -75,7 +75,7 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: useblacksmith/setup-node@v5
         with:
           node-version-file: .nvmrc
 
@@ -86,7 +86,7 @@ jobs:
         run: pnpm -r test
 
   ensrainbow-docker-build:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-32vcpu-ubuntu-2204-arm
     needs: [static-analysis, unit-tests]
     # we only build the docker image after a push to the branch
     if: github.event_name == 'push'
@@ -111,7 +111,7 @@ jobs:
           path: ensrainbow-docker-image.tar
 
   ensrainbow-docker-push:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-32vcpu-ubuntu-2204-arm
     needs: [ensrainbow-docker-build]
     
     steps:
