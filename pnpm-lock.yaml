@@ -469,6 +469,9 @@ importers:
 
   packages/ponder-metadata-api:
     dependencies:
+      '@ensnode/ensrainbow-sdk':
+        specifier: workspace:*
+        version: link:../ensrainbow-sdk
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.39.3(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.7.0)(kysely@0.26.3)(pg@8.11.3)
