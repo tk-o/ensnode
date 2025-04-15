@@ -323,7 +323,7 @@ export const parsePonderDatabaseSchema = (rawValue?: string): string => {
   return rawValue;
 };
 
-export const requestedPluginNames = (): Array<string> => {
+export const getRequestedPluginNames = (): Array<string> => {
   const envVarName = "ACTIVE_PLUGINS";
   const envVarValue = process.env[envVarName];
 
@@ -335,11 +335,12 @@ export const requestedPluginNames = (): Array<string> => {
 };
 
 export const parseRequestedPluginNames = (rawValue?: string): Array<string> => {
-  if (!rawValue) {
-    throw new Error("Expected value not set");
+  if (!rawValue) throw new Error("Expected value not set");
+  const value = rawValue.split(",");
+  if (value.length === 0) {
+    throw new Error("ACTIVE_PLUGINS expected at least one activated plugin.");
   }
-
-  return rawValue.split(",");
+  return value;
 };
 
 export const DEFAULT_HEAL_REVERSE_ADDRESSES = true;
@@ -503,12 +504,12 @@ interface PonderNetworkConfig {
  * ```ts
  * const ponderConfig = {
  *  contracts: {
- *   "root/Registrar": {
+ *   "subgraph/Registrar": {
  *     network: {
  *       "1": { startBlock: 444_444_444 }
  *      }
  *   },
- *   "root/Registry": {
+ *   "subgraph/Registry": {
  *     network: {
  *       "1": { startBlock: 444_444_333 }
  *      }
