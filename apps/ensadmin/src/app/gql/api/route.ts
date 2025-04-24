@@ -2,7 +2,7 @@ import Anthropic, { type ClientOptions } from "@anthropic-ai/sdk";
 import { Adapter, type AdapterResponse } from "@gqlpt/adapter-base";
 import { GQLPTClient } from "gqlpt";
 import { type NextRequest } from "next/server";
-
+import { ensSubgraphSchemaGql } from "./ens-subgraph-gql-schema";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const maybePrompt = requestUrl.searchParams.get("prompt");
@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
 
   // try to generate the query and variables
   try {
-    const generatedQuery = await queryGeneratorClient.generateQueryAndVariables(
+    const generatedQueryAndVariables = await queryGeneratorClient.generateQueryAndVariables(
       generateQueryDto.prompt,
     );
-    return Response.json({ generateQueryDto, generatedQuery });
+    return Response.json(generatedQueryAndVariables);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error(`Query generation error: ${errorMessage}`);
@@ -59,6 +59,9 @@ export async function GET(request: NextRequest) {
 
 /** The max tokens to use per message */
 const MAX_TOKENS_PER_MESSAGE = 1024;
+
+/** The LLM temperature */
+const TEMPERATURE = 0;
 
 /** The system prompt to use for the LLM */
 const SYSTEM_PROMPT = `
@@ -73,6 +76,14 @@ Always respond with the GraphQL query and variables in JSON format.
 Always include an operation name for each generated GraphQL query. Do not forget about it under any circumstances.
 
 Include useful comments in the generated GraphQL query to make it easier to understand.
+
+Values such as 'vitalik.eth' or 'abc.123.com' should be interpreted as domain names.
+
+Hex values with 40 hex digits (20 bytes) such as '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' should be interpreted as addresses or account id values. All addresses and account id values in your output should be formatted completely in lowercase.
+
+Hex values with 64 hex digits (32 bytes) such as '0x412329d38ad88cb88b1bb6d4005cd6aa010b7bdeb55fd28f980943d423725fb1' should be interpreted as either a labelhash, or the id of a domain. All labelhash and domain id values in your output should be formatted completely in lowercase.
+
+If requested to generate a query that finds domains by name, unless specifically requested to use a particular strategy such as "names ending with", default to finding name values that are an exact match.
 `;
 
 /**
@@ -109,8 +120,9 @@ async function getQueryGeneratorClient(
       adapter: new AdapterAnthropic({
         apiKey: options.llmApiKey,
         model: Model.Claude35Sonnet,
-        systemPrompt: SYSTEM_PROMPT,
+        systemPrompt: `${SYSTEM_PROMPT}\n\n${ensSubgraphSchemaGql}`,
         maxTokensPerMessage: MAX_TOKENS_PER_MESSAGE,
+        temperature: TEMPERATURE,
       }),
     });
 
@@ -193,6 +205,9 @@ interface AdapterAnthropicOptions extends ClientOptions {
 
   /** The max tokens to use per message */
   maxTokensPerMessage: number;
+
+  /** The temperature to use */
+  temperature: number;
 }
 
 enum Model {
@@ -218,6 +233,9 @@ class AdapterAnthropic extends Adapter {
   /** The max tokens to use per message */
   private maxTokensPerMessage: number;
 
+  /** The temperature to use */
+  private temperature: number;
+
   private messageHistory: Map<string, Array<Anthropic.MessageParam>> = new Map();
 
   constructor(options: AdapterAnthropicOptions) {
@@ -226,6 +244,7 @@ class AdapterAnthropic extends Adapter {
     this.model = options.model;
     this.systemPrompt = options.systemPrompt;
     this.maxTokensPerMessage = options.maxTokensPerMessage;
+    this.temperature = options.temperature;
   }
 
   /**
@@ -253,7 +272,35 @@ class AdapterAnthropic extends Adapter {
    * Based on https://github.com/rocket-connect/gqlpt/blob/18af9c9/packages/adapter-anthropic/src/index.ts#L32-L61
    */
   async sendText(text: string, conversationId?: string): Promise<AdapterResponse> {
-    let messages: Array<Anthropic.MessageParam> = [{ role: "user", content: text }];
+    let beforeText: string | undefined;
+    const splitPhrase = "And this plain text query:";
+
+    let messages: Array<Anthropic.MessageParam>;
+
+    if (text.includes(splitPhrase)) {
+      const splitIndex = text.indexOf(splitPhrase);
+      beforeText = text.substring(0, splitIndex);
+      text = text.substring(splitIndex);
+
+      messages = [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: beforeText,
+              cache_control: { type: "ephemeral" },
+            },
+            {
+              type: "text",
+              text: text,
+            },
+          ],
+        },
+      ];
+    } else {
+      messages = [{ role: "user", content: text }];
+    }
 
     if (conversationId && this.messageHistory.has(conversationId)) {
       messages = [...this.messageHistory.get(conversationId)!, ...messages];
@@ -267,6 +314,7 @@ class AdapterAnthropic extends Adapter {
       model: this.model,
       // set a default max tokens
       max_tokens: 1024,
+      temperature: this.temperature,
     });
 
     const content = (response.content[0] as any).text;
