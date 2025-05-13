@@ -3,12 +3,21 @@ import schema from "ponder:schema";
 import { encodeLabelhash } from "@ensdomains/ensjs/utils";
 import { type Address, zeroAddress } from "viem";
 
-import { makeSharedEventValues, upsertAccount, upsertResolver } from "@/lib/db-helpers";
+import {
+  makeSharedEventValues,
+  upsertAccount,
+  upsertResolver,
+} from "@/lib/db-helpers";
 import { labelByLabelHash } from "@/lib/graphnode-helpers";
 import { makeResolverId } from "@/lib/ids";
 import { type EventWithArgs, healReverseAddresses } from "@/lib/ponder-helpers";
 import { recursivelyRemoveEmptyDomainFromParentSubdomainCount } from "@/lib/subgraph-helpers";
-import { type LabelHash, type Node, PluginName, REVERSE_ROOT_NODES } from "@ensnode/utils";
+import {
+  type LabelHash,
+  type Node,
+  PluginName,
+  REVERSE_ROOT_NODES,
+} from "@ensnode/utils";
 import {
   isLabelIndexable,
   makeSubdomainNode,
@@ -20,7 +29,11 @@ import {
  *
  * @param pluginName the name of the plugin using these shared handlers
  */
-export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName }) => {
+export const makeRegistryHandlers = ({
+  pluginName,
+}: {
+  pluginName: PluginName;
+}) => {
   const sharedEventValues = makeSharedEventValues(pluginName);
 
   return {
@@ -73,15 +86,28 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
 
         // if the domain doesn't yet have a name, attempt to construct it here
         if (!domain.name) {
-          const parent = await context.db.find(schema.domain, { id: parentNode });
+          const parent = await context.db.find(schema.domain, {
+            id: parentNode,
+          });
 
           let healedLabel = null;
 
           // 1. if healing label from reverse addresses is enabled, and the parent is a known
           //    reverse node (i.e. addr.reverse), give it a go
           if (healReverseAddresses() && REVERSE_ROOT_NODES.has(parentNode)) {
+            // first, try to heal the label from the transaction sender
+            // this is a fallback for cases where the owner was not set correctly
+            // on the contract (e.g. due to a bug in the contract or a buggy proxy)
+            if (healedLabel === null) {
+              healedLabel = maybeHealLabelByReverseAddress({
+                maybeReverseAddress: event.transaction.from,
+                labelHash,
+              });
+            }
+
+            // if that didn't work, try to heal the label from the owner address
             healedLabel = maybeHealLabelByReverseAddress({
-              maybeReverseAddress: event.transaction.from,
+              maybeReverseAddress: event.args.owner,
               labelHash,
             });
           }
@@ -93,7 +119,9 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
             healedLabel = await labelByLabelHash(labelHash);
           }
 
-          const validLabel = isLabelIndexable(healedLabel) ? healedLabel : undefined;
+          const validLabel = isLabelIndexable(healedLabel)
+            ? healedLabel
+            : undefined;
 
           // to construct `Domain.name` use the parent's name and the label value (encoded if not indexable)
           // NOTE: for TLDs, the parent is null, so we just use the label value as is
@@ -113,7 +141,10 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
         // garbage collect newly 'empty' domain iff necessary
         // via https://github.com/ensdomains/ens-subgraph/blob/c68a889/src/ensRegistry.ts#L85
         if (owner === zeroAddress) {
-          await recursivelyRemoveEmptyDomainFromParentSubdomainCount(context, node);
+          await recursivelyRemoveEmptyDomainFromParentSubdomainCount(
+            context,
+            node
+          );
         }
 
         // log DomainEvent
@@ -138,12 +169,17 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
       // ensure domain & update owner
       await context.db
         .insert(schema.domain)
-        .values([{ id: node, ownerId: owner, createdAt: event.block.timestamp }])
+        .values([
+          { id: node, ownerId: owner, createdAt: event.block.timestamp },
+        ])
         .onConflictDoUpdate({ ownerId: owner });
 
       // garbage collect newly 'empty' domain iff necessary
       if (owner === zeroAddress) {
-        await recursivelyRemoveEmptyDomainFromParentSubdomainCount(context, node);
+        await recursivelyRemoveEmptyDomainFromParentSubdomainCount(
+          context,
+          node
+        );
       }
 
       // log DomainEvent
@@ -186,7 +222,12 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
     }) {
       const { node, resolver: resolverAddress } = event.args;
 
-      const resolverId = makeResolverId(pluginName, context.network.chainId, resolverAddress, node);
+      const resolverId = makeResolverId(
+        pluginName,
+        context.network.chainId,
+        resolverAddress,
+        node
+      );
 
       const isZeroResolver = resolverAddress === zeroAddress;
 
@@ -198,7 +239,10 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
           .set({ resolverId: null, resolvedAddressId: null });
 
         // garbage collect newly 'empty' domain iff necessary
-        await recursivelyRemoveEmptyDomainFromParentSubdomainCount(context, node);
+        await recursivelyRemoveEmptyDomainFromParentSubdomainCount(
+          context,
+          node
+        );
       } else {
         // otherwise upsert the resolver
         const resolver = await upsertResolver(context, {
