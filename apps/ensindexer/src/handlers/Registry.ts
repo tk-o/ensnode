@@ -98,18 +98,15 @@ export const makeRegistryHandlers = ({
             // first, try to heal the label from the transaction sender
             // this is a fallback for cases where the owner was not set correctly
             // on the contract (e.g. due to a bug in the contract or a buggy proxy)
-            if (healedLabel === null) {
-              healedLabel = maybeHealLabelByReverseAddress({
+            healedLabel =
+              maybeHealLabelByReverseAddress({
                 maybeReverseAddress: event.transaction.from,
                 labelHash,
+              }) ??
+              maybeHealLabelByReverseAddress({
+                maybeReverseAddress: event.args.owner,
+                labelHash,
               });
-            }
-
-            // if that didn't work, try to heal the label from the owner address
-            healedLabel = maybeHealLabelByReverseAddress({
-              maybeReverseAddress: event.args.owner,
-              labelHash,
-            });
           }
 
           // 2. if reverse address healing didn't work, try ENSRainbow
