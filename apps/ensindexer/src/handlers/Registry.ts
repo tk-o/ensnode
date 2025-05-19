@@ -18,6 +18,7 @@ import { labelByLabelHash } from "@/lib/graphnode-helpers";
 import { makeResolverId } from "@/lib/ids";
 import { type EventWithArgs, healReverseAddresses } from "@/lib/ponder-helpers";
 import { recursivelyRemoveEmptyDomainFromParentSubdomainCount } from "@/lib/subgraph-helpers";
+import { getAllAddressesOfTransaction } from "@/lib/transaction-helpers";
 
 /**
  * makes a set of shared handlers for a Registry contract
@@ -84,10 +85,45 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
           // 1. if healing label from reverse addresses is enabled, and the parent is a known
           //    reverse node (i.e. addr.reverse), give it a go
           if (healReverseAddresses() && REVERSE_ROOT_NODES.has(parentNode)) {
+            // first try healing from the transaction's `from` address
             healedLabel = maybeHealLabelByReverseAddress({
               maybeReverseAddress: event.transaction.from,
               labelHash,
             });
+
+            if (!healedLabel) {
+              // if that didn't work, try healing from the event's`owner` address
+              healedLabel = maybeHealLabelByReverseAddress({
+                maybeReverseAddress: event.args.owner,
+                labelHash,
+              });
+            }
+
+            if (!healedLabel) {
+              // if previous healing methods failed, let's search the transaction's traces for
+              // any addresses that could be used to heal the label. The address must be found there.
+              // NOTE: this is a last resort, as it requires an additional RPC call
+              const allAddressesInTransaction = await getAllAddressesOfTransaction(
+                context.network.chainId,
+                event.transaction.hash,
+              );
+
+              for (const maybeReverseAddress of allAddressesInTransaction) {
+                healedLabel = maybeHealLabelByReverseAddress({
+                  maybeReverseAddress,
+                  labelHash,
+                });
+
+                if (healedLabel) {
+                  console.log(`Healed reverse address: ${labelHash}->${maybeReverseAddress}`);
+                  break;
+                }
+              }
+
+              if (!healedLabel) {
+                console.log(`Failed to heal reverse address: ${labelHash}`);
+              }
+            }
           }
 
           // 2. if reverse address healing didn't work, try ENSRainbow
