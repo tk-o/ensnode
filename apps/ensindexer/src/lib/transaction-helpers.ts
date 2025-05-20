@@ -1,46 +1,48 @@
-import { Address, Hex, getAddress } from "viem";
-import { rpcEndpointUrl } from "./ponder-helpers";
+import { Address, Hash, Hex, getAddress } from "viem";
 
-/**
- * Extracts all Ethereum addresses from traces of a given transaction.
- *
- * @param chainId The chain ID of the transaction.
- * @param transactionHash The hash of the transaction.
- * @returns An array of unique Ethereum addresses found in the transaction traces.
- */
-export async function getAllAddressesOfTransaction(chainId: number, transactionHash: Hex) {
-  const rpcEndpoint = rpcEndpointUrl(chainId);
+export type TraceTransactionSchema = {
+  Parameters: [
+    hash: Hash,
+    options:
+      | {
+          disableStorage?: boolean;
+          disableStack?: boolean;
+          enableMemory?: boolean;
+          enableReturnData?: boolean;
+          tracer?: string;
+        }
+      | {
+          timeout?: string;
+          tracerConfig?: {
+            onlyTopCall?: boolean;
+            withLog?: boolean;
+          };
+        }
+      | undefined,
+  ];
+  ReturnType: Trace;
+};
 
-  if (!rpcEndpoint) {
-    throw new Error(`No RPC endpoint found for chainId ${chainId}`);
-  }
-
-  const getTransactionTraces = async (): Promise<string> => {
-    const body = JSON.stringify({
-      method: "debug_traceTransaction",
-      params: [transactionHash, { tracer: "callTracer" }],
-      id: 1,
-      jsonrpc: "2.0",
-    });
-
-    return fetch(rpcEndpoint, {
-      method: "POST",
-      body,
-    }).then((r) => r.text());
-  };
-
-  const traces = await getTransactionTraces();
-
-  return extractEthereumAddresses(traces);
+interface Trace {
+  to: Address;
+  from: Address;
+  gas: Hex;
+  gasUsed: Hex;
+  input: "Hash";
+  output: Hash;
+  calls: Trace[];
+  value: Hex;
+  type: "CALL" | "STATICCALL" | "DELEGATECALL" | "CREATE" | "CREATE2";
 }
 
 /**
- * Extracts all Ethereum addresses from a given text.
+ * Extracts all Ethereum addresses from a given transaction trace.
  *
- * @param text The text to extract addresses from.
- * @returns An array of unique Ethereum addresses found in the text.
+ * @param trace The transaction trace to extract addresses from
+ * @returns An array of unique addresses found in the trace.
  */
-function extractEthereumAddresses(text: string): Array<Address> {
+export function getAddressesFromTrace(trace: Trace): Array<Address> {
+  const text = JSON.stringify(trace);
   // Regular expression to match Ethereum addresses
   // Looking for 0x followed by exactly 40 hex characters
   const regex = /0x[a-fA-F0-9]{40}/g;

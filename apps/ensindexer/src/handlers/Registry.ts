@@ -18,7 +18,7 @@ import { labelByLabelHash } from "@/lib/graphnode-helpers";
 import { makeResolverId } from "@/lib/ids";
 import { type EventWithArgs, healReverseAddresses } from "@/lib/ponder-helpers";
 import { recursivelyRemoveEmptyDomainFromParentSubdomainCount } from "@/lib/subgraph-helpers";
-import { getAllAddressesOfTransaction } from "@/lib/transaction-helpers";
+import { type TraceTransactionSchema, getAddressesFromTrace } from "@/lib/transaction-helpers";
 
 /**
  * makes a set of shared handlers for a Registry contract
@@ -103,10 +103,12 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
               // if previous healing methods failed, let's search the transaction's traces for
               // any addresses that could be used to heal the label. The address must be found there.
               // NOTE: this is a last resort, as it requires an additional RPC call
-              const allAddressesInTransaction = await getAllAddressesOfTransaction(
-                context.network.chainId,
-                event.transaction.hash,
-              );
+              const traces = await context.client.request<TraceTransactionSchema>({
+                method: "debug_traceTransaction",
+                params: [event.transaction.hash, { tracer: "callTracer" }],
+              });
+
+              const allAddressesInTransaction = getAddressesFromTrace(traces);
 
               for (const maybeReverseAddress of allAddressesInTransaction) {
                 healedLabel = maybeHealLabelByReverseAddress({
