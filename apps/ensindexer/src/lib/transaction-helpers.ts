@@ -24,15 +24,15 @@ export type TraceTransactionSchema = {
 };
 
 interface Trace {
-  to: Address;
+  type: "CALL" | "STATICCALL" | "DELEGATECALL" | "CREATE" | "CREATE2";
   from: Address;
+  to: Address;
   gas: Hex;
   gasUsed: Hex;
-  input: "Hash";
-  output: Hash;
-  calls: Trace[];
-  value: Hex;
-  type: "CALL" | "STATICCALL" | "DELEGATECALL" | "CREATE" | "CREATE2";
+  input: Hash;
+  output?: Hash;
+  value?: Hex;
+  calls?: ReadonlyArray<Trace>;
 }
 
 /**
@@ -45,7 +45,7 @@ export function getAddressesFromTrace(trace: Trace): Array<Address> {
   const text = JSON.stringify(trace);
   // Regular expression to match Ethereum addresses
   // Looking for 0x followed by exactly 40 hex characters
-  const regex = /0x[a-fA-F0-9]{40}/g;
+  const regex = /\b0x[a-fA-F0-9]{40}\b/g;
 
   // Find all matches
   const matches = text.match(regex);

@@ -117,7 +117,7 @@ export const makeRegistryHandlers = ({ pluginName }: { pluginName: PluginName })
                 });
 
                 if (healedLabel) {
-                  console.log(`Healed reverse address: ${labelHash}->${maybeReverseAddress}`);
+                  console.log(`Healed reverse address: ${labelHash},${healedLabel}`);
                   break;
                 }
               }
