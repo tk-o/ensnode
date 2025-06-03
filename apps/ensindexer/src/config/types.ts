@@ -1,5 +1,9 @@
 import { Blockrange } from "@/lib/types";
-import type { ENSDeployments } from "@ensnode/ens-deployments";
+import type {
+  ENSDeployment,
+  ENSDeploymentChain,
+  ENSDeploymentCommonType,
+} from "@ensnode/ens-deployments";
 import type { PluginName } from "@ensnode/ensnode-sdk";
 
 /**
@@ -30,11 +34,18 @@ export interface RpcConfig {
  */
 export interface ENSIndexerConfig {
   /**
-   * The ENS Deployment that ENSIndexer is targeting, defaulting to 'mainnet' (DEFAULT_ENS_DEPLOYMENT_CHAIN).
+   * The ENS Deployment that ENSIndexer is indexing, defaulting to 'mainnet' (DEFAULT_ENS_DEPLOYMENT_CHAIN).
    *
-   * See {@link ENSDeployments} for available deployments.
+   * See {@link ENSDeploymentChain} for available deployment chains.
    */
-  ensDeploymentChain: keyof typeof ENSDeployments;
+  ensDeploymentChain: ENSDeploymentChain;
+
+  /**
+   * Details of the ENS Deployment on `ensDeploymentChain`.
+   *
+   * See {@link ENSDeployment} for the deployment type.
+   */
+  ensDeployment: ENSDeploymentCommonType;
 
   /**
    * An ENSAdmin url, defaulting to the public instance https://admin.ensnode.io (DEFAULT_ENSADMIN_URL).
