@@ -23,7 +23,7 @@ import { Registry as linea_Registry } from "./abis/lineanames/Registry";
 import { ThreeDNSToken } from "./abis/threedns/ThreeDNSToken";
 import { ResolverConfig } from "./lib/resolver";
 
-// ABIS for EFP Datasource
+// ABIs for the EFP Datasource
 import EFPListRegistry from "./abis/efp/EFPListRegistry";
 
 /**
@@ -221,11 +221,11 @@ export default {
   },
 
   /**
-   * The EFP Datasource on Base.
+   * The EFP Root Datasource.
    * Addresses, ABIs and start blocks defined based on a list of EFP deployments:
    * https://docs.efp.app/production/deployments/
    */
-  [DatasourceName.EFPBase]: {
+  [DatasourceName.EFPRoot]: {
     chain: base,
     contracts: {
       EFPListRegistry: {

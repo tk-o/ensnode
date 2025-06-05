@@ -10,7 +10,7 @@ import type { Address } from "viem/accounts";
 import { getAddress } from "viem/utils";
 
 const efpListRegistryContract =
-  config.ensDeployment[DatasourceName.EFPBase].contracts["EFPListRegistry"];
+  config.ensDeployment[DatasourceName.EFPRoot].contracts["EFPListRegistry"];
 
 export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.EFP>) {
   ///
@@ -127,7 +127,7 @@ type ListStorageLocation = {
   type: string;
 
   /**
-   * The 32-byte EVM chain ID of the chain where the list is stored.
+   * 32-byte EVM chain ID of the chain where the EFP list records are stored.
    * A.k.a. `chain_id`
    */
   chainId: bigint;

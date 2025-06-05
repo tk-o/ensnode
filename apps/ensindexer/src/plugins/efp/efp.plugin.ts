@@ -19,7 +19,7 @@ import { createConfig } from "ponder";
 const pluginName = PluginName.EFP;
 
 // Define the Datasources required by the plugin
-const requiredDatasources = [DatasourceName.EFPBase];
+const requiredDatasources = [DatasourceName.EFPRoot];
 
 // construct a unique contract namespace for this plugin
 const namespace = makePluginNamespace(pluginName);
@@ -28,7 +28,7 @@ const namespace = makePluginNamespace(pluginName);
 function createPonderConfig(appConfig: ENSIndexerConfig) {
   const { ensDeployment } = appConfig;
   // extract the chain and contract configs for root Datasource in order to build ponder config
-  const { chain, contracts } = ensDeployment[DatasourceName.EFPBase];
+  const { chain, contracts } = ensDeployment[DatasourceName.EFPRoot];
 
   return createConfig({
     networks: networksConfigForChain(chain.id),
