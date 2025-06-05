@@ -23,7 +23,7 @@ const requiredDatasources = [DatasourceName.Root];
 // construct a unique contract namespace for this plugin
 const namespace = makePluginNamespace(pluginName);
 
-// config object factory used to derive PluginConfig type
+// config object factory used to derive PonderConfig type
 function createPonderConfig(appConfig: ENSIndexerConfig) {
   const { ensDeployment } = appConfig;
   // extract the chain and contract configs for root Datasource in order to build ponder config
@@ -83,9 +83,9 @@ export default {
   }),
 
   /**
-   * Load the plugin configuration lazily to prevent premature execution of
-   * nested factory functions, i.e. to ensure that the plugin configuration
-   * is only built when the plugin is activated.
+   * Create the ponder configuration lazily to prevent premature execution of
+   * nested factory functions, i.e. to ensure that the ponder configuration
+   * is created for this plugin when it is activated.
    */
   createPonderConfig,
 
