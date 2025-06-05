@@ -315,9 +315,9 @@ const makeApiDocumentation = (isSubgraph: boolean) => {
     }),
     ...generateTypeDocSetWithTypeName("efp_listStorageLocation", "EFP List Storage Location", {
       id: "A compound identifier based on the following values: chainId, listRecordsAddress, slot",
-      chainId: "The 32-byte EVM chain ID of the chain where the list is stored",
-      listRecordsAddress: "The 20-byte EVM address of the contract where the list is stored",
-      slot: "A 32-byte value that specifies the storage slot of the list within the contract. This disambiguates multiple lists stored within the same contract and de-couples it from the EFP List NFT token id which is stored on the EFP Root deployment chain and inaccessible on other chains.",
+      chainId: "EVM chain ID of the chain where the list is stored",
+      listRecordsAddress: "EVM address of the contract where the list is stored",
+      slot: "The 32-byte value that specifies the storage slot of the list within the contract. This disambiguates multiple lists stored within the same contract and de-couples it from the EFP List NFT token id which is stored on the EFP Root deployment chain and inaccessible on other chains.",
       listTokenId: "Unique identifier for this EFP list token",
       listToken: "A reference to the related ListToken entity",
     }),

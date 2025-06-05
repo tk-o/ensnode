@@ -3,6 +3,7 @@ import { baseSepolia, sepolia } from "viem/chains";
 import { ResolverConfig } from "./lib/resolver";
 import { DatasourceName, type ENSDeployment } from "./lib/types";
 
+// ABIs for the EFP Datasource
 import EFPListRegistry from "./abis/efp/EFPListRegistry";
 // ABIs for Root Datasource
 import { BaseRegistrar as root_BaseRegistrar } from "./abis/root/BaseRegistrar";

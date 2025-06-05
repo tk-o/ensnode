@@ -57,7 +57,7 @@ export default {
   /**
    * Create the ponder configuration lazily to prevent premature execution of
    * nested factory functions, i.e. to ensure that the ponder configuration
-   * is created for this plugin when it is activated.
+   * is only created for this plugin when it is activated.
    */
   createPonderConfig,
 
