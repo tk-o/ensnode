@@ -2,7 +2,7 @@
  * Schema definitions for EFP entities.
  */
 
-import { onchainTable, primaryKey, relations } from "ponder";
+import { onchainTable, relations } from "ponder";
 
 /**
  * EFP List Token
@@ -33,48 +33,47 @@ export const efp_listToken = onchainTable("efp_list_token", (p) => ({
  *
  * @link https://docs.efp.app/design/list-storage-location/#onchain-storage
  */
-export const efp_listStorageLocation = onchainTable(
-  "efp_list_storage_location",
-  (p) => ({
-    /**
-     * Chain ID
-     *
-     * 32-byte EVM chain ID of the chain where the EFP list records are stored.
-     */
-    chainId: p.bigint().notNull(),
+export const efp_listStorageLocation = onchainTable("efp_list_storage_location", (p) => ({
+  /**
+   * ListStorageLocation ID
+   *
+   * This compound identifier that includes:
+   * - chainId
+   * - listRecordsAddress
+   * - slot
+   *
+   * NOTE:
+   * We use a compound identifier for database performance benefits.
+   */
+  id: p.text().primaryKey(),
 
-    /**
-     * Contract address where the EFP list records are stored.
-     */
-    listRecordsAddress: p.hex().notNull(),
+  /**
+   * EVM chain ID of the chain where the EFP list records are stored.
+   */
+  chainId: p.integer().notNull(),
 
-    /**
-     * Slot
-     *
-     * 32-byte value that specifies the storage slot of the list within the contract.
-     * This disambiguates multiple lists stored within the same contract and
-     * de-couples it from the EFP List NFT token id which is stored on Ethereum
-     * and inaccessible on L2s.
-     */
-    slot: p.bigint().notNull(),
+  /**
+   * Contract address where the EFP list records are stored.
+   */
+  listRecordsAddress: p.hex().notNull(),
 
-    /**
-     * EFP List Token ID
-     *
-     * References the associated EFP List Token entity.
-     */
-    listTokenId: p.bigint().notNull(),
-  }),
-  (table) => ({
-    /**
-     * An EFP Storage Location can be uniquely specified via three pieces of data:
-     *   - `chain_id` (which is the `chainId` in the schema)
-     *   - `contract_address` (which is the `listRecordsAddress` in the schema)
-     *   - `slot`
-     */
-    pk: primaryKey({ columns: [table.chainId, table.listRecordsAddress, table.slot] }),
-  }),
-);
+  /**
+   * Slot
+   *
+   * 32-byte value that specifies the storage slot of the list within the contract.
+   * This disambiguates multiple lists stored within the same contract and
+   * de-couples it from the EFP List NFT token id which is stored on Ethereum
+   * and inaccessible on L2s.
+   */
+  slot: p.bigint().notNull(),
+
+  /**
+   * EFP List Token ID
+   *
+   * References the associated EFP List Token entity.
+   */
+  listTokenId: p.bigint().notNull(),
+}));
 
 // Define relationship between the "List Token" and the "List Storage Location" entities
 // Each List Token has zero-to-one List Storage Location.
