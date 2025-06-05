@@ -10,7 +10,7 @@ export interface ListStorageLocation {
    * This is used to ensure compatibility and facilitate future upgrades.
    * The version is always 1.
    */
-  version: 1;
+  version: ListStorageLocationVersion.V1;
 
   /**
    * The type of the List Storage Location.
@@ -18,15 +18,15 @@ export interface ListStorageLocation {
    * This identifies the kind of data the data field contains.
    * The location type is always 1.
    */
-  type: 1;
+  type: ListStorageLocationType.EVMContract;
 
   /**
-   * 32-byte EVM chain ID of the chain where the EFP list records are stored.
+   * EVM chain ID of the chain where the EFP list records are stored.
    */
   chainId: number;
 
   /**
-   * The 20-byte EVM address of the contract where the list is stored.
+   * EVM address of the contract where the list is stored.
    */
   listRecordsAddress: Address;
 
@@ -37,4 +37,28 @@ export interface ListStorageLocation {
    * inaccessible on L2s.
    */
   slot: bigint;
+}
+
+/**
+ * Enum defining List Storage Location Types
+ *
+ * Based on documentation at:
+ * https://docs.efp.app/design/list-storage-location/#location-types
+ */
+export enum ListStorageLocationType {
+  /**
+   * EVMContract Data representation:
+   * 32-byte chain ID + 20-byte contract address + 32-byte slot
+   */
+  EVMContract = 1,
+}
+
+/**
+ * Enum defining List Storage Location Version
+ *
+ * Based on documentation at:
+ * https://docs.efp.app/design/list-storage-location/#serialization
+ */
+export enum ListStorageLocationVersion {
+  V1 = 1,
 }

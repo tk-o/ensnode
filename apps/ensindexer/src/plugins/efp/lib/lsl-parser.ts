@@ -6,7 +6,11 @@ import type { ENSDeploymentChain } from "@ensnode/ens-deployments";
 import { base, baseSepolia, mainnet, optimism, optimismSepolia, sepolia } from "viem/chains";
 import { getAddress } from "viem/utils";
 import { prettifyError, z } from "zod/v4";
-import { ListStorageLocation } from "./types";
+import {
+  type ListStorageLocation,
+  ListStorageLocationType,
+  ListStorageLocationVersion,
+} from "./types";
 
 // NOTE: based on code from https://github.com/ethereumfollowprotocol/onchain/blob/f3c970e/src/efp.ts#L95-L123
 /**
@@ -19,27 +23,17 @@ import { ListStorageLocation } from "./types";
  *
  * @param encodedLsl - The encoded List Storage Location string to parse.
  * @param efpChainIds - The list of chain IDs where EFP is present
- * @throws An error if parsing could not be completed successfully.
  * @returns A decoded {@link ListStorageLocation} object.
+ * @throws An error if parsing could not be completed successfully.
  */
 export function parseEncodedListStorageLocation(
   encodedLsl: string,
   efpChainIds: number[],
 ): ListStorageLocation {
-  const parserContext = {
-    inputLength: encodedLsl.length,
-  } satisfies LslParserContext;
-
   const slicedEncodedLsl = sliceEncodedLsl(encodedLsl);
+  const efpLslSchema = createEfpLslSchema(efpChainIds);
 
-  const efpLslSchema = createEfpLslSchema({
-    efpChainIds,
-  });
-
-  const parsed = efpLslSchema.safeParse({
-    ...slicedEncodedLsl,
-    ...parserContext,
-  });
+  const parsed = efpLslSchema.safeParse(slicedEncodedLsl);
 
   if (!parsed.success) {
     throw new Error(
@@ -69,7 +63,7 @@ export function getEFPChainIds(ensDeploymentChain: ENSDeploymentChain): number[]
 }
 
 /**
- * Data structure used as a subject of parsing with {@link createEfpLslSchema}.
+ * Data structure used during parsing with {@link createEfpLslSchema} schema.
  */
 interface EncodedListStorageLocation {
   /**
@@ -77,7 +71,6 @@ interface EncodedListStorageLocation {
    *
    * Formatted as the string representation of a `uint8` value.
    * This is used to ensure compatibility and facilitate future upgrades.
-   * The version is always 1.
    */
   version: string;
 
@@ -86,7 +79,6 @@ interface EncodedListStorageLocation {
    *
    * Formatted as the string representation of a `uint8` value.
    * This identifies the kind of data the data field contains.
-   * The location type is always 1.
    */
   type: string;
 
@@ -113,8 +105,13 @@ interface EncodedListStorageLocation {
  * Slice encoded LSL into a dictionary of LSL params.
  * @param encodedLsl
  * @returns {EncodedListStorageLocation} LSL params.
+ * @throws {Error} when input param is not of expected length
  */
 function sliceEncodedLsl(encodedLsl: string): EncodedListStorageLocation {
+  if (encodedLsl.length !== 174) {
+    throw new Error("Encoded List Storage Location values must be a 174-character long string");
+  }
+
   return {
     // Extract the first byte after the 0x (2 hex characters = 1 byte)
     version: encodedLsl.slice(2, 4),
@@ -134,36 +131,15 @@ function sliceEncodedLsl(encodedLsl: string): EncodedListStorageLocation {
 }
 
 /**
- * Context object to be used by the {@link parseEncodedListStorageLocation} parser.
- */
-interface LslParserContext {
-  /**
-   * The length of an encodedLsl string. Used for validation purposes only.
-   */
-  inputLength: number;
-}
-
-/**
- * Options required for data parsing with {@link createEfpLslSchema}.
- */
-interface CreateEfpLslSchemaOptions {
-  /**
-   * List of IDs for chains that the EFP protocol has been present on.
-   */
-  efpChainIds: number[];
-}
-
-/**
  * Create a zod schema covering validations and invariants enforced with {@link parseEncodedListStorageLocation} parser.
+ * @param {number[]} efpChainIds List of IDs for chains that the EFP protocol has been present on.
  */
-const createEfpLslSchema = (options: CreateEfpLslSchemaOptions) =>
+const createEfpLslSchema = (efpChainIds: number[]) =>
   z
     .object({
-      inputLength: z.literal(174),
+      version: z.literal("01").transform(() => ListStorageLocationVersion.V1),
 
-      version: z.literal("01").transform(() => 1 as const),
-
-      type: z.literal("01").transform(() => 1 as const),
+      type: z.literal("01").transform(() => ListStorageLocationType.EVMContract),
 
       chainId: z
         .string()
@@ -188,9 +164,6 @@ const createEfpLslSchema = (options: CreateEfpLslSchemaOptions) =>
     })
     // invariant: chainId is from one of the chains that EFP has been present on
     // https://docs.efp.app/production/deployments/
-    .refine((v) => options.efpChainIds.includes(v.chainId), {
-      message: `chainId must be one of the EFP Chain IDs: ${options.efpChainIds.join(", ")}`,
-    })
-    //
-    // leave parser context props out of the output object
-    .transform(({ inputLength, ...decodedLsl }) => decodedLsl);
+    .refine((v) => efpChainIds.includes(v.chainId), {
+      message: `chainId must be one of the EFP Chain IDs: ${efpChainIds.join(", ")}`,
+    });
