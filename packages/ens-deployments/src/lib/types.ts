@@ -33,7 +33,7 @@ export enum DatasourceName {
   Lineanames = "lineanames",
   ThreeDNSOptimism = "threedns-optimism",
   ThreeDNSBase = "threedns-base",
-  EFPRoot = "efp-base",
+  EFPRoot = "efp-root",
 }
 
 /**

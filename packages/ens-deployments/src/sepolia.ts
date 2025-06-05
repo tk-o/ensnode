@@ -61,15 +61,17 @@ export default {
     },
   },
   /**
-   * The Sepolia ENSDeployment has no known Datasource for Basenames.
+   * NOTE:
    *
-   * linea.eth's L1Resolver is deployed to Sepolia, but we do not index Linea Sepolia names here.
-   * https://github.com/Consensys/linea-ens/tree/main/packages/linea-ens-resolver/deployments/sepolia
+   *    The Sepolia ENSDeployment has no known Datasource for Basenames.
+   *
+   *    linea.eth's L1Resolver is deployed to Sepolia, but we do not index Linea Sepolia names here.
+   *    https://github.com/Consensys/linea-ens/tree/main/packages/linea-ens-resolver/deployments/sepolia
    */
 
   /**
-   * The EFP Root Datasource.
-   * Addresses, ABIs and start blocks defined based on a list of EFP testnet deployments:
+   * The Root EFP Datasource.
+   * Based on the list of EFP testnet deployments:
    * https://docs.efp.app/production/deployments/
    */
   [DatasourceName.EFPRoot]: {

@@ -221,8 +221,8 @@ export default {
   },
 
   /**
-   * The EFP Root Datasource.
-   * Addresses, ABIs and start blocks defined based on a list of EFP deployments:
+   * The Root EFP Datasource.
+   * Based on the list of EFP deployments:
    * https://docs.efp.app/production/deployments/
    */
   [DatasourceName.EFPRoot]: {

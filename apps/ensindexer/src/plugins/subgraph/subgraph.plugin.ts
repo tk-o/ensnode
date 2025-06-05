@@ -64,7 +64,7 @@ function createPonderConfig(appConfig: ENSIndexerConfig) {
   });
 }
 
-// Implicitly define the type returned by createPluginConfig
+// Implicitly define the type returned by createPonderConfig
 type PonderConfig = ReturnType<typeof createPonderConfig>;
 
 export default {

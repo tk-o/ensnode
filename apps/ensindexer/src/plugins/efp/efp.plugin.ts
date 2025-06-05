@@ -27,7 +27,7 @@ const namespace = makePluginNamespace(pluginName);
 // config object factory used to derive PluginConfig type
 function createPonderConfig(appConfig: ENSIndexerConfig) {
   const { ensDeployment } = appConfig;
-  // extract the chain and contract configs for root Datasource in order to build ponder config
+  // extract the chain and contract configs for the EFP root Datasource in order to build ponder config
   const { chain, contracts } = ensDeployment[DatasourceName.EFPRoot];
 
   return createConfig({
@@ -41,7 +41,7 @@ function createPonderConfig(appConfig: ENSIndexerConfig) {
   });
 }
 
-// Implicitly define the type returned by createPluginConfig
+// Implicitly define the type returned by createPonderConfig
 type PonderConfig = ReturnType<typeof createPonderConfig>;
 
 export default {
