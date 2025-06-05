@@ -1,16 +1,15 @@
+import type { Address } from "viem";
+
 /**
  * Makes a unique EFP List Storage Location ID.
  *
  * @example `${chainId}-${listRecordsAddress}-${slot}`
  *
  * @param chainId the chain ID
- * @param address the resolver contract address
- * @param node the ENS node
- * @returns a unique resolver ID
+ * @param listRecordsAddress the listRecordsAddress address
+ * @param slot the slot value
+ * @returns a unique List Storage Location ID
  */
-
-import type { Address } from "viem";
-
 export const makeListStorageLocationId = (
   chainId: number,
   listRecordsAddress: Address,

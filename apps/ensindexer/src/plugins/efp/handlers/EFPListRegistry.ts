@@ -51,7 +51,7 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
     async function handleEFPListStorageLocationUpdate({ context, event }) {
       const { listStorageLocation: encodedListStorageLocation, tokenId } = event.args;
 
-      // Index the List Storage Location linked to the List Token
+      // Index the List Storage Location associated with the List Token
       try {
         const listToken = await context.db.find(efp_listToken, { id: tokenId });
 
