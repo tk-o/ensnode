@@ -45,69 +45,62 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
       }
     },
   );
-}
 
-ponder.on(
-  "efp/EFPListRegistry:UpdateListStorageLocation",
-  async function handleEFPListStorageLocationUpdate({ context, event }) {
-    const { listStorageLocation, tokenId } = event.args;
+  ponder.on(
+    "efp/EFPListRegistry:UpdateListStorageLocation",
+    async function handleEFPListStorageLocationUpdate({ context, event }) {
+      const { listStorageLocation: encodedListStorageLocation, tokenId } = event.args;
 
-    // Index the List Storage Location linked to the List Token
-    try {
-      const listToken = await context.db.find(efp_listToken, { id: tokenId });
+      // Index the List Storage Location linked to the List Token
+      try {
+        const listToken = await context.db.find(efp_listToken, { id: tokenId });
 
-      if (!listToken) {
-        throw new Error(
-          `Cannot update List Storage Location for not existing List Token (id: ${tokenId})`,
+        if (!listToken) {
+          throw new Error(
+            `Cannot update List Storage Location for non-existing List Token (id: ${tokenId})`,
+          );
+        }
+
+        const efpChainIds = getEFPChainIds(config.ensDeploymentChain);
+
+        const { chainId, listRecordsAddress, slot } = parseEncodedListStorageLocation(
+          encodedListStorageLocation,
+          efpChainIds,
+        );
+
+        const listStorageLocationId = makeListStorageLocationId(chainId, listRecordsAddress, slot);
+
+        // Index the parsed List Storage Location data with a reference to the List Token
+        // created with the currently handled EVM event
+        await context.db
+          .insert(efp_listStorageLocation)
+          .values({
+            id: listStorageLocationId,
+            listTokenId: listToken.id,
+            chainId,
+            listRecordsAddress,
+            slot,
+          })
+          // TODO: decide what needs to do in a case of violated unique constraint.
+          // There can be only one LSL entity with a given triple of (chainId, listRecordsAddress, slot).
+          // In case we try inserting a duplicate of the existing LSL entity,
+          // we will get the unique constraint violation error.
+          // For example, it happens for List Storage Location fetched after
+          // this transaction
+          // https://basescan.org/tx/0x5f64037fedd56a3a874f598a38a48ea6f8f5f9815223dac955e2c18eff1ab173
+          //
+          // Can the same triple of (chainId, listRecordsAddress, slot) value be linked with different tokenIds?
+          //
+          // NOTE: For now, we do update the reference for the List Token
+          .onConflictDoUpdate({
+            listTokenId: listToken.id,
+          });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error(
+          `Could not create a List storage Location for tx "${event.transaction.hash}" on chain with ID "${context.network.chainId}". Error: ${errorMessage}.`,
         );
       }
-
-      const efpChainIds = getEFPChainIds(config.ensDeploymentChain);
-
-      const parsedListStorageLocation = parseEncodedListStorageLocation(
-        listStorageLocation,
-        efpChainIds,
-      );
-
-      const listStorageLocationId = makeListStorageLocationId(
-        parsedListStorageLocation.chainId,
-        parsedListStorageLocation.listRecordsAddress,
-        parsedListStorageLocation.slot,
-      );
-
-      // Index the parsed List Storage Location data with a reference to the List Token
-      // created with the currently handled EVM event
-      await context.db
-        .insert(efp_listStorageLocation)
-        .values({
-          ...parsedListStorageLocation,
-          id: listStorageLocationId,
-          listTokenId: listToken.id,
-        })
-        // TODO: decide what needs to do in a case of violated unique constraint.
-        // There can be only one LSL entity with a given triple of (chainId, listRecordsAddress, slot).
-        // In case we try inserting a duplicate of the existing LSL entity,
-        // we will get the unique constraint violation error.
-        // For example, it happens for List Storage Location fetched after
-        // this transaction
-        // https://basescan.org/tx/0x5f64037fedd56a3a874f598a38a48ea6f8f5f9815223dac955e2c18eff1ab173
-        //
-        // Can the same triple of (chainId, listRecordsAddress, slot) value be linked with different tokenIds?
-        //
-        // NOTE: For now, we do update the reference to the List Token
-        .onConflictDoUpdate({
-          listTokenId: listToken.id,
-        });
-    } catch (error) {
-      console.error(
-        `Could not create a List storage Location for tx "${event.transaction.hash}" on chain with ID "${context.network.chainId}"`,
-      );
-
-      if (process.env.PONDER_LOG_LEVEL === "trace") {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-
-        console.error(`Error: ${errorMessage}`);
-      }
-    }
-  },
-);
+    },
+  );
+}
