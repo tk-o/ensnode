@@ -31,11 +31,11 @@ export type MergedPonderConfig = AllPluginsConfig & {
 ////////
 
 // filter all plugins by those activated by the config
-const activePlugins = ALL_PLUGINS.filter((plugin) => config.plugins.includes(plugin.pluginName));
+const activePlugins = ALL_PLUGINS.filter((plugin) => config.plugins.includes(plugin.name));
 
 // combine each plugins' config into a MergedPonderConfig
 const ponderConfig = activePlugins.reduce(
-  (memo, plugin) => mergePonderConfigs(memo, plugin.createPonderConfig(config)),
+  (memo, plugin) => mergePonderConfigs(memo, plugin.getPonderConfig(config)),
   {},
 ) as MergedPonderConfig;
 

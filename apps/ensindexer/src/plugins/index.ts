@@ -14,7 +14,7 @@ export const ALL_PLUGINS = [
 ] as const;
 
 export type AllPluginsConfig = MergedTypes<
-  ReturnType<(typeof ALL_PLUGINS)[number]["createPonderConfig"]>
+  ReturnType<(typeof ALL_PLUGINS)[number]["getPonderConfig"]>
 >;
 
 // Helper type to merge multiple types into one
@@ -28,7 +28,7 @@ type MergedTypes<T> = (T extends any ? (x: T) => void : never) extends (x: infer
  * @see {ALL_PLUGINS} list
  */
 export function getPlugin(pluginName: PluginName) {
-  const plugin = ALL_PLUGINS.find((plugin) => plugin.pluginName === pluginName);
+  const plugin = ALL_PLUGINS.find((plugin) => plugin.name === pluginName);
 
   if (plugin) {
     return plugin;
