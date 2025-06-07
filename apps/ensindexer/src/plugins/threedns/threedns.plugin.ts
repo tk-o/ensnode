@@ -33,21 +33,21 @@ function createPonderConfig(appConfig: ENSIndexerConfig) {
 
   return createConfig({
     networks: {
-      ...networksConfigForChain(optimism.id),
-      ...networksConfigForChain(base.id),
+      ...networksConfigForChain(appConfig, optimism.id),
+      ...networksConfigForChain(appConfig, base.id),
     },
     contracts: {
       [namespace("ThreeDNSToken")]: {
         network: {
-          ...networkConfigForContract(optimism, optimismContracts.ThreeDNSToken),
-          ...networkConfigForContract(base, baseContracts.ThreeDNSToken),
+          ...networkConfigForContract(appConfig, optimism, optimismContracts.ThreeDNSToken),
+          ...networkConfigForContract(appConfig, base, baseContracts.ThreeDNSToken),
         },
         abi: optimismContracts.ThreeDNSToken.abi,
       },
       [namespace("Resolver")]: {
         network: {
-          ...networkConfigForContract(optimism, optimismContracts.Resolver),
-          ...networkConfigForContract(base, baseContracts.Resolver),
+          ...networkConfigForContract(appConfig, optimism, optimismContracts.Resolver),
+          ...networkConfigForContract(appConfig, base, baseContracts.Resolver),
         },
         abi: optimismContracts.Resolver.abi,
       },

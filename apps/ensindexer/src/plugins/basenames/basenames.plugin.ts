@@ -29,26 +29,26 @@ function createPonderConfig(appConfig: ENSIndexerConfig) {
   const { chain, contracts } = ensDeployment[DatasourceName.Basenames];
 
   return createConfig({
-    networks: networksConfigForChain(chain.id),
+    networks: networksConfigForChain(appConfig, chain.id),
     contracts: {
       [namespace("Registry")]: {
-        network: networkConfigForContract(chain, contracts.Registry),
+        network: networkConfigForContract(appConfig, chain, contracts.Registry),
         abi: contracts.Registry.abi,
       },
       [namespace("BaseRegistrar")]: {
-        network: networkConfigForContract(chain, contracts.BaseRegistrar),
+        network: networkConfigForContract(appConfig, chain, contracts.BaseRegistrar),
         abi: contracts.BaseRegistrar.abi,
       },
       [namespace("EARegistrarController")]: {
-        network: networkConfigForContract(chain, contracts.EARegistrarController),
+        network: networkConfigForContract(appConfig, chain, contracts.EARegistrarController),
         abi: contracts.EARegistrarController.abi,
       },
       [namespace("RegistrarController")]: {
-        network: networkConfigForContract(chain, contracts.RegistrarController),
+        network: networkConfigForContract(appConfig, chain, contracts.RegistrarController),
         abi: contracts.RegistrarController.abi,
       },
       Resolver: {
-        network: networkConfigForContract(chain, contracts.Resolver),
+        network: networkConfigForContract(appConfig, chain, contracts.Resolver),
         abi: contracts.Resolver.abi,
       },
     },

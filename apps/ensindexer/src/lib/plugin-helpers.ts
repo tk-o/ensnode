@@ -1,7 +1,6 @@
-import config from "@/config";
 import type { ENSIndexerConfig } from "@/config/types";
 import { uniq } from "@/lib/lib-helpers";
-import { constrainContractBlockrange } from "@/lib/ponder-helpers";
+import type { Blockrange } from "@/lib/types";
 import { getRequiredDatasourceNames } from "@/plugins";
 import {
   ContractConfig,
@@ -145,7 +144,10 @@ export function getIndexedChainIds(datasources: Datasource[]): number[] {
 /**
  * Builds a ponder#NetworksConfig for a single, specific chain.
  */
-export function networksConfigForChain(chainId: number) {
+export function networksConfigForChain(
+  config: Pick<ENSIndexerConfig, "rpcConfigs">,
+  chainId: number,
+) {
   if (!config.rpcConfigs[chainId]) {
     throw new Error(
       `networksConfigForChain called for chain id ${chainId} but no associated rpcConfig is available in ENSIndexerConfig. rpcConfig specifies the following chain ids: [${Object.keys(config.rpcConfigs).join(", ")}].`,
@@ -170,13 +172,14 @@ export function networksConfigForChain(chainId: number) {
  * indexing range by the globally configured blockrange.
  */
 export function networkConfigForContract<CONTRACT_CONFIG extends ContractConfig>(
+  config: Pick<ENSIndexerConfig, "globalBlockrange">,
   chain: Chain,
   contractConfig: CONTRACT_CONFIG,
 ) {
   return {
     [chain.id.toString()]: {
       address: contractConfig.address, // provide per-network address if available
-      ...constrainContractBlockrange(contractConfig.startBlock), // per-network blockrange
+      ...constrainContractBlockrange(config, contractConfig.startBlock), // per-network blockrange
     },
   };
 }
@@ -210,3 +213,29 @@ export function parseLabelAndNameFromOnChainMetadata(uri: string): [Label, Name]
 
   return [label, name];
 }
+
+/**
+ * Given a contract's start block, returns a block range describing a start and end block
+ * that maintains validity within the global blockrange. The returned start block will always be
+ * defined, but if no end block is specified, the returned end block will be undefined, indicating
+ * that ponder should index the contract in perpetuity.
+ *
+ * @param config the configuration object including `globalBlockrange` value
+ * @param contractStartBlock the preferred start block for the given contract, defaulting to 0
+ * @returns the start and end blocks, contrained to the provided `start` and `end`
+ *  i.e. (startBlock || 0) <= (contractStartBlock || 0) <= (endBlock if specificed)
+ */
+export const constrainContractBlockrange = (
+  config: Pick<ENSIndexerConfig, "globalBlockrange">,
+  contractStartBlock: number | undefined = 0,
+): Blockrange => {
+  const { startBlock, endBlock } = config.globalBlockrange;
+
+  const isEndConstrained = endBlock !== undefined;
+  const concreteStartBlock = Math.max(startBlock || 0, contractStartBlock);
+
+  return {
+    startBlock: isEndConstrained ? Math.min(concreteStartBlock, endBlock) : concreteStartBlock,
+    endBlock,
+  };
+};

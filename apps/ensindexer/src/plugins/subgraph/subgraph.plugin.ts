@@ -31,34 +31,34 @@ function createPonderConfig(appConfig: ENSIndexerConfig) {
   const { chain, contracts } = ensDeployment[DatasourceName.Root];
 
   return createConfig({
-    networks: networksConfigForChain(chain.id),
+    networks: networksConfigForChain(appConfig, chain.id),
     contracts: {
       [namespace("RegistryOld")]: {
-        network: networkConfigForContract(chain, contracts.RegistryOld),
+        network: networkConfigForContract(appConfig, chain, contracts.RegistryOld),
         abi: contracts.Registry.abi,
       },
       [namespace("Registry")]: {
-        network: networkConfigForContract(chain, contracts.Registry),
+        network: networkConfigForContract(appConfig, chain, contracts.Registry),
         abi: contracts.Registry.abi,
       },
       [namespace("BaseRegistrar")]: {
-        network: networkConfigForContract(chain, contracts.BaseRegistrar),
+        network: networkConfigForContract(appConfig, chain, contracts.BaseRegistrar),
         abi: contracts.BaseRegistrar.abi,
       },
       [namespace("EthRegistrarControllerOld")]: {
-        network: networkConfigForContract(chain, contracts.EthRegistrarControllerOld),
+        network: networkConfigForContract(appConfig, chain, contracts.EthRegistrarControllerOld),
         abi: contracts.EthRegistrarControllerOld.abi,
       },
       [namespace("EthRegistrarController")]: {
-        network: networkConfigForContract(chain, contracts.EthRegistrarController),
+        network: networkConfigForContract(appConfig, chain, contracts.EthRegistrarController),
         abi: contracts.EthRegistrarController.abi,
       },
       [namespace("NameWrapper")]: {
-        network: networkConfigForContract(chain, contracts.NameWrapper),
+        network: networkConfigForContract(appConfig, chain, contracts.NameWrapper),
         abi: contracts.NameWrapper.abi,
       },
       Resolver: {
-        network: networkConfigForContract(chain, contracts.Resolver),
+        network: networkConfigForContract(appConfig, chain, contracts.Resolver),
         abi: contracts.Resolver.abi,
       },
     },
