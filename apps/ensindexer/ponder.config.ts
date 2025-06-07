@@ -51,7 +51,17 @@ ponderConfig.indexingBehaviorDependencies = {
 
 // NOTE: we explicitly delay the execution of this function for 1 tick, to avoid a race condition
 // within ponder internals related to the schema name and drizzle-orm
-setTimeout(() => activePlugins.map((plugin) => plugin.activate()), 0);
+setTimeout(async () => {
+  for (const plugin of activePlugins) {
+    const pluginIndexingHandlers = await import(`./src/plugins/${plugin.name}/handlers/index.ts`)
+      .then((mod) => mod.default as Promise<any[]>)
+      .then((handlerImports) => Promise.all(handlerImports));
+
+    console.log("activating plugin handlers", plugin.name, pluginIndexingHandlers);
+
+    pluginIndexingHandlers.forEach((pluginIndexingHandler) => pluginIndexingHandler(plugin));
+  }
+}, 0);
 
 ////////
 // Finally, return the merged config for ponder to use for type inference and runtime behavior.

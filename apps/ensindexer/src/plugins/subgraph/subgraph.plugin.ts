@@ -10,14 +10,6 @@ import { createConfig as createPonderConfig } from "ponder";
 export default definePlugin({
   name: PluginName.Subgraph,
   requiredDatasources: [DatasourceName.Root],
-  indexingHandlers() {
-    return [
-      import("./handlers/Registry"),
-      import("./handlers/Registrar"),
-      import("./handlers/NameWrapper"),
-      import("../shared/Resolver"),
-    ];
-  },
   buildPonderConfig({ datasourceConfigOptions, namespace }) {
     const { contracts, networkConfigForContract, networksConfigForChain } = datasourceConfigOptions(
       DatasourceName.Root,

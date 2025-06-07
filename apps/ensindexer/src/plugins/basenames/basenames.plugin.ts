@@ -1,22 +1,16 @@
-import { definePlugin } from "@/lib/plugin-helpers";
-import { DatasourceName } from "@ensnode/ens-deployments";
-import { PluginName } from "@ensnode/ensnode-sdk";
 /**
  * The Basenames plugin describes indexing behavior for the Basenames ENS Datasource, leveraging
  * the shared Subgraph-compatible indexing logic.
  */
+
+import { definePlugin } from "@/lib/plugin-helpers";
+import { DatasourceName } from "@ensnode/ens-deployments";
+import { PluginName } from "@ensnode/ensnode-sdk";
 import { createConfig as createPonderConfig } from "ponder";
 
 export default definePlugin({
   name: PluginName.Basenames,
   requiredDatasources: [DatasourceName.Basenames],
-  indexingHandlers() {
-    return [
-      // import("./handlers/Registry"),
-      // import("./handlers/Registrar"),
-      // import("../shared/Resolver"),
-    ];
-  },
   buildPonderConfig({ datasourceConfigOptions, namespace }) {
     const { contracts, networkConfigForContract, networksConfigForChain } = datasourceConfigOptions(
       DatasourceName.Basenames,

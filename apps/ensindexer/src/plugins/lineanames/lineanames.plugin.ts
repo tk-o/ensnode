@@ -10,14 +10,6 @@ import { createConfig as createPonderConfig } from "ponder";
 export default definePlugin({
   name: PluginName.Lineanames,
   requiredDatasources: [DatasourceName.Lineanames],
-  indexingHandlers() {
-    return [
-      // import("./handlers/Registry"),
-      // import("./handlers/Registrar"),
-      // import("./handlers/NameWrapper"),
-      // import("../shared/Resolver"),
-    ];
-  },
   buildPonderConfig({ datasourceConfigOptions, namespace }) {
     const { contracts, networkConfigForContract, networksConfigForChain } = datasourceConfigOptions(
       DatasourceName.Lineanames,

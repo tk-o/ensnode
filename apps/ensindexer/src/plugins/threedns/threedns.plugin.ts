@@ -9,11 +9,6 @@ import { createConfig as createPonderConfig } from "ponder";
 export default definePlugin({
   name: PluginName.ThreeDNS,
   requiredDatasources: [DatasourceName.ThreeDNSBase, DatasourceName.ThreeDNSOptimism],
-  indexingHandlers() {
-    return [
-      //import("./handlers/ThreeDNSToken")
-    ];
-  },
   buildPonderConfig({ datasourceConfigOptions, namespace }) {
     const threeDNSBase = datasourceConfigOptions(DatasourceName.ThreeDNSBase);
     const threeDNSOptimism = datasourceConfigOptions(DatasourceName.ThreeDNSOptimism);
