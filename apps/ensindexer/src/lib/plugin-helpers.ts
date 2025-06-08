@@ -6,6 +6,50 @@ import type { NetworkConfig, createConfig as createPonderConfig } from "ponder";
 import { http, type Chain } from "viem";
 
 /**
+ * Define a plugin for ENSIndexer
+ */
+export function definePlugin<
+  PLUGIN_NAME extends PluginName,
+  REQUIRED_DATASOURCES extends readonly DatasourceName[],
+  // Infer the Ponder config result type from the options passed to definePlugin
+  PONDER_CONFIG extends PonderConfigResult,
+>(
+  options: DefinePluginOptions<PLUGIN_NAME, REQUIRED_DATASOURCES, PONDER_CONFIG>,
+): ENSIndexerPlugin<
+  PLUGIN_NAME,
+  REQUIRED_DATASOURCES,
+  PONDER_CONFIG["networks"],
+  PONDER_CONFIG["contracts"],
+  PONDER_CONFIG["accounts"],
+  PONDER_CONFIG["blocks"]
+> {
+  const namespace = makePluginNamespace(options.name);
+
+  const getPonderConfig = (config: ENSIndexerConfigSlice): PONDER_CONFIG => {
+    return options.buildPonderConfig({
+      datasourceConfigOptions<T extends REQUIRED_DATASOURCES[number]>(datasourceName: T) {
+        return getDatasourceConfigOptions(config, datasourceName);
+      },
+      namespace,
+    });
+  };
+
+  return {
+    getPonderConfig,
+    name: options.name,
+    requiredDatasources: options.requiredDatasources,
+    namespace,
+  } as const satisfies ENSIndexerPlugin<
+    PLUGIN_NAME,
+    REQUIRED_DATASOURCES,
+    PONDER_CONFIG["networks"],
+    PONDER_CONFIG["contracts"],
+    PONDER_CONFIG["accounts"],
+    PONDER_CONFIG["blocks"]
+  >;
+}
+
+/**
  * A factory function that returns a function to create a namespaced contract name for Ponder handlers.
  *
  * Ponder config requires a flat dictionary of contract config entires, where each entry has its
@@ -40,25 +84,6 @@ export function makePluginNamespace<const PLUGIN_NAME extends PluginName>(plugin
   };
 }
 
-type MakePluginNamespaceResult<PLUGIN_NAME extends PluginName> = ReturnType<
-  typeof makePluginNamespace<PLUGIN_NAME>
->;
-
-// --- Ponder Config Type Helpers ---
-
-/**
- * Helper type to capture the return type of `createPonderConfig` with its `const` inferred generics.
- * This is the exact shape of a Ponder config.
- */
-type PonderConfigResult<
-  CHAINS extends object = {},
-  CONTRACTS extends object = {},
-  ACCOUNTS extends object = {},
-  BLOCKS extends object = {},
-> = ReturnType<typeof createPonderConfig<CHAINS, CONTRACTS, ACCOUNTS, BLOCKS>>;
-
-// --- Plugin Interface and Options ---
-
 /**
  * Describes an ENSIndexerPlugin used within the ENSIndexer project.
  */
@@ -90,12 +115,10 @@ export interface ENSIndexerPlugin<
     ensIndexerConfig: ENSIndexerConfigSlice,
   ): PonderConfigResult<CHAINS, CONTRACTS, ACCOUNTS, BLOCKS>;
 
-  namespace: MakePluginNamespaceResult<PLUGIN_NAME>;
-
   /**
-   * An `activate` handler that should load the plugin's handlers that eventually execute `ponder.on`
+   * Wrap a contract name within the plugin's namespace.
    */
-  // activate: () => Promise<void>;
+  namespace: MakePluginNamespaceResult<PLUGIN_NAME>;
 }
 
 /**
@@ -155,60 +178,31 @@ export interface DefinePluginOptions<
   ): PONDER_CONFIG;
 }
 
-// --- `definePlugin` Function ---
-
 /**
- * Define a plugin for ENSIndexer
+ * Helper type to capture the return type of `createPonderConfig` with its `const` inferred generics.
+ * This is the exact shape of a Ponder config.
  */
-export function definePlugin<
-  PLUGIN_NAME extends PluginName,
-  REQUIRED_DATASOURCES extends readonly DatasourceName[],
-  // Infer the Ponder config result type from the options passed to definePlugin
-  PONDER_CONFIG extends PonderConfigResult,
->(
-  options: DefinePluginOptions<PLUGIN_NAME, REQUIRED_DATASOURCES, PONDER_CONFIG>,
-): ENSIndexerPlugin<
-  PLUGIN_NAME,
-  REQUIRED_DATASOURCES,
-  PONDER_CONFIG["networks"],
-  PONDER_CONFIG["contracts"],
-  PONDER_CONFIG["accounts"],
-  PONDER_CONFIG["blocks"]
-> {
-  const namespace = makePluginNamespace(options.name);
+type PonderConfigResult<
+  CHAINS extends object = {},
+  CONTRACTS extends object = {},
+  ACCOUNTS extends object = {},
+  BLOCKS extends object = {},
+> = ReturnType<typeof createPonderConfig<CHAINS, CONTRACTS, ACCOUNTS, BLOCKS>>;
 
-  const getPonderConfig = (config: ENSIndexerConfigSlice): PONDER_CONFIG => {
-    return options.buildPonderConfig({
-      datasourceConfigOptions<T extends REQUIRED_DATASOURCES[number]>(datasourceName: T) {
-        return getDatasourceConfigOptions(config, datasourceName);
-      },
-      namespace,
-    });
-  };
-
-  return {
-    getPonderConfig,
-    name: options.name,
-    requiredDatasources: options.requiredDatasources,
-    namespace,
-  } as const satisfies ENSIndexerPlugin<
-    PLUGIN_NAME,
-    REQUIRED_DATASOURCES,
-    PONDER_CONFIG["networks"],
-    PONDER_CONFIG["contracts"],
-    PONDER_CONFIG["accounts"],
-    PONDER_CONFIG["blocks"]
-  >;
-}
-
-// --- Utility Functions (Mostly Unchanged) ---
-
-type DeploymentForDatasource<T extends DatasourceName> = ReturnType<typeof getENSDeployment>[T];
-type ContractsForDatasource<T extends DatasourceName> = DeploymentForDatasource<T>["contracts"];
-
-export type ENSIndexerConfigSlice = Pick<
+type ENSIndexerConfigSlice = Pick<
   ENSIndexerConfig,
   "ensDeploymentChain" | "globalBlockrange" | "rpcConfigs"
+>;
+
+type DeploymentForDatasource<DATASOURCE_NAME extends DatasourceName> = ReturnType<
+  typeof getENSDeployment
+>[DATASOURCE_NAME];
+
+type ContractsForDatasource<DATASOURCE_NAME extends DatasourceName> =
+  DeploymentForDatasource<DATASOURCE_NAME>["contracts"];
+
+type MakePluginNamespaceResult<PLUGIN_NAME extends PluginName> = ReturnType<
+  typeof makePluginNamespace<PLUGIN_NAME>
 >;
 
 /**
