@@ -1,6 +1,7 @@
+import type { ENSIndexerConfig } from "@/config/types";
 import { uniq } from "@/lib/lib-helpers";
 import type { ENSIndexerPluginHandler } from "@/lib/plugin-helpers";
-import { DatasourceName } from "@ensnode/ens-deployments";
+import { type Datasource, DatasourceName, getENSDeployment } from "@ensnode/ens-deployments";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import basenamesPlugin from "./basenames/basenames.plugin";
 import lineaNamesPlugin from "./lineanames/lineanames.plugin";
@@ -49,6 +50,39 @@ export function getRequiredDatasourceNames(pluginNames: PluginName[]): Datasourc
   const requiredDatasourceNames = plugins.flatMap((plugin) => plugin.requiredDatasources);
 
   return uniq(requiredDatasourceNames);
+}
+
+/**
+ * Get a list of unique datasources for selected plugin names.
+ * @param pluginNames
+ * @returns
+ */
+export function getDatasources(
+  config: Pick<ENSIndexerConfig, "ensDeploymentChain" | "plugins">,
+): Datasource[] {
+  const requiredDatasourceNames = getRequiredDatasourceNames(config.plugins);
+  const ensDeployment = getENSDeployment(config.ensDeploymentChain);
+  const ensDeploymentDatasources = Object.entries(ensDeployment) as Array<
+    [DatasourceName, Datasource]
+  >;
+  const datasources = {} as Record<DatasourceName, Datasource>;
+
+  for (let [datasourceName, datasource] of ensDeploymentDatasources) {
+    if (requiredDatasourceNames.includes(datasourceName)) {
+      datasources[datasourceName] = datasource;
+    }
+  }
+
+  return Object.values(datasources);
+}
+
+/**
+ * Get a list of unique indexed chain IDs for selected plugin names.
+ */
+export function getIndexedChainIds(datasources: Datasource[]): number[] {
+  const indexedChainIds = datasources.map((datasource) => datasource.chain.id);
+
+  return uniq(indexedChainIds);
 }
 
 /**
