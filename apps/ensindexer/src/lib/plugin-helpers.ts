@@ -40,6 +40,10 @@ export function makePluginNamespace<const PLUGIN_NAME extends PluginName>(plugin
   };
 }
 
+type MakePluginNamespaceResult<PLUGIN_NAME extends PluginName> = ReturnType<
+  typeof makePluginNamespace<PLUGIN_NAME>
+>;
+
 // --- Ponder Config Type Helpers ---
 
 /**
@@ -47,8 +51,8 @@ export function makePluginNamespace<const PLUGIN_NAME extends PluginName>(plugin
  * This is the exact shape of a Ponder config.
  */
 type PonderConfigResult<
-  CHAINS extends object,
-  CONTRACTS extends object,
+  CHAINS extends object = {},
+  CONTRACTS extends object = {},
   ACCOUNTS extends object = {},
   BLOCKS extends object = {},
 > = ReturnType<typeof createPonderConfig<CHAINS, CONTRACTS, ACCOUNTS, BLOCKS>>;
@@ -86,7 +90,7 @@ export interface ENSIndexerPlugin<
     ensIndexerConfig: ENSIndexerConfigSlice,
   ): PonderConfigResult<CHAINS, CONTRACTS, ACCOUNTS, BLOCKS>;
 
-  namespace: ReturnType<typeof makePluginNamespace<PLUGIN_NAME>>;
+  namespace: MakePluginNamespaceResult<PLUGIN_NAME>;
 
   /**
    * An `activate` handler that should load the plugin's handlers that eventually execute `ponder.on`
@@ -99,13 +103,13 @@ export interface ENSIndexerPlugin<
  */
 export type ENSIndexerPluginHandlerArgs<PLUGIN_NAME extends PluginName = PluginName> = {
   name: PluginName;
-  namespace: ReturnType<typeof makePluginNamespace<PLUGIN_NAME>>;
+  namespace: MakePluginNamespaceResult<PLUGIN_NAME>;
 };
 
 /**
  * An ENSIndexerPlugin accepts ENSIndexerPluginHandlerArgs and registers ponder event handlers.
  */
-export type ENSIndexerPluginHandler<PLUGIN_NAME extends PluginName> = (
+export type ENSIndexerPluginHandler<PLUGIN_NAME extends PluginName = PluginName> = (
   args: ENSIndexerPluginHandlerArgs<PLUGIN_NAME>,
 ) => void;
 
@@ -117,18 +121,13 @@ export interface PluginConfigOptions<
   DATASOURCE_NAME extends DatasourceName,
 > {
   datasourceConfigOptions(datasourceName: DATASOURCE_NAME): {
-    deployment: ReturnType<typeof getENSDeployment>;
-    datasource: DeploymentForDatasource<DATASOURCE_NAME>;
-    chain: ChainForDatasource<DATASOURCE_NAME>;
     contracts: ContractsForDatasource<DATASOURCE_NAME>;
     networksConfigForChain: () => ReturnType<typeof networksConfigForChain>;
     networkConfigForContract: <CONTRACT_CONFIG extends ContractConfig>(
       contractConfig: CONTRACT_CONFIG,
     ) => ReturnType<typeof networkConfigForContract>;
-    config: Pick<ENSIndexerConfigSlice, "ensDeploymentChain" | "globalBlockrange" | "rpcConfigs">;
-    datasourceName: DATASOURCE_NAME;
   };
-  namespace: ReturnType<typeof makePluginNamespace<PLUGIN_NAME>>;
+  namespace: MakePluginNamespaceResult<PLUGIN_NAME>;
 }
 
 /**
@@ -138,7 +137,7 @@ export interface DefinePluginOptions<
   PLUGIN_NAME extends PluginName,
   REQUIRED_DATASOURCES extends readonly DatasourceName[],
   // This generic will capture the exact PonderConfigResult, including the inferred types.
-  PONDER_CONFIG extends PonderConfigResult<any, any>,
+  PONDER_CONFIG extends PonderConfigResult,
 > {
   name: PLUGIN_NAME;
 
@@ -158,16 +157,16 @@ export function definePlugin<
   PLUGIN_NAME extends PluginName,
   REQUIRED_DATASOURCES extends readonly DatasourceName[],
   // Infer the Ponder config result type from the options passed to definePlugin
-  PONDER_CONFIG extends PonderConfigResult<any, any>,
+  PONDER_CONFIG extends PonderConfigResult,
 >(
   options: DefinePluginOptions<PLUGIN_NAME, REQUIRED_DATASOURCES, PONDER_CONFIG>,
 ): ENSIndexerPlugin<
   PLUGIN_NAME,
   REQUIRED_DATASOURCES,
-  PONDER_CONFIG["networks"], // Extract specific inferred networks type
-  PONDER_CONFIG["contracts"], // Extract specific inferred contracts type
-  PONDER_CONFIG["accounts"], // Extract specific inferred accounts type
-  PONDER_CONFIG["blocks"] // Extract specific inferred blocks type
+  PONDER_CONFIG["networks"],
+  PONDER_CONFIG["contracts"],
+  PONDER_CONFIG["accounts"],
+  PONDER_CONFIG["blocks"]
 > {
   const namespace = makePluginNamespace(options.name);
 
@@ -180,19 +179,7 @@ export function definePlugin<
     });
   };
 
-  // const activateHandlers = async () => {
-  //   const args = {
-  //     namespace,
-  //     pluginName: options.name,
-  //   } satisfies ENSIndexerPluginHandlerArgs<PLUGIN_NAME>;
-
-  //   await Promise.all(options.indexingHandlers()).then((modules) =>
-  //     modules.map((m) => m.default(args)),
-  //   );
-  // };
-
   return {
-    // activate: activateHandlers,
     getPonderConfig,
     name: options.name,
     requiredDatasources: options.requiredDatasources,
@@ -211,7 +198,6 @@ export function definePlugin<
 
 type DeploymentForDatasource<T extends DatasourceName> = ReturnType<typeof getENSDeployment>[T];
 type ContractsForDatasource<T extends DatasourceName> = DeploymentForDatasource<T>["contracts"];
-type ChainForDatasource<T extends DatasourceName> = DeploymentForDatasource<T>["chain"];
 
 export type ENSIndexerConfigSlice = Pick<
   ENSIndexerConfig,
@@ -323,24 +309,20 @@ export function getDatasourceConfigOptions<const DATASOURCE_NAME extends Datasou
   const deployment = getENSDeployment(config.ensDeploymentChain);
   const datasource = deployment[datasourceName] as DeploymentForDatasource<DATASOURCE_NAME>;
 
-  const networksConfigForChainTyped = () => {
-    return networksConfigForChain(config, datasource.chain.id);
-  };
-
-  const networkConfigForContractTyped = <CONTRACT_CONFIG extends ContractConfig>(
-    contractConfig: CONTRACT_CONFIG,
-  ) => {
-    return networkConfigForContract(config, datasource.chain, contractConfig);
-  };
-
   return {
-    deployment,
-    datasource,
-    chain: datasource.chain as ChainForDatasource<DATASOURCE_NAME>,
+    // contract configuration for the datasource (comes from `requiredDatasources`)
     contracts: datasource.contracts as ContractsForDatasource<DATASOURCE_NAME>,
-    networksConfigForChain: networksConfigForChainTyped,
-    networkConfigForContract: networkConfigForContractTyped,
-    config,
-    datasourceName,
+
+    // networks configuration for the datasource
+    networksConfigForChain() {
+      return networksConfigForChain(config, datasource.chain.id);
+    },
+
+    // contract-specific network configuration
+    networkConfigForContract<CONTRACT_CONFIG extends ContractConfig>(
+      contractConfig: CONTRACT_CONFIG,
+    ) {
+      return networkConfigForContract(config, datasource.chain, contractConfig);
+    },
   } as const;
 }

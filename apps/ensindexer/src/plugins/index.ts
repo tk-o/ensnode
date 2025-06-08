@@ -1,4 +1,5 @@
 import { uniq } from "@/lib/lib-helpers";
+import type { ENSIndexerPluginHandler } from "@/lib/plugin-helpers";
 import { DatasourceName } from "@ensnode/ens-deployments";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import basenamesPlugin from "./basenames/basenames.plugin";
@@ -13,9 +14,9 @@ export const ALL_PLUGINS = [
   threednsPlugin,
 ] as const;
 
-export type AllPluginsConfig = MergedTypes<
-  ReturnType<(typeof ALL_PLUGINS)[number]["getPonderConfig"]>
->;
+type AllPluginsUnionType = (typeof ALL_PLUGINS)[number];
+
+export type AllPluginsConfig = MergedTypes<ReturnType<AllPluginsUnionType["getPonderConfig"]>>;
 
 // Helper type to merge multiple types into one
 type MergedTypes<T> = (T extends any ? (x: T) => void : never) extends (x: infer R) => void
@@ -48,4 +49,21 @@ export function getRequiredDatasourceNames(pluginNames: PluginName[]): Datasourc
   const requiredDatasourceNames = plugins.flatMap((plugin) => plugin.requiredDatasources);
 
   return uniq(requiredDatasourceNames);
+}
+
+/**
+ * Activate all indexing handlers for a plugin.
+ *
+ * @param plugin The ENSIndexerPlugin object for which indexing handlers must be activated.
+ */
+export async function activatePluginHandlers<const PLUGIN extends AllPluginsUnionType>(
+  plugin: PLUGIN,
+): Promise<void> {
+  const pluginIndexingHandlers = await import(`./${plugin.name}/${plugin.name}.handlers.ts`).then(
+    (mod) => mod.default as ENSIndexerPluginHandler[],
+  );
+
+  for (const pluginIndexingHandler of pluginIndexingHandlers) {
+    pluginIndexingHandler(plugin);
+  }
 }
