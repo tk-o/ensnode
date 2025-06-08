@@ -1,12 +1,13 @@
+/**
+ * The Lineanames plugin describes indexing behavior for the Lineanames ENS Datasource, leveraging
+ * the shared Subgraph-compatible indexing logic.
+ */
+
 import { definePlugin } from "@/lib/plugin-helpers";
 import { DatasourceName } from "@ensnode/ens-deployments";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import { createConfig as createPonderConfig } from "ponder";
 
-/**
- * The Lineanames plugin describes indexing behavior for the Lineanames ENS Datasource, leveraging
- * the shared Subgraph-compatible indexing logic.
- */
 export default definePlugin({
   name: PluginName.Lineanames,
   requiredDatasources: [DatasourceName.Lineanames],

@@ -139,10 +139,17 @@ export interface DefinePluginOptions<
   // This generic will capture the exact PonderConfigResult, including the inferred types.
   PONDER_CONFIG extends PonderConfigResult,
 > {
+  /** The unique plugin name */
   name: PLUGIN_NAME;
 
+  /** The plugin's required Datasources */
   requiredDatasources: REQUIRED_DATASOURCES;
 
+  /**
+   * Build the ponder configuration lazily to prevent premature execution of
+   * nested factory functions, i.e. to ensure that the ponder configuration
+   * is only created for this plugin when it is activated.
+   */
   buildPonderConfig(
     options: PluginConfigOptions<PLUGIN_NAME, REQUIRED_DATASOURCES[number]>,
   ): PONDER_CONFIG;
