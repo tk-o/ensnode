@@ -3,10 +3,10 @@ import { uniq } from "@/lib/lib-helpers";
 import type { ENSIndexerPluginHandler } from "@/lib/plugin-helpers";
 import { type Datasource, DatasourceName, getENSDeployment } from "@ensnode/ens-deployments";
 import { PluginName } from "@ensnode/ensnode-sdk";
-import basenamesPlugin from "./basenames/basenames.plugin";
-import lineaNamesPlugin from "./lineanames/lineanames.plugin";
-import subgraphPlugin from "./subgraph/subgraph.plugin";
-import threednsPlugin from "./threedns/threedns.plugin";
+import basenamesPlugin from "./basenames/plugin";
+import lineaNamesPlugin from "./lineanames/plugin";
+import subgraphPlugin from "./subgraph/plugin";
+import threednsPlugin from "./threedns/plugin";
 
 export const ALL_PLUGINS = [
   subgraphPlugin,
@@ -93,7 +93,7 @@ export function getIndexedChainIds(datasources: Datasource[]): number[] {
 export async function activatePluginHandlers<const PLUGIN extends AllPluginsUnionType>(
   plugin: PLUGIN,
 ): Promise<void> {
-  const pluginIndexingHandlers = await import(`./${plugin.name}/${plugin.name}.handlers.ts`).then(
+  const pluginIndexingHandlers = await import(`./${plugin.name}/handlers.ts`).then(
     (mod) => mod.default as ENSIndexerPluginHandler[],
   );
 
