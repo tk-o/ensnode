@@ -6,7 +6,12 @@ import type { NetworkConfig, createConfig as createPonderConfig } from "ponder";
 import { http, type Chain } from "viem";
 
 /**
- * Define a plugin for ENSIndexer.
+ * Define ENSIndexerPlugin.
+ *
+ * This factory function allows defining a plugin in a confident way,
+ * leveraging type system to build Ponder configuration for the plugin and
+ * use it when defining the global Ponder configuration object from
+ * all active plugins.
  */
 export function definePlugin<
   PLUGIN_NAME extends PluginName,
