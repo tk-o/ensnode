@@ -16,7 +16,7 @@ import { createConfig } from "ponder";
 
 const pluginName = PluginName.ThreeDNS;
 
-// Define the Datasources required by the plugin
+// Define the DatasourceNames for Datasources required by the plugin
 const requiredDatasources = [DatasourceName.ThreeDNSOptimism, DatasourceName.ThreeDNSBase];
 
 // construct a unique contract namespace for this plugin

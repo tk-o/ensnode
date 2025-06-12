@@ -101,7 +101,7 @@ export type ENSDeployment = {
   [DatasourceName.ThreeDNSBase]?: Datasource;
 
   /**
-   * The Datasource for Ethereum Follow Protocol Root
+   * The Datasource for the Ethereum Follow Protocol Root
    */
   [DatasourceName.EFPRoot]?: Datasource;
 };

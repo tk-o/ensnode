@@ -37,10 +37,7 @@ export const efp_listStorageLocation = onchainTable("efp_list_storage_location",
   /**
    * ListStorageLocation ID
    *
-   * This compound identifier that includes:
-   * - chainId
-   * - listRecordsAddress
-   * - slot
+   * This compound identifier is a value of ListStorageLocationId type.
    *
    * NOTE:
    * We use a compound identifier for database performance benefits.
@@ -50,33 +47,34 @@ export const efp_listStorageLocation = onchainTable("efp_list_storage_location",
   /**
    * EVM chain ID of the chain where the EFP list records are stored.
    */
-  chainId: p.integer().notNull(),
+  chainId: p.bigint().notNull(),
 
   /**
-   * Contract address where the EFP list records are stored.
+   * Contract address on chainId where the EFP list records are stored.
    */
   listRecordsAddress: p.hex().notNull(),
 
   /**
    * Slot
    *
-   * 32-byte value that specifies the storage slot of the list within the contract.
+   * 32-byte value that specifies the storage slot of the EFP list records within the listRecordsAddress contract.
    * This disambiguates multiple lists stored within the same contract and
-   * de-couples it from the EFP List NFT token id which is stored on Ethereum
-   * and inaccessible on L2s.
+   * de-couples it from the EFP List NFT token id which is stored on the EFP deployment root chain
+   * and inaccessible on other chains.
    */
   slot: p.bigint().notNull(),
 
   /**
    * EFP List Token ID
    *
-   * References the associated EFP List Token entity.
+   * Foreign key to the associated EFP List Token.
    */
   listTokenId: p.bigint().notNull(),
 }));
 
 // Define relationship between the "List Token" and the "List Storage Location" entities
 // Each List Token has zero-to-one List Storage Location.
+// If zero it means the associated List Storage Location was never created or incorrectly formatted.
 export const efp_listTokenRelations = relations(efp_listToken, ({ one }) => ({
   listStorageLocation: one(efp_listStorageLocation, {
     fields: [efp_listToken.id],

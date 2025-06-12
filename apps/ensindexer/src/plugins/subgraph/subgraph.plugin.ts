@@ -17,7 +17,7 @@ import { createConfig } from "ponder";
 
 const pluginName = PluginName.Subgraph;
 
-// Define the Datasources required by the plugin
+// Define the DatasourceNames for Datasources required by the plugin
 const requiredDatasources = [DatasourceName.Root];
 
 // construct a unique contract namespace for this plugin

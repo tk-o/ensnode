@@ -2,36 +2,54 @@
 
 import type { Address } from "viem/accounts";
 
-// Documented based on https://docs.efp.app/design/list-storage-location/
-export interface ListStorageLocation {
+/**
+ * Base List Storage Location
+ */
+interface BaseListStorageLocation<
+  LSLVersion extends ListStorageLocationVersion,
+  LSLType extends ListStorageLocationType,
+> {
   /**
    * The version of the List Storage Location.
    *
    * This is used to ensure compatibility and facilitate future upgrades.
-   * The version is always 1.
    */
-  version: ListStorageLocationVersion.V1;
+  version: LSLVersion;
 
   /**
    * The type of the List Storage Location.
    *
    * This identifies the kind of data the data field contains.
-   * The location type is always 1.
    */
-  type: ListStorageLocationType.EVMContract;
+  type: LSLType;
+}
 
+/**
+ * List Storage Location Contract
+ *
+ * Describes data model for the EVM contract Location Type as
+ * a specialized version of BaseListStorageLocation interface,
+ * where the location type is always 1, and, for now, the version is always 1.
+ *
+ * Documented based on https://docs.efp.app/design/list-storage-location/
+ */
+export interface ListStorageLocationContract
+  extends BaseListStorageLocation<
+    ListStorageLocationVersion.V1,
+    ListStorageLocationType.EVMContract
+  > {
   /**
    * EVM chain ID of the chain where the EFP list records are stored.
    */
-  chainId: number;
+  chainId: bigint;
 
   /**
-   * EVM address of the contract where the list is stored.
+   * EVM address of the contract on chainId where the EFP list records are stored.
    */
   listRecordsAddress: Address;
 
   /**
-   * The 32-byte value that specifies the storage slot of the list within the contract.
+   * The 32-byte value that specifies the storage slot of the EFP list records within the listRecordsAddress contract.
    * This disambiguates multiple lists stored within the same contract and
    * de-couples it from the EFP List NFT token id which is stored on Ethereum and
    * inaccessible on L2s.
@@ -40,21 +58,21 @@ export interface ListStorageLocation {
 }
 
 /**
- * Enum defining List Storage Location Types
+ * Enum defining recognized List Storage Location Types
  *
  * Based on documentation at:
  * https://docs.efp.app/design/list-storage-location/#location-types
  */
 export enum ListStorageLocationType {
   /**
-   * EVMContract Data representation:
+   * EVMContract Data List Storage Location Type encoding:
    * 32-byte chain ID + 20-byte contract address + 32-byte slot
    */
   EVMContract = 1,
 }
 
 /**
- * Enum defining List Storage Location Version
+ * Enum defining recognized List Storage Location Versions
  *
  * Based on documentation at:
  * https://docs.efp.app/design/list-storage-location/#serialization
