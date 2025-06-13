@@ -33,6 +33,17 @@ export enum ListStorageLocationVersion {
 }
 
 /**
+ * Application data model for EFP Deployment Chain ID.
+ *
+ * EFP has an allowlisted set of supported chains. As of June 13, 2025
+ * the max allowlisted EFP chain id is 11,155,420 (OP Sepolia) and
+ * therefore it is safe for us to use JavaScript number representing an integer value
+ * (an 8-byte IEEE 754 double storing an integer) to store this chainId,
+ * even though technically EVM chainIds are uint256 (32-bytes).
+ */
+type EFPDeploymentChainId = number;
+
+/**
  * Base List Storage Location
  */
 interface BaseListStorageLocation<
@@ -71,27 +82,27 @@ export interface ListStorageLocationContract
   /**
    * EVM chain ID of the chain where the EFP list records are stored.
    */
-  chainId: bigint;
+  chainId: EFPDeploymentChainId;
 
   /**
-   * EVM address of the contract on chainId where the EFP list records are stored.
+   * Contract address on chainId where the EFP list records are stored.
    */
   listRecordsAddress: Address;
 
   /**
    * The 32-byte value that specifies the storage slot of the EFP list records within the listRecordsAddress contract.
    * This disambiguates multiple lists stored within the same contract and
-   * de-couples it from the EFP List NFT token id which is stored on Ethereum and
-   * inaccessible on L2s.
+   * de-couples it from the EFP List NFT token id which is stored on the EFP deployment root chain and
+   * inaccessible on other chains.
    */
   slot: bigint;
 }
 
 /**
  * An encoded List Storage Location is a bytes array with the following structure:
- * - `version`: A uint8 representing the version of the List Storage Location. This is used to ensure compatibility and facilitate future upgrades.
- * - `type`: A uint8 indicating the type of list storage location. This identifies the kind of data the data field contains..
- * - `data:` A bytes array containing the actual data of the list storage location. The structure of this data depends on the location type.
+ * - `version`: A string representation of `uint8` value indicating the version of the List Storage Location. This is used to ensure compatibility and facilitate future upgrades.
+ * - `type`: A string representation of `uint8` value indicating the type of list storage location. This identifies the kind of data the data field contains..
+ * - `data:` A string representation of a bytes array containing the actual data of the list storage location. The structure of this data depends on the location type.
  */
 type EncodedLsl = string;
 
@@ -116,20 +127,27 @@ interface SlicedLslContract {
   type: string;
 
   /**
-   * 32-byte EVM chain ID of the chain where the EFP list records are stored.
+   * The EVM chain ID of the chain where the EFP list records are stored.
+   *
+   * Formatted as the string representation of a `uint256` value.
    */
   chainId: string;
 
   /**
-   * The 20-byte EVM address of the contract on chainId where the EFP list records are stored.
+   * Contract address on chainId where the EFP list records are stored.
+   *
+   * Formatted as the string representation of a 20-byte unsigned integer value.
    */
   listRecordsAddress: string;
 
   /**
-   * The 32-byte value that specifies the storage slot of the EFP list records within the listRecordsAddress contract.
+   * The storage slot of the EFP list records within the listRecordsAddress contract.
+   *
+   * Formatted as the string representation of a `uint256` value.
+   *
    * This disambiguates multiple lists stored within the same contract and
-   * de-couples it from the EFP List NFT token id which is stored on Ethereum and
-   * inaccessible on L2s.
+   * de-couples it from the EFP List NFT token id which is stored on the EFP deployment root chain and
+   * inaccessible on other chains.
    */
   slot: string;
 }
@@ -168,9 +186,9 @@ function sliceEncodedLslContract(encodedLsl: EncodedLsl): SlicedLslContract {
 
 /**
  * Create a zod schema covering validations and invariants enforced with {@link decodeListStorageLocationContract} parser.
- * @param {bigint[]} efpChainIds List of IDs for chains that the EFP protocol has been present on.
+ * @param {EFPDeploymentChainId[]} efpDeploymentChainIds List of IDs for chains that the EFP protocol has been deployed on.
  */
-const createEfpLslContractSchema = (efpChainIds: bigint[]) =>
+const createEfpLslContractSchema = (efpDeploymentChainIds: EFPDeploymentChainId[]) =>
   z.object({
     version: z.literal("01").transform(() => ListStorageLocationVersion.V1),
 
@@ -180,10 +198,12 @@ const createEfpLslContractSchema = (efpChainIds: bigint[]) =>
       .string()
       .length(64)
       .transform((v) => BigInt("0x" + v))
-      // invariant: chainId is from one of the supported EFP deployment chains
+      // mapping EVM's Chain ID type into the `EFPDeploymentChainId` type
+      .transform((v) => Number(v) as EFPDeploymentChainId)
+      // invariant: chainId is from one of the EFP Deployment Chain IDs
       // https://docs.efp.app/production/deployments/
-      .refine((v) => efpChainIds.includes(v), {
-        message: `chainId must be one of the EFP deployment Chain IDs: ${efpChainIds.join(", ")}`,
+      .refine((v) => efpDeploymentChainIds.includes(v), {
+        message: `chainId must be one of the EFP deployment Chain IDs: ${efpDeploymentChainIds.join(", ")}`,
       }),
 
     listRecordsAddress: z
@@ -232,14 +252,16 @@ export function decodeListStorageLocationContract(
  * Get the list of EFP Deployment Chain IDs for the ENS Deployment Chain.
  *
  * @param ensDeploymentChain
- * @returns list of EFP deployment chain IDs
+ * @returns list of EFP Deployment Chain IDs
  */
-export function getEFPDeploymentChainIds(ensDeploymentChain: ENSDeploymentChain): bigint[] {
+export function getEFPDeploymentChainIds(
+  ensDeploymentChain: ENSDeploymentChain,
+): EFPDeploymentChainId[] {
   switch (ensDeploymentChain) {
     case "mainnet":
-      return [BigInt(base.id), BigInt(optimism.id), BigInt(mainnet.id)];
+      return [base.id, optimism.id, mainnet.id];
     case "sepolia":
-      return [BigInt(baseSepolia.id), BigInt(optimismSepolia.id), BigInt(sepolia.id)];
+      return [baseSepolia.id, optimismSepolia.id, sepolia.id];
     default:
       throw new Error(
         `EFP Deployment chainIds are not configured for the ${ensDeploymentChain} ENS Deployment Chain`,

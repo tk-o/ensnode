@@ -46,8 +46,11 @@ export const efp_listStorageLocation = onchainTable("efp_list_storage_location",
 
   /**
    * EVM chain ID of the chain where the EFP list records are stored.
+   *
+   * NOTE:
+   * This value is of `EFPDeploymentChainId` type.
    */
-  chainId: p.bigint().notNull(),
+  chainId: p.integer().notNull(),
 
   /**
    * Contract address on chainId where the EFP list records are stored.
@@ -59,8 +62,8 @@ export const efp_listStorageLocation = onchainTable("efp_list_storage_location",
    *
    * 32-byte value that specifies the storage slot of the EFP list records within the listRecordsAddress contract.
    * This disambiguates multiple lists stored within the same contract and
-   * de-couples it from the EFP List NFT token id which is stored on the EFP deployment root chain
-   * and inaccessible on other chains.
+   * de-couples it from the EFP List NFT token id which is stored on the EFP deployment root chain and
+   * inaccessible on other chains.
    */
   slot: p.bigint().notNull(),
 
