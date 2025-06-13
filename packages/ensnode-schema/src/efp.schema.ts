@@ -37,7 +37,7 @@ export const efp_listStorageLocation = onchainTable("efp_list_storage_location",
   /**
    * ListStorageLocation ID
    *
-   * This compound identifier is a value of ListStorageLocationId type.
+   * This compound identifier is a value of `ListStorageLocationId` type.
    *
    * NOTE:
    * We use a compound identifier for database performance benefits.
@@ -47,7 +47,6 @@ export const efp_listStorageLocation = onchainTable("efp_list_storage_location",
   /**
    * EVM chain ID of the chain where the EFP list records are stored.
    *
-   * NOTE:
    * This value is of `EFPDeploymentChainId` type.
    */
   chainId: p.integer().notNull(),

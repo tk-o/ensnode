@@ -36,10 +36,15 @@ export enum ListStorageLocationVersion {
  * Application data model for EFP Deployment Chain ID.
  *
  * EFP has an allowlisted set of supported chains. As of June 13, 2025
- * the max allowlisted EFP chain id is 11,155,420 (OP Sepolia) and
+ * the max allowlisted EFP chain ID is 11,155,420 (OP Sepolia) and
  * therefore it is safe for us to use JavaScript number representing an integer value
  * (an 8-byte IEEE 754 double storing an integer) to store this chainId,
- * even though technically EVM chainIds are uint256 (32-bytes).
+ * even though technically EVM chain IDs are uint256 (32-bytes).
+ *
+ * Note:
+ * In the future, there might be a case when the max allowlisted EFP chain ID
+ * requires setting `EFPDeploymentChainId` type to `bigint` to support
+ * every allowlisted EFP chain ID.
  */
 type EFPDeploymentChainId = number;
 
@@ -197,7 +202,7 @@ const createEfpLslContractSchema = (efpDeploymentChainIds: EFPDeploymentChainId[
     chainId: z
       .string()
       .length(64)
-      .transform((v) => BigInt("0x" + v))
+      .transform((v) => BigInt(`0x${v}`))
       // mapping EVM's Chain ID type into the `EFPDeploymentChainId` type
       .transform((v) => Number(v) as EFPDeploymentChainId)
       // invariant: chainId is from one of the EFP Deployment Chain IDs
@@ -216,7 +221,7 @@ const createEfpLslContractSchema = (efpDeploymentChainIds: EFPDeploymentChainId[
     slot: z
       .string()
       .length(64)
-      .transform((v) => BigInt("0x" + v)),
+      .transform((v) => BigInt(`0x${v}`)),
   });
 
 // NOTE: based on code from https://github.com/ethereumfollowprotocol/onchain/blob/f3c970e/src/efp.ts#L95-L123
