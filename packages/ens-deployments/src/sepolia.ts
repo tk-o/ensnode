@@ -178,7 +178,7 @@ export default {
   },
 
   /**
-   * The Root EFP Datasource on testnet.
+   * The Root EFP Datasource on the Sepolia testnet.
    * Based on the list of EFP testnet deployments:
    * https://docs.efp.app/production/deployments/#testnet-deployments
    */

@@ -315,7 +315,7 @@ const makeApiDocumentation = (isSubgraph: boolean) => {
         "A reference the related ListStorageLocation entity. Null if no related ListStorageLocation was ever created or the related ListStorageLocation is in an invalid format.",
     }),
     ...generateTypeDocSetWithTypeName("efp_listStorageLocation", "EFP List Storage Location", {
-      id: "A compound identifier based on the following values: chainId, listRecordsAddress, slot",
+      id: "A compound identifier based on the following values: version, type, chainId, listRecordsAddress, slot",
       chainId: "EVM chain ID of the chain where the list is stored",
       listRecordsAddress:
         "EVM address of the contract on chainId where the EFP list records are stored",

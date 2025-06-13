@@ -7,17 +7,18 @@ import type { Address } from "viem";
 import { base, baseSepolia, mainnet, optimism, optimismSepolia, sepolia } from "viem/chains";
 import { getAddress } from "viem/utils";
 import { prettifyError, z } from "zod/v4";
+
 /**
  * An encoded List Storage Location is a bytes array with the following structure:
  * - `version`: A uint8 representing the version of the List Storage Location. This is used to ensure compatibility and facilitate future upgrades.
- * - `location_type`: A uint8 indicating the type of list storage location. This identifies the kind of data the data field contains..
+ * - `type`: A uint8 indicating the type of list storage location. This identifies the kind of data the data field contains..
  * - `data:` A bytes array containing the actual data of the list storage location. The structure of this data depends on the location type.
  */
 type EncodedLsl = string;
 
 // NOTE: based on code from https://github.com/ethereumfollowprotocol/onchain/blob/f3c970e/src/efp.ts#L95-L123
 /**
- * Parses an encoded List Storage Location string and returns a decoded ListStorageLocation object.
+ * Decodes an EncodedLsl into a ListStorageLocationContract.
  *
  * @param {ENSDeploymentChain} ensDeploymentChain - The ENS Deployment Chain
  * @param {EncodedLsl} encodedLsl - The encoded List Storage Location string to parse.
@@ -28,11 +29,11 @@ export function decodeListStorageLocationContract(
   ensDeploymentChain: ENSDeploymentChain,
   encodedLsl: EncodedLsl,
 ): ListStorageLocationContract {
-  const slicedEncodedLsl = sliceEncodedLsl(encodedLsl);
-  const efpChainIds = getEFPChainIds(ensDeploymentChain);
-  const efpLslContractSchema = createEfpLslContractSchema(efpChainIds);
+  const slicedLslContract = sliceEncodedLslContract(encodedLsl);
+  const efpDeploymentChainIds = getEFPDeploymentChainIds(ensDeploymentChain);
+  const efpLslContractSchema = createEfpLslContractSchema(efpDeploymentChainIds);
 
-  const parsed = efpLslContractSchema.safeParse(slicedEncodedLsl);
+  const parsed = efpLslContractSchema.safeParse(slicedLslContract);
 
   if (!parsed.success) {
     throw new Error(
@@ -45,12 +46,12 @@ export function decodeListStorageLocationContract(
 }
 
 /**
- * Get a list of EFP Chain IDs for the ENS Deployment Chain.
+ * Get the list of EFP Deployment Chain IDs for the ENS Deployment Chain.
  *
  * @param ensDeploymentChain
- * @returns list of EFP chain IDs
+ * @returns list of EFP deployment chain IDs
  */
-export function getEFPChainIds(ensDeploymentChain: ENSDeploymentChain): bigint[] {
+export function getEFPDeploymentChainIds(ensDeploymentChain: ENSDeploymentChain): bigint[] {
   switch (ensDeploymentChain) {
     case "mainnet":
       return [BigInt(base.id), BigInt(optimism.id), BigInt(mainnet.id)];
@@ -58,15 +59,15 @@ export function getEFPChainIds(ensDeploymentChain: ENSDeploymentChain): bigint[]
       return [BigInt(baseSepolia.id), BigInt(optimismSepolia.id), BigInt(sepolia.id)];
     default:
       throw new Error(
-        `LSL Chain IDs are not configured for ${ensDeploymentChain} ENS Deployment Chain`,
+        `EFP Deployment chainIds are not configured for the ${ensDeploymentChain} ENS Deployment Chain`,
       );
   }
 }
 
 /**
- * Data structure used during parsing with {@link createEfpLslSchema} schema.
+ * Data structure helpful for parsing an EncodedLsl.
  */
-interface EncodedListStorageLocation {
+interface SlicedLslContract {
   /**
    * The version of the List Storage Location.
    *
@@ -103,14 +104,17 @@ interface EncodedListStorageLocation {
 }
 
 /**
- * Slice encoded LSL into a dictionary of LSL params.
+ * Convert an EncodedLsl into a SlicedLslContract.
+ *
  * @param encodedLsl
- * @returns {EncodedListStorageLocation} LSL params.
+ * @returns {SlicedLslContract} Sliced LSL Contract.
  * @throws {Error} when input param is not of expected length
  */
-function sliceEncodedLsl(encodedLsl: string): EncodedListStorageLocation {
+function sliceEncodedLslContract(encodedLsl: EncodedLsl): SlicedLslContract {
   if (encodedLsl.length !== 174) {
-    throw new Error("Encoded List Storage Location values must be a 174-character long string");
+    throw new Error(
+      "Encoded List Storage Location values for a LSL v1 Contract must be a 174-character long string",
+    );
   }
 
   return {
@@ -128,7 +132,7 @@ function sliceEncodedLsl(encodedLsl: string): EncodedListStorageLocation {
 
     // Extract last 32 bytes to get the slot
     slot: encodedLsl.slice(110, 174),
-  } satisfies EncodedListStorageLocation;
+  } satisfies SlicedLslContract;
 }
 
 /**
@@ -148,7 +152,7 @@ const createEfpLslContractSchema = (efpChainIds: bigint[]) =>
       // invariant: chainId is from one of the supported EFP deployment chains
       // https://docs.efp.app/production/deployments/
       .refine((v) => efpChainIds.includes(v), {
-        message: `chainId must be one of the EFP Chain IDs: ${efpChainIds.join(", ")}`,
+        message: `chainId must be one of the EFP deployment Chain IDs: ${efpChainIds.join(", ")}`,
       }),
 
     listRecordsAddress: z
@@ -165,32 +169,32 @@ const createEfpLslContractSchema = (efpChainIds: bigint[]) =>
   });
 
 /**
- * Unique EFP List Storage Location ID (lowercase)
+ * Unique EFP List Storage Location ID
  *
  * Example:
- * `${chainId}-${listRecordsAddress}-${slot}-${type}-${version}`
+ * `${version}-${type}-${chainId}-${listRecordsAddress}-${slot}`
  */
 export type ListStorageLocationId = string;
 
 /**
- * Makes a unique lowercase EFP List Storage Location ID.
+ * Makes a unique EFP List Storage Location ID.
  *
  * @param {ListStorageLocationContract} listStorageLocationContract a decoded List Storage Location Contract object
- * @returns a unique lowercase List Storage Location ID
+ * @returns a unique List Storage Location ID
  */
 export const makeListStorageLocationId = ({
+  version,
+  type,
   chainId,
   listRecordsAddress,
   slot,
-  type,
-  version,
 }: ListStorageLocationContract): ListStorageLocationId =>
   [
+    version.toString(),
+    type.toString(),
     chainId.toString(),
     listRecordsAddress.toLowerCase(),
     slot.toString(),
-    type.toString(),
-    version.toString(),
   ].join("-");
 
 /**

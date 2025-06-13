@@ -60,34 +60,34 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
           );
         }
 
-        const decodedListStorageLocation = decodeListStorageLocationContract(
+        const lslContract = decodeListStorageLocationContract(
           config.ensDeploymentChain,
           encodedListStorageLocation,
         );
 
-        const listStorageLocationId = makeListStorageLocationId(decodedListStorageLocation);
+        const lslId = makeListStorageLocationId(lslContract);
 
-        // Index the parsed List Storage Location data with a reference to the List Token
+        // Index the decoded List Storage Location data with a reference to the List Token
         // created with the currently handled EVM event
         await context.db
           .insert(efp_listStorageLocation)
           .values({
-            id: listStorageLocationId,
+            id: lslId,
             listTokenId: listToken.id,
-            chainId: decodedListStorageLocation.chainId,
-            listRecordsAddress: decodedListStorageLocation.listRecordsAddress,
-            slot: decodedListStorageLocation.slot,
+            chainId: lslContract.chainId,
+            listRecordsAddress: lslContract.listRecordsAddress,
+            slot: lslContract.slot,
           })
-          // TODO: decide what needs to do in a case of violated unique constraint.
-          // There can be only one LSL entity with a given a unique set of the following values
-          // (chainId, listRecordsAddress, slot, type, location).
+          // TODO: decide what needs to be done in the case of a violated unique constraint.
+          // There can be only one LSL entity with a unique tuple of values
+          // (version, type, chainId, listRecordsAddress, slot).
           // In case we try inserting a duplicate of the existing LSL entity,
           // we will get the unique constraint violation error.
           // For example, it happens for List Storage Location fetched after
           // this transaction
           // https://basescan.org/tx/0x5f64037fedd56a3a874f598a38a48ea6f8f5f9815223dac955e2c18eff1ab173
           //
-          // Can the same triple of (chainId, listRecordsAddress, slot, type, location) value be linked with different tokenIds?
+          // Can the same tuple of (version, type, chainId, listRecordsAddress, slot) value be linked with different tokenIds?
           //
           // NOTE: For now, we do update the reference for the List Token
           .onConflictDoUpdate({
