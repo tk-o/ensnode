@@ -33,18 +33,28 @@ export enum ListStorageLocationVersion {
 }
 
 /**
+ * Max value for the EFP Chain ID
+ *
+ * Matching the available range of the signed 4-byte `integer` type.
+ *
+ * @link https://www.postgresql.org/docs/current/datatype-numeric.html#DATATYPE-NUMERIC
+ */
+const EFP_CHAIN_ID_TYPE_MAX_VALUE = 2_147_483_647;
+
+/**
  * Application data model for EFP Deployment Chain ID.
  *
  * EFP has an allowlisted set of supported chains. As of June 13, 2025
  * the max allowlisted EFP chain ID is 11,155,420 (OP Sepolia) and
- * therefore it is safe for us to use JavaScript number representing an integer value
- * (an 8-byte IEEE 754 double storing an integer) to store this chainId,
- * even though technically EVM chain IDs are uint256 (32-bytes).
+ * therefore it is safe for us to use integer (a signed 4-byte integer) to
+ * store this chain ID, even though technically EVM chainIds are uint256 (32-bytes).
  *
  * Note:
  * In the future, there might be a case when the max allowlisted EFP chain ID
  * requires setting `EFPDeploymentChainId` type to `bigint` to support
- * every allowlisted EFP chain ID.
+ * every allowlisted EFP chain ID. For example, it will happen when any of
+ * allowlisted EFP chain IDs is greater than the max value for
+ * a signed 4-byte integer (EFP_CHAIN_ID_TYPE_MAX_VALUE).
  */
 type EFPDeploymentChainId = number;
 
@@ -205,6 +215,13 @@ const createEfpLslContractSchema = (efpDeploymentChainIds: EFPDeploymentChainId[
       .transform((v) => BigInt(`0x${v}`))
       // mapping EVM's Chain ID type into the `EFPDeploymentChainId` type
       .transform((v) => Number(v) as EFPDeploymentChainId)
+      // invariant: every allowlisted EFP chain ID is under the EFPDeploymentChainId value limit
+      .refine(
+        (v) => efpDeploymentChainIds.every((chainId) => chainId <= EFP_CHAIN_ID_TYPE_MAX_VALUE),
+        {
+          message: `Every chainId from efpDeploymentChainIds must fit into the signed 4-byte integer value range.`,
+        },
+      )
       // invariant: chainId is from one of the EFP Deployment Chain IDs
       // https://docs.efp.app/production/deployments/
       .refine((v) => efpDeploymentChainIds.includes(v), {
@@ -250,6 +267,7 @@ export function decodeListStorageLocationContract(
         "\n",
     );
   }
+
   return parsed.data;
 }
 
