@@ -51,15 +51,15 @@ ENSNode version 1 (`V1`), discussed here, prioritizes equivalency with the [ENS 
 
 ## Plugins
 
-ENSIndexer implements the core subgraph indexing logic within **shared handler functions** that mirror their subgraph counterpart. These shared handlers functions are in `apps/ensindexer/src/handlers/*.ts`. The `eth` plugin then implements subgraph-compatible logic 1:1, primarily relying on the shared handlers, and its implementation can be found in `apps/ensindexer/src/plugins/eth`.
+ENSIndexer implements the core subgraph indexing logic within **shared handler functions** that mirror their subgraph counterpart. These shared handlers functions are in `apps/ensindexer/src/handlers/*.ts`. The `subgraph` plugin then implements subgraph-compatible logic 1:1, primarily relying on the shared handlers, and its implementation can be found in `apps/ensindexer/src/plugins/subgraph`.
 
 Each plugin requires two files:
-- `handlers.ts` gathers all ponder indexing handlers which can be the shared handlers (plus any necessary plugin-specific logic). See `apps/ensindexer/src/plugins/basenames/handlers.ts` and `apps/ensindexer/src/plugins/lineanames/handlers.ts` for examples.
-- `plugin.ts` defines an isolated ponder indexing configuration to index its respective subregistry. See `apps/ensindexer/src/plugins/basenames/plugin.ts` and `apps/ensindexer/src/plugins/lineanames/plugin.ts` for examples.
+- `handlers.ts` gathers all ponder indexing handlers for the plugin. See `apps/ensindexer/src/plugins/basenames/handlers.ts` and `apps/ensindexer/src/plugins/lineanames/handlers.ts` for examples.
+- `plugin.ts` defines the ponder indexing configuration to index a related set of datasources. See `apps/ensindexer/src/plugins/basenames/plugin.ts` and `apps/ensindexer/src/plugins/lineanames/plugin.ts` for examples.
 
 ### Plugin-Scoping
 
-Because plugins indexing subregistries use the shared handlers and may clobber entities created by the `eth` plugin—which didn't expect multichain or multi-source entities—, id-generating code is abstracted to be plugin-specific. See the helpers in `apps/ensindexer/src/lib/ids.ts`. In these cases, for the `eth` plugin, the original behavior is left un-modified to facilitate 1:1 responses from the subgraph-compatible api.
+Because plugins indexing subregistries use the shared handlers and may clobber entities created by the `subgraph` plugin—which didn't expect multichain or multi-source entities—, id-generating code is abstracted to be plugin-specific. See the helpers in `apps/ensindexer/src/lib/ids.ts`. In these cases, for the `subgraph` plugin, the original behavior is left un-modified to facilitate 1:1 responses from the subgraph-compatible api.
 
 This scoping also applies to the concept of a `RegistrarManagedName` (see `apps/ensindexer/src/lib/types.ts` and `makeRegistrarHandlers` in `apps/ensindexer/src/handlers/Registrar.ts`) — teh shared handlers derived from the subgraph which are used by some plugins expect the context of a name whos subnames they manage. In the original subgraph implementation, this was hardcoded as the `.eth` name, and operations under the `Registrar` are in the context of direct subnames of `.eth`.
 
