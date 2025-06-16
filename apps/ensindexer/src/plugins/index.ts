@@ -57,7 +57,7 @@ export function getRequiredDatasourceNames(pluginNames: PluginName[]): Datasourc
  * @param pluginNames
  * @returns
  */
-export function getDatasources(
+export function getRequiredDatasources(
   config: Pick<ENSIndexerConfig, "ensDeploymentChain" | "plugins">,
 ): Datasource[] {
   const requiredDatasourceNames = getRequiredDatasourceNames(config.plugins);
@@ -79,7 +79,7 @@ export function getDatasources(
 /**
  * Get a list of unique indexed chain IDs for selected plugin names.
  */
-export function getIndexedChainIds(datasources: Datasource[]): number[] {
+export function getRequiredChainIds(datasources: Datasource[]): number[] {
   const indexedChainIds = datasources.map((datasource) => datasource.chain.id);
 
   return uniq(indexedChainIds);

@@ -2,12 +2,12 @@
  * The ThreeDNS plugin describes indexing behavior for 3DNSToken on both Optimism and Base.
  */
 
-import { definePlugin } from "@/lib/plugin-helpers";
+import { buildPlugin } from "@/lib/plugin-helpers";
 import { DatasourceName } from "@ensnode/ens-deployments";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import { createConfig as createPonderConfig } from "ponder";
 
-export default definePlugin({
+export default buildPlugin({
   name: PluginName.ThreeDNS,
   requiredDatasources: [DatasourceName.ThreeDNSBase, DatasourceName.ThreeDNSOptimism],
   buildPonderConfig({ datasourceConfigOptions, namespace }) {

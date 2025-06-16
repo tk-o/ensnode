@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 
 import type { ENSIndexerConfig } from "@/config/types";
-import { getDatasources, getIndexedChainIds, getPlugin } from "@/plugins";
+import { getPlugin, getRequiredChainIds, getRequiredDatasources } from "@/plugins";
 import { DatasourceName, getENSDeployment } from "@ensnode/ens-deployments";
 import { Address, isAddress } from "viem";
 
@@ -76,7 +76,7 @@ export function invariant_globalBlockrange(
   const { globalBlockrange } = config;
 
   if (globalBlockrange.startBlock !== undefined || globalBlockrange.endBlock !== undefined) {
-    const indexedChainIds = getIndexedChainIds(getDatasources(config));
+    const indexedChainIds = getRequiredChainIds(getRequiredDatasources(config));
 
     if (indexedChainIds.length > 1) {
       ctx.issues.push({

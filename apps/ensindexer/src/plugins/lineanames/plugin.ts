@@ -3,12 +3,12 @@
  * the shared Subgraph-compatible indexing logic.
  */
 
-import { definePlugin } from "@/lib/plugin-helpers";
+import { buildPlugin } from "@/lib/plugin-helpers";
 import { DatasourceName } from "@ensnode/ens-deployments";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import { createConfig as createPonderConfig } from "ponder";
 
-export default definePlugin({
+export default buildPlugin({
   name: PluginName.Lineanames,
   requiredDatasources: [DatasourceName.Lineanames],
   buildPonderConfig({ datasourceConfigOptions, namespace }) {

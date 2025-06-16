@@ -3,12 +3,12 @@
  * legacy ENS Subgraph indexing logic.
  */
 
-import { definePlugin } from "@/lib/plugin-helpers";
+import { buildPlugin } from "@/lib/plugin-helpers";
 import { DatasourceName } from "@ensnode/ens-deployments";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import { createConfig as createPonderConfig } from "ponder";
 
-export default definePlugin({
+export default buildPlugin({
   name: PluginName.Subgraph,
   requiredDatasources: [DatasourceName.Root],
   buildPonderConfig({ datasourceConfigOptions, namespace }) {

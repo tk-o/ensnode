@@ -1,24 +1,29 @@
-import type { ENSIndexerConfig } from "@/config/types";
+import type { ENSIndexerConfig, RpcConfig } from "@/config/types";
+import { networkConfigForContract, networksConfigForChain } from "@/lib/ponder-helpers";
 import type { Blockrange } from "@/lib/types";
-import { type ContractConfig, DatasourceName, getENSDeployment } from "@ensnode/ens-deployments";
-import { Label, Name, PluginName } from "@ensnode/ensnode-sdk";
-import type { NetworkConfig, createConfig as createPonderConfig } from "ponder";
-import { http, type Chain } from "viem";
+import {
+  type ContractConfig,
+  DatasourceName,
+  type ENSDeploymentChain,
+  getENSDeployment,
+} from "@ensnode/ens-deployments";
+import { type Label, type Name, PluginName } from "@ensnode/ensnode-sdk";
+import type { createConfig as createPonderConfig } from "ponder";
 
 /**
- * Define ENSIndexerPlugin.
+ * Build Plugin for ENSIndexer.
  *
- * This factory function allows defining a plugin in a confident way,
+ * This factory function allows building a plugin object in a confident way,
  * leveraging type system to build Ponder configuration for the plugin and
  * use it when defining the global Ponder configuration object from
  * all active plugins.
  */
-export function definePlugin<
+export function buildPlugin<
   PLUGIN_NAME extends PluginName,
   REQUIRED_DATASOURCES extends readonly DatasourceName[],
   PONDER_CONFIG extends PonderConfigResult,
 >(
-  options: DefinePluginOptions<PLUGIN_NAME, REQUIRED_DATASOURCES, PONDER_CONFIG>,
+  options: BuildPluginOptions<PLUGIN_NAME, REQUIRED_DATASOURCES, PONDER_CONFIG>,
 ): ENSIndexerPlugin<
   PLUGIN_NAME,
   REQUIRED_DATASOURCES,
@@ -30,11 +35,18 @@ export function definePlugin<
   const namespace = makePluginNamespace(options.name);
 
   const getPonderConfig = (config: ENSIndexerConfigSlice): PONDER_CONFIG => {
+    const { ensDeploymentChain, globalBlockrange, rpcConfigs } = config;
+
     return options.buildPonderConfig({
       datasourceConfigOptions<DATASOURCE_NAME extends REQUIRED_DATASOURCES[number]>(
         datasourceName: DATASOURCE_NAME,
       ) {
-        return getDatasourceConfigOptions(config, datasourceName);
+        return getDatasourceConfigOptions(
+          ensDeploymentChain,
+          globalBlockrange,
+          rpcConfigs,
+          datasourceName,
+        );
       },
       namespace,
     });
@@ -168,7 +180,7 @@ interface DatasourceConfigOptions<DATASOURCE_NAME extends DatasourceName> {
 }
 
 /**
- * Options for `buildPonderConfig` callback on {@link DefinePluginOptions} type.
+ * Options for `buildPonderConfig` callback on {@link BuildPluginOptions} type.
  */
 export interface PluginConfigOptions<
   PLUGIN_NAME extends PluginName,
@@ -181,9 +193,9 @@ export interface PluginConfigOptions<
 }
 
 /**
- * Options type for `definePlugin` function input.
+ * Options type for `buildPlugin` function input.
  */
-export interface DefinePluginOptions<
+export interface BuildPluginOptions<
   PLUGIN_NAME extends PluginName,
   REQUIRED_DATASOURCES extends readonly DatasourceName[],
   // This generic will capture the exact PonderConfigResult, including the inferred types.
@@ -219,10 +231,7 @@ type PonderConfigResult<
 /**
  * Helper type to capture the required slice of ENSIndexerConfig type for {@link getDatasourceConfigOptions}
  */
-type ENSIndexerConfigSlice = Pick<
-  ENSIndexerConfig,
-  "ensDeploymentChain" | "globalBlockrange" | "rpcConfigs"
->;
+type ENSIndexerConfigSlice = ENSIndexerConfig;
 
 /**
  * Helper type to capture specific datasource type from a given ENSDeployment.
@@ -243,48 +252,6 @@ type ContractsForDatasource<DATASOURCE_NAME extends DatasourceName> =
 type MakePluginNamespaceResult<PLUGIN_NAME extends PluginName> = ReturnType<
   typeof makePluginNamespace<PLUGIN_NAME>
 >;
-
-/**
- * Builds a ponder#NetworksConfig for a single, specific chain.
- */
-export function networksConfigForChain(
-  config: Pick<ENSIndexerConfig, "rpcConfigs">,
-  chainId: number,
-) {
-  if (!config.rpcConfigs[chainId]) {
-    throw new Error(
-      `networksConfigForChain called for chain id ${chainId} but no associated rpcConfig is available in ENSIndexerConfig. rpcConfig specifies the following chain ids: [${Object.keys(config.rpcConfigs).join(", ")}].`,
-    );
-  }
-
-  const { url, maxRequestsPerSecond } = config.rpcConfigs[chainId]!;
-
-  return {
-    [chainId.toString()]: {
-      chainId: chainId,
-      transport: http(url),
-      maxRequestsPerSecond,
-      ...((chainId === 31337 || chainId === 1337) && { disableCache: true }),
-    } satisfies NetworkConfig,
-  };
-}
-
-/**
- * Builds a `ponder#ContractConfig['network']` given a contract's config, constraining the contract's
- * indexing range by the globally configured blockrange.
- */
-export function networkConfigForContract<CONTRACT_CONFIG extends ContractConfig>(
-  config: Pick<ENSIndexerConfig, "globalBlockrange">,
-  chain: Chain,
-  contractConfig: CONTRACT_CONFIG,
-) {
-  return {
-    [chain.id.toString()]: {
-      address: contractConfig.address, // provide per-network address if available
-      ...constrainContractBlockrange(config, contractConfig.startBlock), // per-network blockrange
-    },
-  };
-}
 
 const POSSIBLE_PREFIXES = [
   "data:application/json;base64,",
@@ -317,56 +284,34 @@ export function parseLabelAndNameFromOnChainMetadata(uri: string): [Label, Name]
 }
 
 /**
- * Given a contract's start block, returns a block range describing a start and end block
- * that maintains validity within the global blockrange. The returned start block will always be
- * defined, but if no end block is specified, the returned end block will be undefined, indicating
- * that ponder should index the contract in perpetuity.
- *
- * @param config the configuration object including `globalBlockrange` value
- * @param contractStartBlock the preferred start block for the given contract, defaulting to 0
- * @returns the start and end blocks, contrained to the provided `start` and `end`
- *  i.e. (startBlock || 0) <= (contractStartBlock || 0) <= (endBlock if specificed)
- */
-export const constrainContractBlockrange = (
-  config: Pick<ENSIndexerConfig, "globalBlockrange">,
-  contractStartBlock: number | undefined = 0,
-): Blockrange => {
-  const { startBlock, endBlock } = config.globalBlockrange;
-
-  const isEndConstrained = endBlock !== undefined;
-  const concreteStartBlock = Math.max(startBlock || 0, contractStartBlock);
-
-  return {
-    startBlock: isEndConstrained ? Math.min(concreteStartBlock, endBlock) : concreteStartBlock,
-    endBlock,
-  };
-};
-
-/**
  * Get Datasource Config Options for a given datasource name.
  * Used as data provider to `buildPonderConfig` function,
  * where Ponder Configuration object is built for a specific plugin.
  *
- * @param config ENSIndexer config
+ * @param ensDeploymentChain
+ * @param globalBlockrange
+ * @param rpcConfigs
  * @param datasourceName
  * @returns
  */
 export function getDatasourceConfigOptions<const DATASOURCE_NAME extends DatasourceName>(
-  config: Pick<ENSIndexerConfigSlice, "ensDeploymentChain" | "globalBlockrange" | "rpcConfigs">,
+  ensDeploymentChain: ENSDeploymentChain,
+  globalBlockrange: Blockrange,
+  rpcConfigs: Record<number, RpcConfig>,
   datasourceName: DATASOURCE_NAME,
 ): DatasourceConfigOptions<DATASOURCE_NAME> {
-  const deployment = getENSDeployment(config.ensDeploymentChain);
+  const deployment = getENSDeployment(ensDeploymentChain);
   const datasource = deployment[datasourceName] as DeploymentForDatasource<DATASOURCE_NAME>;
 
   return {
     contracts: datasource.contracts as ContractsForDatasource<DATASOURCE_NAME>,
     networksConfigForChain() {
-      return networksConfigForChain(config, datasource.chain.id);
+      return networksConfigForChain(rpcConfigs, datasource.chain.id);
     },
     networkConfigForContract<CONTRACT_CONFIG extends ContractConfig>(
       contractConfig: CONTRACT_CONFIG,
     ) {
-      return networkConfigForContract(config, datasource.chain, contractConfig);
+      return networkConfigForContract(globalBlockrange, datasource.chain, contractConfig);
     },
   } as const;
 }

@@ -34,13 +34,13 @@ export type MergedPonderConfig = AllPluginsConfig & {
 const activePlugins = ALL_PLUGINS.filter((plugin) => config.plugins.includes(plugin.name));
 
 // combine each plugins' config into a MergedPonderConfig
-const ponderConfig = activePlugins.reduce(
+const mergedPonderConfig = activePlugins.reduce(
   (memo, plugin) => mergePonderConfigs(memo, plugin.getPonderConfig(config)),
   {},
 ) as MergedPonderConfig;
 
 // inject the additional indexing behavior dependencies
-ponderConfig.indexingBehaviorDependencies = {
+mergedPonderConfig.indexingBehaviorDependencies = {
   healReverseAddresses: config.healReverseAddresses,
   indexAdditionalResolverRecords: config.indexAdditionalResolverRecords,
 };
@@ -58,9 +58,9 @@ setTimeout(async () => {
 }, 0);
 
 ////////
-// Finally, return the merged config for ponder to use for type inference and runtime behavior.
+// Finally, return the MergedPonderConfig for Ponder to use for type inference and runtime behavior.
 ////////
 
 console.log(`ENSIndexer running with config:\n${prettyPrintConfig(config)}`);
 
-export default ponderConfig;
+export default mergedPonderConfig;
