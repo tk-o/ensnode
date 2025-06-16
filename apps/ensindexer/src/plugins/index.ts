@@ -93,7 +93,7 @@ export function getRequiredChainIds(datasources: Datasource[]): number[] {
 export async function activatePluginHandlers<const PLUGIN extends AllPluginsUnionType>(
   plugin: PLUGIN,
 ): Promise<void> {
-  const pluginIndexingHandlers = await import(`./${plugin.name}/handlers.ts`).then(
+  const pluginIndexingHandlers = await import(`./${plugin.name}/event-handlers.ts`).then(
     (mod) => mod.default as ENSIndexerPluginHandler[],
   );
 
