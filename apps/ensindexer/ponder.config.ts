@@ -2,7 +2,7 @@ import config from "@/config";
 import type { ENSIndexerConfig } from "@/config/types";
 import { prettyPrintConfig } from "@/lib/lib-config";
 import { mergePonderConfigs } from "@/lib/merge-ponder-configs";
-import { ALL_PLUGINS, type AllPluginsConfig, activatePluginHandlers } from "@/plugins";
+import { ALL_PLUGINS, type AllPluginsConfig, attachPluginEventHandlers } from "@/plugins";
 
 ////////
 // First, generate `MergedPonderConfig` type representing the merged types of each plugin's `config`,
@@ -46,14 +46,14 @@ mergedPonderConfig.indexingBehaviorDependencies = {
 };
 
 ////////
-// Activate the active plugins' handlers, which register indexing handlers with Ponder.
+// Attach event handlers for the active plugins, so Ponder can use them during indexing.
 ////////
 
 // NOTE: we explicitly delay the execution of this function for 1 tick, to avoid a race condition
 // within ponder internals related to the schema name and drizzle-orm
 setTimeout(async () => {
   for (const plugin of activePlugins) {
-    await activatePluginHandlers(plugin);
+    await attachPluginEventHandlers(plugin);
   }
 }, 0);
 

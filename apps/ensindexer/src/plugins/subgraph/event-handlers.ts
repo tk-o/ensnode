@@ -1,11 +1,17 @@
 /**
- * Indexing handlers for the `subgraph` plugin that will be executed
- * only if the plugin set as active in the ENSIndexerConfig
+ * A list of callbacks attaching event handlers for the `subgraph` plugin.
+ * The event handlers will be attached only if the plugin set as active
+ * in the ENSIndexerConfig.
  */
 
-import resolverHandlers from "@/plugins/shared/Resolver";
-import nameWrapperHandlers from "./handlers/NameWrapper";
-import registrarHandlers from "./handlers/Registrar";
-import registryHandlers from "./handlers/Registry";
+import attachResolverHandlers from "@/plugins/shared/Resolver";
+import attachNameWrapperHandlers from "./handlers/NameWrapper";
+import attachRegistrarHandlers from "./handlers/Registrar";
+import attachRegistryHandlers from "./handlers/Registry";
 
-export default [resolverHandlers, nameWrapperHandlers, registrarHandlers, registryHandlers];
+export default [
+  attachResolverHandlers,
+  attachNameWrapperHandlers,
+  attachRegistrarHandlers,
+  attachRegistryHandlers,
+];

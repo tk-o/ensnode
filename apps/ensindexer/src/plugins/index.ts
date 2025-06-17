@@ -17,6 +17,8 @@ export const ALL_PLUGINS = [
 
 type AllPluginsUnionType = (typeof ALL_PLUGINS)[number];
 
+// Helper type to let enable correct typing for the default-exported value from ponder.config.ts.
+// It helps to keep TypeScript types working well for all plugins (regardless if active or not).
 export type AllPluginsConfig = MergedTypes<ReturnType<AllPluginsUnionType["getPonderConfig"]>>;
 
 // Helper type to merge multiple types into one
@@ -86,18 +88,29 @@ export function getRequiredChainIds(datasources: Datasource[]): number[] {
 }
 
 /**
- * Activate all indexing handlers for a plugin.
+ * Attach all event handlers for a plugin.
  *
- * @param plugin The ENSIndexerPlugin object for which indexing handlers must be activated.
+ * @param plugin The ENSIndexerPlugin whose event handlers should be activated.
  */
-export async function activatePluginHandlers<const PLUGIN extends AllPluginsUnionType>(
+export async function attachPluginEventHandlers<const PLUGIN extends AllPluginsUnionType>(
   plugin: PLUGIN,
 ): Promise<void> {
-  const pluginIndexingHandlers = await import(`./${plugin.name}/event-handlers.ts`).then(
+  // All plugins must have their own `event-handlers.ts` file.
+  // We need to load this file lazily for each plugin than needs to be activated.
+  // Lazy-loading is required to keep TypeScript type inference working well.
+  // If we loaded the event-handlers.ts file for any plugin using
+  // the eager-loading approach (such as regular import on the top of the file),
+  // we'd cause circular inference error in TypeScript, as any event-handlers.ts file
+  // needs to know the `ponder` object type, which includes the `AllPluginsConfig` type.
+  // The `AllPluginsConfig` type is defined in this very file, and it must stay this way.
+  const pluginEventHandlers = await import(`./${plugin.name}/event-handlers.ts`).then(
+    // Use `export default` value as an array of ENSIndexerPluginHandler functions
+    // defined for a plugin.
     (mod) => mod.default as ENSIndexerPluginHandler[],
   );
 
-  for (const pluginIndexingHandler of pluginIndexingHandlers) {
-    pluginIndexingHandler(plugin);
+  // Attach all event handlers for the active ENSIndexer plugin
+  for (const attachEventHandlers of pluginEventHandlers) {
+    attachEventHandlers(plugin);
   }
 }

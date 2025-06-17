@@ -1,10 +1,11 @@
 /**
- * Indexing handlers for the `basenames` plugin that will be executed
- * only if the plugin set as active in the ENSIndexerConfig
+ * A list of callbacks attaching event handlers for the `basenames` plugin.
+ * The event handlers will be attached only if the plugin set as active
+ * in the ENSIndexerConfig.
  */
 
-import resolverHandlers from "@/plugins/shared/Resolver";
-import registrarHandlers from "./handlers/Registrar";
-import registryHandlers from "./handlers/Registry";
+import attachResolverHandlers from "@/plugins/shared/Resolver";
+import attachRegistrarHandlers from "./handlers/Registrar";
+import attachRegistryHandlers from "./handlers/Registry";
 
-export default [resolverHandlers, registrarHandlers, registryHandlers];
+export default [attachResolverHandlers, attachRegistrarHandlers, attachRegistryHandlers];
