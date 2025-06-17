@@ -12,31 +12,31 @@ export default buildPlugin({
   name: PluginName.Basenames,
   requiredDatasources: [DatasourceName.Basenames],
   buildPonderConfig({ datasourceConfigOptions, namespace }) {
-    const { contracts, networkConfigForContract, networksConfigForChain } = datasourceConfigOptions(
+    const { contracts, networks, getContractNetwork } = datasourceConfigOptions(
       DatasourceName.Basenames,
     );
 
     return createPonderConfig({
-      networks: networksConfigForChain(),
+      networks,
       contracts: {
         [namespace("Registry")]: {
-          network: networkConfigForContract(contracts.Registry),
+          network: getContractNetwork(contracts.Registry),
           abi: contracts.Registry.abi,
         },
         [namespace("BaseRegistrar")]: {
-          network: networkConfigForContract(contracts.BaseRegistrar),
+          network: getContractNetwork(contracts.BaseRegistrar),
           abi: contracts.BaseRegistrar.abi,
         },
         [namespace("EARegistrarController")]: {
-          network: networkConfigForContract(contracts.EARegistrarController),
+          network: getContractNetwork(contracts.EARegistrarController),
           abi: contracts.EARegistrarController.abi,
         },
         [namespace("RegistrarController")]: {
-          network: networkConfigForContract(contracts.RegistrarController),
+          network: getContractNetwork(contracts.RegistrarController),
           abi: contracts.RegistrarController.abi,
         },
         Resolver: {
-          network: networkConfigForContract(contracts.Resolver),
+          network: getContractNetwork(contracts.Resolver),
           abi: contracts.Resolver.abi,
         },
       },

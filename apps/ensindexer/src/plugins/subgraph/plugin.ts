@@ -12,39 +12,39 @@ export default buildPlugin({
   name: PluginName.Subgraph,
   requiredDatasources: [DatasourceName.Root],
   buildPonderConfig({ datasourceConfigOptions, namespace }) {
-    const { contracts, networkConfigForContract, networksConfigForChain } = datasourceConfigOptions(
+    const { contracts, networks, getContractNetwork } = datasourceConfigOptions(
       DatasourceName.Root,
     );
 
     return createPonderConfig({
-      networks: networksConfigForChain(),
+      networks,
       contracts: {
         [namespace("RegistryOld")]: {
-          network: networkConfigForContract(contracts.RegistryOld),
+          network: getContractNetwork(contracts.RegistryOld),
           abi: contracts.Registry.abi,
         },
         [namespace("Registry")]: {
-          network: networkConfigForContract(contracts.Registry),
+          network: getContractNetwork(contracts.Registry),
           abi: contracts.Registry.abi,
         },
         [namespace("BaseRegistrar")]: {
-          network: networkConfigForContract(contracts.BaseRegistrar),
+          network: getContractNetwork(contracts.BaseRegistrar),
           abi: contracts.BaseRegistrar.abi,
         },
         [namespace("EthRegistrarControllerOld")]: {
-          network: networkConfigForContract(contracts.EthRegistrarControllerOld),
+          network: getContractNetwork(contracts.EthRegistrarControllerOld),
           abi: contracts.EthRegistrarControllerOld.abi,
         },
         [namespace("EthRegistrarController")]: {
-          network: networkConfigForContract(contracts.EthRegistrarController),
+          network: getContractNetwork(contracts.EthRegistrarController),
           abi: contracts.EthRegistrarController.abi,
         },
         [namespace("NameWrapper")]: {
-          network: networkConfigForContract(contracts.NameWrapper),
+          network: getContractNetwork(contracts.NameWrapper),
           abi: contracts.NameWrapper.abi,
         },
         Resolver: {
-          network: networkConfigForContract(contracts.Resolver),
+          network: getContractNetwork(contracts.Resolver),
           abi: contracts.Resolver.abi,
         },
       },

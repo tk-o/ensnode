@@ -16,21 +16,21 @@ export default buildPlugin({
 
     return createPonderConfig({
       networks: {
-        ...threeDNSOptimism.networksConfigForChain(),
-        ...threeDNSBase.networksConfigForChain(),
+        ...threeDNSOptimism.networks,
+        ...threeDNSBase.networks,
       },
       contracts: {
         [namespace("ThreeDNSToken")]: {
           network: {
-            ...threeDNSOptimism.networkConfigForContract(threeDNSOptimism.contracts.ThreeDNSToken),
-            ...threeDNSBase.networkConfigForContract(threeDNSBase.contracts.ThreeDNSToken),
+            ...threeDNSOptimism.getContractNetwork(threeDNSOptimism.contracts.ThreeDNSToken),
+            ...threeDNSBase.getContractNetwork(threeDNSBase.contracts.ThreeDNSToken),
           },
           abi: threeDNSOptimism.contracts.ThreeDNSToken.abi,
         },
         [namespace("Resolver")]: {
           network: {
-            ...threeDNSOptimism.networkConfigForContract(threeDNSOptimism.contracts.Resolver),
-            ...threeDNSBase.networkConfigForContract(threeDNSBase.contracts.Resolver),
+            ...threeDNSOptimism.getContractNetwork(threeDNSOptimism.contracts.Resolver),
+            ...threeDNSBase.getContractNetwork(threeDNSBase.contracts.Resolver),
           },
           abi: threeDNSOptimism.contracts.Resolver.abi,
         },

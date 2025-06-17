@@ -246,8 +246,13 @@ export async function createStartBlockByChainIdMap(
 
 /**
  * Builds a ponder#NetworksConfig for a single, specific chain.
+ *
+ * @param {number} chainId
+ * @param rpcConfigs a dictionary of RPC configurations, grouped by chainId
+ *
+ * @returns networks configuration
  */
-export function networksConfigForChain(rpcConfigs: Record<number, RpcConfig>, chainId: number) {
+export function networksConfigForChain(chainId: number, rpcConfigs: Record<number, RpcConfig>) {
   if (!rpcConfigs[chainId]) {
     throw new Error(
       `networksConfigForChain called for chain id ${chainId} but no associated rpcConfig is available in ENSIndexerConfig. rpcConfig specifies the following chain ids: [${Object.keys(rpcConfigs).join(", ")}].`,
@@ -261,6 +266,7 @@ export function networksConfigForChain(rpcConfigs: Record<number, RpcConfig>, ch
       chainId: chainId,
       transport: http(url),
       maxRequestsPerSecond,
+      // NOTE: disable cache on local chains (e.g. Anvil, Ganache)
       ...((chainId === 31337 || chainId === 1337) && { disableCache: true }),
     } satisfies NetworkConfig,
   };
@@ -269,14 +275,20 @@ export function networksConfigForChain(rpcConfigs: Record<number, RpcConfig>, ch
 /**
  * Builds a `ponder#ContractConfig['network']` given a contract's config, constraining the contract's
  * indexing range by the globally configured blockrange.
+ *
+ * @param {number} chainId
+ * @param {Blockrange} globalBlockrange
+ * @param {ContractConfig} contractConfig
+ *
+ * @returns network configuration based on the contract
  */
 export function networkConfigForContract<CONTRACT_CONFIG extends ContractConfig>(
+  chainId: number,
   globalBlockrange: Blockrange,
-  chain: Chain,
   contractConfig: CONTRACT_CONFIG,
 ) {
   return {
-    [chain.id.toString()]: {
+    [chainId.toString()]: {
       address: contractConfig.address, // provide per-network address if available
       ...constrainBlockrange(globalBlockrange, contractConfig.startBlock), // per-network blockrange
     },
