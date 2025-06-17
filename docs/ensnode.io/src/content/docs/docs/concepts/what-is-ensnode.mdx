@@ -54,8 +54,8 @@ ENSNode version 1 (`V1`), discussed here, prioritizes equivalency with the [ENS 
 ENSIndexer implements the core subgraph indexing logic within **shared handler functions** that mirror their subgraph counterpart. These shared handlers functions are in `apps/ensindexer/src/handlers/*.ts`. The `subgraph` plugin then implements subgraph-compatible logic 1:1, primarily relying on the shared handlers, and its implementation can be found in `apps/ensindexer/src/plugins/subgraph`.
 
 Each plugin requires two files:
-- `handlers.ts` gathers all ponder indexing handlers for the plugin. See `apps/ensindexer/src/plugins/basenames/handlers.ts` and `apps/ensindexer/src/plugins/lineanames/handlers.ts` for examples.
 - `plugin.ts` defines the ponder indexing configuration to index a related set of datasources. See `apps/ensindexer/src/plugins/basenames/plugin.ts` and `apps/ensindexer/src/plugins/lineanames/plugin.ts` for examples.
+- `handlers.ts` gathers all ponder indexing handlers for the plugin. See `apps/ensindexer/src/plugins/basenames/handlers.ts` and `apps/ensindexer/src/plugins/lineanames/handlers.ts` for examples.
 
 ### Plugin-Scoping
 

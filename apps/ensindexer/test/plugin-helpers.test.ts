@@ -8,11 +8,11 @@ import { PluginName } from "@ensnode/ensnode-sdk";
 describe("plugin helpers", () => {
   describe("createPluginNamespace", () => {
     it("should return a function that creates namespaced contract names", () => {
-      const boxNs = makePluginNamespace("box" as PluginName);
+      const threednsNs = makePluginNamespace(PluginName.ThreeDNS);
       const subgraphNs = makePluginNamespace(PluginName.Subgraph);
       const basenamesNes = makePluginNamespace(PluginName.Basenames);
 
-      expect(boxNs("Registry")).toBe("box/Registry");
+      expect(threednsNs("Registry")).toBe("threedns/Registry");
       expect(subgraphNs("Registry")).toBe("subgraph/Registry");
       expect(basenamesNes("Registry")).toBe("basenames/Registry");
     });
