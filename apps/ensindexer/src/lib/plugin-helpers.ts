@@ -1,17 +1,14 @@
-import config from "@/config";
-import type { ENSIndexerConfig } from "@/config/types";
-import { uniq } from "@/lib/lib-helpers";
-import { constrainContractBlockrange } from "@/lib/ponder-helpers";
-import { getRequiredDatasourceNames } from "@/plugins";
+import type { ENSIndexerConfig, RpcConfig } from "@/config/types";
+import { networkConfigForContract, networksConfigForChain } from "@/lib/ponder-helpers";
+import type { Blockrange } from "@/lib/types";
 import {
-  ContractConfig,
-  Datasource,
+  type ContractConfig,
   DatasourceName,
+  type ENSDeploymentChain,
   getENSDeployment,
 } from "@ensnode/ens-deployments";
-import { Label, Name, PluginName } from "@ensnode/ensnode-sdk";
-import { NetworkConfig } from "ponder";
-import { http, Chain } from "viem";
+import { type Label, type Name, PluginName } from "@ensnode/ensnode-sdk";
+import type { createConfig as createPonderConfig } from "ponder";
 
 /**
  * A factory function that returns a function to create a namespaced contract name for Ponder handlers.
@@ -35,16 +32,16 @@ import { http, Chain } from "viem";
  * basenamesNamespace("Registry"); // returns "basenames/Registry"
  * ```
  */
-export function makePluginNamespace<PLUGIN_NAME extends PluginName>(pluginName: PLUGIN_NAME) {
+export function makePluginNamespace<const PLUGIN_NAME extends PluginName>(pluginName: PLUGIN_NAME) {
   if (/[.:]/.test(pluginName)) {
     throw new Error("Reserved character: Plugin namespace prefix cannot contain '.' or ':'");
   }
 
   /** Creates a namespaced contract name */
-  return function pluginNamespace<CONTRACT_NAME extends string>(
+  return function pluginNamespace<const CONTRACT_NAME extends string>(
     contractName: CONTRACT_NAME,
   ): `${PLUGIN_NAME}/${CONTRACT_NAME}` {
-    return `${pluginName}/${contractName}`;
+    return `${pluginName}/${contractName}` as const;
   };
 }
 
@@ -52,134 +49,157 @@ export function makePluginNamespace<PLUGIN_NAME extends PluginName>(pluginName: 
  * Describes an ENSIndexerPlugin used within the ENSIndexer project.
  */
 export interface ENSIndexerPlugin<
-  PLUGIN_NAME extends PluginName = PluginName,
-  PONDER_CONFIG = unknown,
+  PLUGIN_NAME extends PluginName,
+  REQUIRED_DATASOURCES extends readonly DatasourceName[],
+  CHAINS extends object,
+  CONTRACTS extends object,
+  ACCOUNTS extends object = {},
+  BLOCKS extends object = {},
 > {
   /**
    * A unique plugin name for identification
    */
-  pluginName: PLUGIN_NAME;
+  name: PLUGIN_NAME;
 
   /**
    * A list of DatasourceNames this plugin requires access to, necessary for determining whether
    * a set of ACTIVE_PLUGINS are valid for a given ENS_DEPLOYMENT_CHAIN
    */
-  requiredDatasources: DatasourceName[];
+  requiredDatasources: REQUIRED_DATASOURCES;
 
   /**
-   * An ENSIndexerPlugin must return a Ponder Config.
-   * https://ponder.sh/docs/contracts-and-networks
+   * Get Ponder Config for the plugin.
+   *
+   * @param {ENSIndexerConfigSlice} ensIndexerConfig
    */
-  createPonderConfig(appConfig: ENSIndexerConfig): PONDER_CONFIG;
+  getPonderConfig(
+    ensIndexerConfig: ENSIndexerConfig,
+  ): PonderConfigResult<CHAINS, CONTRACTS, ACCOUNTS, BLOCKS>;
 
   /**
-   * An `activate` handler that should load the plugin's handlers that eventually execute `ponder.on`
+   * Function to prefix a contract name with the plugin's namespace.
+   *
+   * It allows multiple plugins to provide configuration for the same contract name,
+   * for example, `Registry`, and at the same time, enables creating separate event handlers
+   * for each plugin.
+   *
+   * Examples:
+   * - PluginName.Basenames
+   *.   `(parameter) namespace: <"Registry">(contractName: "Registry") => "basenames/Registry"`
+   * - PluginName.Lineanames
+   *.   `(parameter) namespace: <"Registry">(contractName: "Registry") => "lineanames/Registry"`
    */
-  activate: () => Promise<void>;
+  namespace: MakePluginNamespaceResult<PLUGIN_NAME>;
 }
 
 /**
  * An ENSIndexerPlugin's handlers are provided runtime information about their respective plugin.
  */
 export type ENSIndexerPluginHandlerArgs<PLUGIN_NAME extends PluginName = PluginName> = {
-  pluginName: PLUGIN_NAME;
-  namespace: ReturnType<typeof makePluginNamespace<PLUGIN_NAME>>;
+  name: PLUGIN_NAME;
+  namespace: MakePluginNamespaceResult<PLUGIN_NAME>;
 };
 
 /**
  * An ENSIndexerPlugin accepts ENSIndexerPluginHandlerArgs and registers ponder event handlers.
  */
-export type ENSIndexerPluginHandler<PLUGIN_NAME extends PluginName> = (
+export type ENSIndexerPluginHandler<PLUGIN_NAME extends PluginName = PluginName> = (
   args: ENSIndexerPluginHandlerArgs<PLUGIN_NAME>,
 ) => void;
 
 /**
- * A helper function for defining an ENSIndexerPlugin's `activate()` function.
- *
- * Given a set of handler file imports, returns a function that executes them with the provided args.
+ * Result type for {@link getDatasourceConfigOptions}
  */
-export const activateHandlers =
-  <PLUGIN_NAME extends PluginName>({
-    handlers,
-    ...args
-  }: ENSIndexerPluginHandlerArgs<PLUGIN_NAME> & {
-    handlers: () => Promise<{ default: ENSIndexerPluginHandler<PLUGIN_NAME> }>[];
-  }) =>
-  async () => {
-    await Promise.all(handlers()).then((modules) => modules.map((m) => m.default(args)));
-  };
+interface DatasourceConfigOptions<DATASOURCE_NAME extends DatasourceName> {
+  /**
+   * Contracts configuration for the datasource (comes from `requiredDatasources`)
+   */
+  contracts: ContractsForDatasource<DATASOURCE_NAME>;
 
-/**
- * Get a list of unique datasources for selected plugin names.
- * @param pluginNames
- * @returns
- */
-export function getDatasources(
-  config: Pick<ENSIndexerConfig, "ensDeploymentChain" | "plugins">,
-): Datasource[] {
-  const requiredDatasourceNames = getRequiredDatasourceNames(config.plugins);
-  const ensDeployment = getENSDeployment(config.ensDeploymentChain);
-  const ensDeploymentDatasources = Object.entries(ensDeployment) as Array<
-    [DatasourceName, Datasource]
-  >;
-  const datasources = {} as Record<DatasourceName, Datasource>;
+  /**
+   * Networks configuration for the datasource
+   */
+  networks: ReturnType<typeof networksConfigForChain>;
 
-  for (let [datasourceName, datasource] of ensDeploymentDatasources) {
-    if (requiredDatasourceNames.includes(datasourceName)) {
-      datasources[datasourceName] = datasource;
-    }
-  }
-
-  return Object.values(datasources);
+  /**
+   * Contract-specific network configuration for the datasource
+   *
+   * @param contractConfig
+   * @returns
+   */
+  getContractNetwork: <CONTRACT_CONFIG extends ContractConfig>(
+    contractConfig: CONTRACT_CONFIG,
+  ) => ReturnType<typeof networkConfigForContract>;
 }
 
 /**
- * Get a list of unique indexed chain IDs for selected plugin names.
+ * Options for `buildPonderConfig` callback on {@link BuildPluginOptions} type.
  */
-export function getIndexedChainIds(datasources: Datasource[]): number[] {
-  const indexedChainIds = datasources.map((datasource) => datasource.chain.id);
-
-  return uniq(indexedChainIds);
+export interface PluginConfigOptions<
+  PLUGIN_NAME extends PluginName,
+  DATASOURCE_NAME extends DatasourceName,
+> {
+  datasourceConfigOptions(
+    datasourceName: DATASOURCE_NAME,
+  ): DatasourceConfigOptions<DATASOURCE_NAME>;
+  namespace: MakePluginNamespaceResult<PLUGIN_NAME>;
 }
 
 /**
- * Builds a ponder#NetworksConfig for a single, specific chain.
+ * Options type for `buildPlugin` function input.
  */
-export function networksConfigForChain(chainId: number) {
-  if (!config.rpcConfigs[chainId]) {
-    throw new Error(
-      `networksConfigForChain called for chain id ${chainId} but no associated rpcConfig is available in ENSIndexerConfig. rpcConfig specifies the following chain ids: [${Object.keys(config.rpcConfigs).join(", ")}].`,
-    );
-  }
+export interface BuildPluginOptions<
+  PLUGIN_NAME extends PluginName,
+  REQUIRED_DATASOURCES extends readonly DatasourceName[],
+  // This generic will capture the exact PonderConfigResult, including the inferred types.
+  PONDER_CONFIG extends PonderConfigResult,
+> {
+  /** The unique plugin name */
+  name: PLUGIN_NAME;
 
-  const { url, maxRequestsPerSecond } = config.rpcConfigs[chainId]!;
+  /** The plugin's required Datasources */
+  requiredDatasources: REQUIRED_DATASOURCES;
 
-  return {
-    [chainId.toString()]: {
-      chainId: chainId,
-      transport: http(url),
-      maxRequestsPerSecond,
-      // NOTE: disable cache on local chains (e.g. Anvil, Ganache)
-      ...((chainId === 31337 || chainId === 1337) && { disableCache: true }),
-    } satisfies NetworkConfig,
-  };
+  /**
+   * Build the ponder configuration lazily to prevent premature execution of
+   * nested factory functions, i.e. to ensure that the ponder configuration
+   * is only created for this plugin when it is activated.
+   */
+  buildPonderConfig(
+    options: PluginConfigOptions<PLUGIN_NAME, REQUIRED_DATASOURCES[number]>,
+  ): PONDER_CONFIG;
 }
 
 /**
- * Builds a `ponder#ContractConfig['network']` given a contract's config, constraining the contract's
- * indexing range by the globally configured blockrange.
+ * Helper type to capture the return type of `createPonderConfig` with its `const` inferred generics.
+ * This is the exact shape of a Ponder config.
  */
-export function networkConfigForContract<CONTRACT_CONFIG extends ContractConfig>(
-  chain: Chain,
-  contractConfig: CONTRACT_CONFIG,
-) {
-  return {
-    [chain.id.toString()]: {
-      address: contractConfig.address, // provide per-network address if available
-      ...constrainContractBlockrange(contractConfig.startBlock), // per-network blockrange
-    },
-  };
-}
+type PonderConfigResult<
+  CHAINS extends object = {},
+  CONTRACTS extends object = {},
+  ACCOUNTS extends object = {},
+  BLOCKS extends object = {},
+> = ReturnType<typeof createPonderConfig<CHAINS, CONTRACTS, ACCOUNTS, BLOCKS>>;
+
+/**
+ * Helper type to capture specific datasource type from a given ENSDeployment.
+ */
+type DeploymentForDatasource<DATASOURCE_NAME extends DatasourceName> = ReturnType<
+  typeof getENSDeployment
+>[DATASOURCE_NAME];
+
+/**
+ * Helper type to capture specific contracts type from a given Datasource.
+ */
+type ContractsForDatasource<DATASOURCE_NAME extends DatasourceName> =
+  DeploymentForDatasource<DATASOURCE_NAME>["contracts"];
+
+/**
+ * Helper type to capture a contract namespace factory type for a given plugin name.
+ */
+type MakePluginNamespaceResult<PLUGIN_NAME extends PluginName> = ReturnType<
+  typeof makePluginNamespace<PLUGIN_NAME>
+>;
 
 const POSSIBLE_PREFIXES = [
   "data:application/json;base64,",
@@ -209,4 +229,106 @@ export function parseLabelAndNameFromOnChainMetadata(uri: string): [Label, Name]
   const [label] = name.split(".");
 
   return [label, name];
+}
+
+/**
+ * Get Datasource Config Options for a given datasource name.
+ * Used as data provider to `buildPonderConfig` function,
+ * where Ponder Configuration object is built for a specific plugin.
+ *
+ * @param ensDeploymentChain
+ * @param globalBlockrange
+ * @param rpcConfigs
+ * @param datasourceName
+ * @returns
+ */
+export function getDatasourceConfigOptions<const DATASOURCE_NAME extends DatasourceName>(
+  ensDeploymentChain: ENSDeploymentChain,
+  globalBlockrange: Blockrange,
+  rpcConfigs: Record<number, RpcConfig>,
+  datasourceName: DATASOURCE_NAME,
+): DatasourceConfigOptions<DATASOURCE_NAME> {
+  // First, get the datasource object for a given `ensDeploymentChain` and `datasourceName`.
+  const deployment = getENSDeployment(ensDeploymentChain);
+  const datasource = deployment[datasourceName] as DeploymentForDatasource<DATASOURCE_NAME>;
+  const chainId = datasource.chain.id;
+
+  // Then, get contracts configuration from the selected datasource object.
+  const contracts = datasource.contracts as ContractsForDatasource<DATASOURCE_NAME>;
+
+  /**
+   * Networks configuration based on rpcConfigs and datasource chain ID.
+   * Used for building the plugin's ponder config object.
+   */
+  const networks = networksConfigForChain(chainId, rpcConfigs);
+
+  // Create a getter function that allows accessing network configuration for a given `contractConfig`
+  // Get network configuration based on contract config, global blockrange, and datasource chain configuration.
+  // Used for building the plugin's ponder config object.
+  const getContractNetwork = <CONTRACT_CONFIG extends ContractConfig>(
+    contractConfig: CONTRACT_CONFIG,
+  ) => networkConfigForContract(chainId, globalBlockrange, contractConfig);
+
+  return {
+    contracts,
+    networks,
+    getContractNetwork,
+  } as const;
+}
+
+/**
+ * Build Plugin for ENSIndexer.
+ *
+ * This factory function allows building a plugin object in a confident way,
+ * leveraging type system to build Ponder configuration for the plugin and
+ * use it when defining the global Ponder configuration object from
+ * all active plugins.
+ */
+export function buildPlugin<
+  PLUGIN_NAME extends PluginName,
+  REQUIRED_DATASOURCES extends readonly DatasourceName[],
+  PONDER_CONFIG extends PonderConfigResult,
+>(
+  options: BuildPluginOptions<PLUGIN_NAME, REQUIRED_DATASOURCES, PONDER_CONFIG>,
+): ENSIndexerPlugin<
+  PLUGIN_NAME,
+  REQUIRED_DATASOURCES,
+  PONDER_CONFIG["networks"],
+  PONDER_CONFIG["contracts"],
+  PONDER_CONFIG["accounts"],
+  PONDER_CONFIG["blocks"]
+> {
+  const namespace = makePluginNamespace(options.name);
+
+  const getPonderConfig = (config: ENSIndexerConfig): PONDER_CONFIG => {
+    const { ensDeploymentChain, globalBlockrange, rpcConfigs } = config;
+
+    return options.buildPonderConfig({
+      datasourceConfigOptions<DATASOURCE_NAME extends REQUIRED_DATASOURCES[number]>(
+        datasourceName: DATASOURCE_NAME,
+      ) {
+        return getDatasourceConfigOptions(
+          ensDeploymentChain,
+          globalBlockrange,
+          rpcConfigs,
+          datasourceName,
+        );
+      },
+      namespace,
+    });
+  };
+
+  return {
+    getPonderConfig,
+    name: options.name,
+    requiredDatasources: options.requiredDatasources,
+    namespace,
+  } as const satisfies ENSIndexerPlugin<
+    PLUGIN_NAME,
+    REQUIRED_DATASOURCES,
+    PONDER_CONFIG["networks"],
+    PONDER_CONFIG["contracts"],
+    PONDER_CONFIG["accounts"],
+    PONDER_CONFIG["blocks"]
+  >;
 }

@@ -7,7 +7,7 @@ import { PluginName } from "@ensnode/ensnode-sdk";
 import { getRegistrarManagedName } from "../lib/registrar-helpers";
 
 export default function ({
-  pluginName,
+  name: pluginName,
   namespace,
 }: ENSIndexerPluginHandlerArgs<PluginName.Lineanames>) {
   const {
