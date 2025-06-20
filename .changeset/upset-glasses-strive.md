@@ -5,4 +5,4 @@
 "ensindexer": minor
 ---
 
-Introduce initial `efp` plugin demo.
+Introduce initial `efp` plugin demo that indexes EFP List Tokens and EFP List Storage Locations.

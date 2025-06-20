@@ -1,5 +1,5 @@
 /**
- * Schema definitions for EFP entities.
+ * Database schema definitions for indexed EFP entities.
  */
 
 import { onchainTable, relations } from "ponder";
@@ -7,16 +7,13 @@ import { onchainTable, relations } from "ponder";
 /**
  * EFP List Token
  *
- * Represents an onchain ERC-721A NFT representing an EFP list minted with the EFPListRegistry contract.
+ * An onchain ERC-721A NFT representing an EFP list minted with the EFPListRegistry contract.
  */
 export const efp_listToken = onchainTable("efp_list_token", (p) => ({
   /**
    * EFP List Token ID
    *
    * The ID of the ERC-721A NFT representing an EFP list minted with the EFPListRegistry contract.
-   * It's a very important value as it enables
-   * `getListStorageLocation(tokenId)` call on the EFPListRegistry contract,
-   * which result allows querying data for related list records.
    */
   id: p.bigint().primaryKey(),
 
@@ -25,7 +22,7 @@ export const efp_listToken = onchainTable("efp_list_token", (p) => ({
    *
    * The address of the current owner of the EFP List Token.
    */
-  ownerAddress: p.hex().notNull(),
+  owner: p.hex().notNull(),
 }));
 
 /**

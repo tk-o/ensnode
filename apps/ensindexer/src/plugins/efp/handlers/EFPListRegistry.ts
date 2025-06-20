@@ -22,7 +22,7 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
         // Create a new List Token with the owner initialized as the token recipient
         await context.db.insert(efp_listToken).values({
           id: tokenId,
-          ownerAddress: toAddress,
+          owner: toAddress,
         });
       }
 
@@ -39,7 +39,7 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
       else {
         // Update the owner of the the List Token that changed ownership
         await context.db.update(efp_listToken, { id: tokenId }).set({
-          ownerAddress: toAddress,
+          owner: toAddress,
         });
       }
     },
