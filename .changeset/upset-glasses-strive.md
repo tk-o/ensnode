@@ -1,5 +1,5 @@
 ---
-"@ensnode/ens-deployments": minor
+"@ensnode/datasources": minor
 "@ensnode/ensnode-schema": minor
 "@ensnode/ensnode-sdk": minor
 "ensindexer": minor

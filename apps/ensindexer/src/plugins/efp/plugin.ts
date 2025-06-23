@@ -8,34 +8,35 @@ import type { ENSIndexerConfig } from "@/config/types";
 import {
   type ENSIndexerPlugin,
   activateHandlers,
+  getDatasourceAsFullyDefinedAtCompileTime,
   makePluginNamespace,
   networkConfigForContract,
   networksConfigForChain,
 } from "@/lib/plugin-helpers";
-import { DatasourceName } from "@ensnode/ens-deployments";
+import { DatasourceNames } from "@ensnode/datasources";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import { createConfig } from "ponder";
 
 const pluginName = PluginName.EFP;
 
 // Define the DatasourceNames for Datasources required by the plugin
-const requiredDatasources = [DatasourceName.EFPRoot];
+const requiredDatasources = [DatasourceNames.EFPRoot];
 
 // construct a unique contract namespace for this plugin
-const namespace = makePluginNamespace(pluginName);
+const pluginNamespace = makePluginNamespace(pluginName);
 
 // config object factory used to derive PonderConfig type
-function createPonderConfig(appConfig: ENSIndexerConfig) {
-  const { ensDeployment } = appConfig;
-  // Extract the chain and contract configs for the EFP root Datasource in order to build ponder config.
-  // This auto-selects the correct EFP chains and contracts depending if indexing testnet or not.
-  const { chain, contracts } = ensDeployment[DatasourceName.EFPRoot];
+function createPonderConfig(config: ENSIndexerConfig) {
+  const { chain, contracts } = getDatasourceAsFullyDefinedAtCompileTime(
+    config.namespace,
+    DatasourceNames.EFPRoot,
+  );
 
   return createConfig({
-    networks: networksConfigForChain(chain.id),
+    networks: networksConfigForChain(config, chain.id),
     contracts: {
-      [namespace("EFPListRegistry")]: {
-        network: networkConfigForContract(chain, contracts.EFPListRegistry),
+      [pluginNamespace("EFPListRegistry")]: {
+        network: networkConfigForContract(config, chain, contracts.EFPListRegistry),
         abi: contracts.EFPListRegistry.abi,
       },
     },
@@ -51,7 +52,7 @@ export default {
    */
   activate: activateHandlers({
     pluginName,
-    namespace,
+    pluginNamespace,
     handlers: () => [import("./handlers/EFPListRegistry")],
   }),
 

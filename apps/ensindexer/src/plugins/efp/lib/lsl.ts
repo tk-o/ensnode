@@ -2,9 +2,8 @@
  * EFP List Storage Location utilities
  */
 
-import type { ENSDeploymentChain } from "@ensnode/ens-deployments";
+import { type ENSNamespace } from "@ensnode/datasources";
 import type { Address } from "viem";
-import { base, baseSepolia, mainnet, optimism, optimismSepolia, sepolia } from "viem/chains";
 import { getAddress } from "viem/utils";
 import { prettifyError, z } from "zod/v4";
 import { type EFPDeploymentChainId, getEFPDeploymentChainIds } from "./chains";
@@ -206,10 +205,10 @@ function sliceEncodedLslContract(encodedLslContract: EncodedLslContract): Sliced
  * Create a zod schema covering validations and invariants enforced with {@link decodeListStorageLocationContract} parser.
  * This schema will be used to parse value of the {@link SlicedLslContract} type into {@link ListStorageLocationContract} type.
  *
- * @param {ENSDeploymentChain} ensDeploymentChain Selected ENS Deployment Chain
+ * @param {ENSNamespace} ensNamespace Selected ENS Namespace
  */
-const createEfpLslContractSchema = (ensDeploymentChain: ENSDeploymentChain) => {
-  const efpDeploymentChainIds = getEFPDeploymentChainIds(ensDeploymentChain);
+const createEfpLslContractSchema = (ensNamespace: ENSNamespace) => {
+  const efpDeploymentChainIds = getEFPDeploymentChainIds(ensNamespace);
 
   return z.object({
     version: z.literal("01").transform(() => ListStorageLocationVersion.V1),
@@ -251,18 +250,18 @@ const createEfpLslContractSchema = (ensDeploymentChain: ENSDeploymentChain) => {
 /**
  * Decodes an EncodedLsl into a ListStorageLocationContract.
  *
- * @param {ENSDeploymentChain} ensDeploymentChain - The ENS Deployment Chain
+ * @param {ENSNamespace} ensNamespace - The ENS Namespace to use for decoding.
  * @param {EncodedLsl} encodedLsl - The encoded List Storage Location string to parse.
  * @returns A decoded {@link ListStorageLocationContract} object.
  * @throws An error if parsing could not be completed successfully.
  */
 export function decodeListStorageLocationContract(
-  ensDeploymentChain: ENSDeploymentChain,
+  ensNamespace: ENSNamespace,
   encodedLsl: EncodedLsl,
 ): ListStorageLocationContract {
   const encodedLslContract = parseEncodedLslContract(encodedLsl);
   const slicedLslContract = sliceEncodedLslContract(encodedLslContract);
-  const efpLslContractSchema = createEfpLslContractSchema(ensDeploymentChain);
+  const efpLslContractSchema = createEfpLslContractSchema(ensNamespace);
 
   const parsed = efpLslContractSchema.safeParse(slicedLslContract);
 

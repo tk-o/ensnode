@@ -11,12 +11,12 @@ import { PluginName } from "@ensnode/ensnode-sdk";
 import { zeroAddress } from "viem";
 import { type ListStorageLocationContract, decodeListStorageLocationContract } from "../lib/lsl";
 
-export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.EFP>) {
+export default function ({ pluginNamespace: ns }: ENSIndexerPluginHandlerArgs<PluginName.EFP>) {
   ///
   /// EFPListRegistry Handlers
   ///
   ponder.on(
-    namespace("EFPListRegistry:Transfer"),
+    ns("EFPListRegistry:Transfer"),
     async function handleEFPListTokenTransfer({ context, event }) {
       const { tokenId, from: fromAddress, to: toAddress } = event.args;
 
@@ -50,7 +50,7 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
   );
 
   ponder.on(
-    "efp/EFPListRegistry:UpdateListStorageLocation",
+    ns("EFPListRegistry:UpdateListStorageLocation"),
     async function handleEFPListStorageLocationUpdate({ context, event }) {
       const { listStorageLocation: encodedListStorageLocation, tokenId } = event.args;
       const listToken = await context.db.find(efp_listToken, { id: tokenId });
@@ -68,7 +68,7 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
       // Update the List Storage Location associated with the List Token
       try {
         lslContract = decodeListStorageLocationContract(
-          config.ensDeploymentChain,
+          config.namespace,
           encodedListStorageLocation,
         );
       } catch (error) {
