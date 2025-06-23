@@ -7,6 +7,7 @@ import type { Address } from "viem";
 import { base, baseSepolia, mainnet, optimism, optimismSepolia, sepolia } from "viem/chains";
 import { getAddress } from "viem/utils";
 import { prettifyError, z } from "zod/v4";
+import { type EFPDeploymentChainId, getEFPDeploymentChainIds } from "./chains";
 
 /**
  * Enum defining recognized List Storage Location Types
@@ -31,13 +32,6 @@ export enum ListStorageLocationType {
 export enum ListStorageLocationVersion {
   V1 = 1,
 }
-
-/**
- * Application data model for EFP Deployment Chain ID.
- *
- * EFP has an allowlisted set of supported chains.
- */
-type EFPDeploymentChainId = number;
 
 /**
  * Base List Storage Location
@@ -159,6 +153,7 @@ interface SlicedLslContract {
 
 /**
  * Parse encoded representation of an EVMContract LSL.
+ *
  * @param {EncodedLsl} encodedLsl
  * @returns {EncodedLslContract} encoded representation of an EVMContract LSL
  * @throws {Error} when the encodedLsl is not of expected length of a V1 LSL for an EVM Contract
@@ -170,12 +165,12 @@ function parseEncodedLslContract(encodedLsl: EncodedLsl): EncodedLslContract {
     );
   }
 
-  const evmContractType = ListStorageLocationType.EVMContract.toString(2);
+  const evmContractTypePadded = ListStorageLocationType.EVMContract.toString(2).padStart(2, "0");
   const encodedLslType = encodedLsl.slice(4, 6);
 
-  if (encodedLslType !== evmContractType) {
+  if (encodedLslType !== evmContractTypePadded) {
     throw new Error(
-      `Encoded List Storage Location type value for an EVMContract LSL must be set to ${evmContractType}`,
+      `Encoded List Storage Location type value for an EVMContract LSL must be set to ${evmContractTypePadded}`,
     );
   }
 
@@ -183,33 +178,33 @@ function parseEncodedLslContract(encodedLsl: EncodedLsl): EncodedLslContract {
 }
 
 /**
- * Convert an encoded representation of a V1 EMVContract LSL into a SlicedLslV1Contract.
+ * Convert an encoded representation of a EMVContract LSL into a SlicedLslContract.
  *
- * @param encodedV1ContractLsl encoded representation of a V1 EVMContract LSL.
+ * @param encodedLslContract encoded representation of an EVMContract LSL.
  * @returns {SlicedLslContract} Sliced LSL EVMContract.
  */
-function sliceEncodedLslContract(encodedLsl: EncodedLslContract): SlicedLslContract {
+function sliceEncodedLslContract(encodedLslContract: EncodedLslContract): SlicedLslContract {
   return {
     // Extract the first byte after the 0x (2 hex characters = 1 byte)
-    version: encodedLsl.slice(2, 4),
+    version: encodedLslContract.slice(2, 4),
 
     // Extract the second byte
-    type: encodedLsl.slice(4, 6),
+    type: encodedLslContract.slice(4, 6),
 
     // Extract the next 32 bytes to get the chain id
-    chainId: encodedLsl.slice(6, 70),
+    chainId: encodedLslContract.slice(6, 70),
 
     // Extract the address (40 hex characters = 20 bytes)
-    listRecordsAddress: encodedLsl.slice(70, 110),
+    listRecordsAddress: encodedLslContract.slice(70, 110),
 
     // Extract last 32 bytes to get the slot
-    slot: encodedLsl.slice(110, 174),
+    slot: encodedLslContract.slice(110, 174),
   } satisfies SlicedLslContract;
 }
 
 /**
  * Create a zod schema covering validations and invariants enforced with {@link decodeListStorageLocationContract} parser.
- * This schema will be used to parse value of the {@link SlicedLslContract} type.
+ * This schema will be used to parse value of the {@link SlicedLslContract} type into {@link ListStorageLocationContract} type.
  *
  * @param {ENSDeploymentChain} ensDeploymentChain Selected ENS Deployment Chain
  */
@@ -224,13 +219,13 @@ const createEfpLslContractSchema = (ensDeploymentChain: ENSDeploymentChain) => {
     chainId: z
       .string()
       .length(64)
-      // prep: map string representation of
+      // prep: map string representation of a `uint256` chainId value into bigint
       .transform((v) => BigInt(`0x${v}`))
-      // invariant: chainId is a safe integer value
-      .refine((v) => v <= Number.MAX_SAFE_INTEGER, {
-        message: "chainId must be a safe integer value",
+      // invariant: chainId can be converted into a positive safe integer
+      .refine((v) => v > 0 && v <= Number.MAX_SAFE_INTEGER, {
+        message: "chainId must be a positive safe integer value",
       })
-      // prep: map bigint value into number
+      // prep: map a bigint chainId value into number
       .transform((v) => Number(v))
       // invariant: chainId is from one of the EFP Deployment Chain IDs
       // https://docs.efp.app/production/deployments/
@@ -281,51 +276,3 @@ export function decodeListStorageLocationContract(
 
   return parsed.data;
 }
-
-/**
- * Get the list of EFP Deployment Chain IDs for the ENS Deployment Chain.
- *
- * @param ensDeploymentChain
- * @returns list of EFP Deployment Chain IDs
- */
-function getEFPDeploymentChainIds(ensDeploymentChain: ENSDeploymentChain): EFPDeploymentChainId[] {
-  switch (ensDeploymentChain) {
-    case "mainnet":
-      return [base.id, optimism.id, mainnet.id];
-    case "sepolia":
-      return [baseSepolia.id, optimismSepolia.id, sepolia.id];
-    default:
-      throw new Error(
-        `EFP Deployment chainIds are not configured for the ${ensDeploymentChain} ENS Deployment Chain`,
-      );
-  }
-}
-
-/**
- * Unique EFP List Storage Location ID
- *
- * Example:
- * `${version}-${type}-${chainId}-${listRecordsAddress}-${slot}`
- */
-export type ListStorageLocationId = string;
-
-/**
- * Makes a unique EFP List Storage Location ID.
- *
- * @param {ListStorageLocationContract} listStorageLocationContract a decoded List Storage Location Contract object
- * @returns a unique List Storage Location ID
- */
-export const makeListStorageLocationId = ({
-  version,
-  type,
-  chainId,
-  listRecordsAddress,
-  slot,
-}: ListStorageLocationContract): ListStorageLocationId =>
-  [
-    version.toString(),
-    type.toString(),
-    chainId.toString(),
-    listRecordsAddress.toLowerCase(),
-    slot.toString(),
-  ].join("-");

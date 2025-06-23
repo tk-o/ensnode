@@ -1,11 +1,15 @@
 import { ponder } from "ponder:registry";
-import { efp_listStorageLocation, efp_listToken } from "ponder:schema";
+import {
+  efp_listStorageLocation,
+  efp_listToken,
+  efp_unrecognizedListStorageLocation,
+} from "ponder:schema";
 
 import config from "@/config";
 import type { ENSIndexerPluginHandlerArgs } from "@/lib/plugin-helpers";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import { zeroAddress } from "viem";
-import { decodeListStorageLocationContract, makeListStorageLocationId } from "../lib/lsl";
+import { type ListStorageLocationContract, decodeListStorageLocationContract } from "../lib/lsl";
 
 export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.EFP>) {
   ///
@@ -49,24 +53,33 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
     "efp/EFPListRegistry:UpdateListStorageLocation",
     async function handleEFPListStorageLocationUpdate({ context, event }) {
       const { listStorageLocation: encodedListStorageLocation, tokenId } = event.args;
+      const listToken = await context.db.find(efp_listToken, { id: tokenId });
+
+      // invariant: List Token must exist before its List Storage Location can be updated
+      if (!listToken) {
+        throw new Error(
+          `Cannot update List Storage Location for nonexisting List Token (id: ${tokenId})`,
+        );
+      }
+
+      const lslId = encodedListStorageLocation;
+      let lslContract: ListStorageLocationContract | undefined;
 
       // Update the List Storage Location associated with the List Token
       try {
-        const listToken = await context.db.find(efp_listToken, { id: tokenId });
-
-        if (!listToken) {
-          throw new Error(
-            `Cannot update List Storage Location for nonexisting List Token (id: ${tokenId})`,
-          );
-        }
-
-        const lslContract = decodeListStorageLocationContract(
+        lslContract = decodeListStorageLocationContract(
           config.ensDeploymentChain,
           encodedListStorageLocation,
         );
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error(
+          `Could not decode the V1 EVMContract List storage Location for tx "${event.transaction.hash}" on chain with ID "${context.network.chainId}". Error: ${errorMessage}.`,
+        );
+      }
 
-        const lslId = makeListStorageLocationId(lslContract);
-
+      // was V1 EVMContract LSL decoded successfully?
+      if (lslContract) {
         // Index the decoded List Storage Location data with a reference to the List Token
         // created with the currently handled EVM event
         await context.db
@@ -93,11 +106,21 @@ export default function ({ namespace }: ENSIndexerPluginHandlerArgs<PluginName.E
           .onConflictDoUpdate({
             listTokenId: listToken.id,
           });
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error(
-          `Could not update the List storage Location for tx "${event.transaction.hash}" on chain with ID "${context.network.chainId}". Error: ${errorMessage}.`,
-        );
+      } else {
+        // Even if the List Storage Location could not be decoded,
+        // we still want to store the encoded LSL value.
+        await context.db
+          .insert(efp_unrecognizedListStorageLocation)
+          .values({
+            id: lslId,
+            listTokenId: listToken.id,
+          })
+          // Can the same tuple of (version, type, chainId, listRecordsAddress, slot) value be linked with different tokenIds?
+          //
+          // NOTE: For now, we do update the reference for the List Token
+          .onConflictDoUpdate({
+            listTokenId: listToken.id,
+          });
       }
     },
   );
