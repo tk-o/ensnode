@@ -42,9 +42,8 @@ export const efp_listStorageLocation = onchainTable("efp_list_storage_location",
    * EVM chain ID of the chain where the EFP list records are stored.
    *
    * This value is of `EFPDeploymentChainId` type which currently fits in the range of 1 to 2^53-1.
-   * The 16 digits of precision is sufficient to represent all possible chain IDs.
    */
-  chainId: p.numeric({ mode: "number", precision: 16, scale: 0 }).notNull(),
+  chainId: p.int8({ mode: "number" }).notNull(),
 
   /**
    * Contract address on chainId where the EFP list records are stored.
