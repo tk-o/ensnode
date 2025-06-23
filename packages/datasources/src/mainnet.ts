@@ -1,8 +1,8 @@
 import { base, linea, mainnet, optimism } from "viem/chains";
 
-import { type DatasourceMap, DatasourceNames } from "./lib/types";
+import { DatasourceNames, type ENSNamespace } from "./lib/types";
 
-// ABIs for Root Datasource
+// ABIs for ENSRoot Datasource
 import { BaseRegistrar as root_BaseRegistrar } from "./abis/root/BaseRegistrar";
 import { EthRegistrarController as root_EthRegistrarController } from "./abis/root/EthRegistrarController";
 import { EthRegistrarControllerOld as root_EthRegistrarControllerOld } from "./abis/root/EthRegistrarControllerOld";
@@ -27,11 +27,11 @@ import { ResolverConfig } from "./lib/resolver";
 import EFPListRegistry from "./abis/efp/EFPListRegistry";
 
 /**
- * Datasources for the Mainnet ENS namespace
+ * The Mainnet ENSNamespace
  */
 export default {
   /**
-   * Root Datasource
+   * ENSRoot Datasource
    *
    * Addresses and Start Blocks from ENS Mainnet Subgraph Manifest
    * https://ipfs.io/ipfs/Qmd94vseLpkUrSFvJ3GuPubJSyHz8ornhNrwEAt6pjcbex
@@ -235,4 +235,4 @@ export default {
       },
     },
   },
-} satisfies DatasourceMap;
+} satisfies ENSNamespace;

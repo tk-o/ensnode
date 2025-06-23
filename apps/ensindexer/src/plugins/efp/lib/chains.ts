@@ -1,4 +1,4 @@
-import { ENSNamespace } from "@ensnode/datasources";
+import type { ENSNamespaceId } from "@ensnode/datasources";
 import { base, baseSepolia, mainnet, optimism, optimismSepolia, sepolia } from "viem/chains";
 
 /**
@@ -9,20 +9,20 @@ import { base, baseSepolia, mainnet, optimism, optimismSepolia, sepolia } from "
 export type EFPDeploymentChainId = number;
 
 /**
- * Get the list of EFP Deployment Chain IDs for the ENS Namespace.
+ * Get the list of EFP Deployment Chain IDs for the ENS Namespace ID.
  *
- * @param ensNamespace - ENS Namespace to get the EFP Deployment Chain IDs for
+ * @param ensNamespaceId - ENS Namespace ID to get the EFP Deployment Chain IDs for
  * @returns list of EFP Deployment Chain IDs
  */
-export function getEFPDeploymentChainIds(ensNamespace: ENSNamespace): EFPDeploymentChainId[] {
-  switch (ensNamespace) {
+export function getEFPDeploymentChainIds(ensNamespaceId: ENSNamespaceId): EFPDeploymentChainId[] {
+  switch (ensNamespaceId) {
     case "mainnet":
       return [base.id, optimism.id, mainnet.id];
     case "sepolia":
       return [baseSepolia.id, optimismSepolia.id, sepolia.id];
     default:
       throw new Error(
-        `EFP Deployment chainIds are not configured for the ${ensNamespace} ENS Namespace`,
+        `EFP Deployment chainIds are not configured for the ${ensNamespaceId} ENS Namespace ID`,
       );
   }
 }

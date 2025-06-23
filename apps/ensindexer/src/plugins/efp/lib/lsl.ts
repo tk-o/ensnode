@@ -2,7 +2,7 @@
  * EFP List Storage Location utilities
  */
 
-import { type ENSNamespace } from "@ensnode/datasources";
+import type { ENSNamespaceId } from "@ensnode/datasources";
 import type { Address } from "viem";
 import { getAddress } from "viem/utils";
 import { prettifyError, z } from "zod/v4";
@@ -205,10 +205,10 @@ function sliceEncodedLslContract(encodedLslContract: EncodedLslContract): Sliced
  * Create a zod schema covering validations and invariants enforced with {@link decodeListStorageLocationContract} parser.
  * This schema will be used to parse value of the {@link SlicedLslContract} type into {@link ListStorageLocationContract} type.
  *
- * @param {ENSNamespace} ensNamespace Selected ENS Namespace
+ * @param {ENSNamespaceId} ensNamespaceID Selected ENS Namespace ID
  */
-const createEfpLslContractSchema = (ensNamespace: ENSNamespace) => {
-  const efpDeploymentChainIds = getEFPDeploymentChainIds(ensNamespace);
+const createEfpLslContractSchema = (ensNamespaceId: ENSNamespaceId) => {
+  const efpDeploymentChainIds = getEFPDeploymentChainIds(ensNamespaceId);
 
   return z.object({
     version: z.literal("01").transform(() => ListStorageLocationVersion.V1),
@@ -250,18 +250,18 @@ const createEfpLslContractSchema = (ensNamespace: ENSNamespace) => {
 /**
  * Decodes an EncodedLsl into a ListStorageLocationContract.
  *
- * @param {ENSNamespace} ensNamespace - The ENS Namespace to use for decoding.
+ * @param {ENSNamespaceId} ensNamespaceId - The ENS Namespace ID to use for decoding.
  * @param {EncodedLsl} encodedLsl - The encoded List Storage Location string to parse.
  * @returns A decoded {@link ListStorageLocationContract} object.
  * @throws An error if parsing could not be completed successfully.
  */
 export function decodeListStorageLocationContract(
-  ensNamespace: ENSNamespace,
+  ensNamespaceId: ENSNamespaceId,
   encodedLsl: EncodedLsl,
 ): ListStorageLocationContract {
   const encodedLslContract = parseEncodedLslContract(encodedLsl);
   const slicedLslContract = sliceEncodedLslContract(encodedLslContract);
-  const efpLslContractSchema = createEfpLslContractSchema(ensNamespace);
+  const efpLslContractSchema = createEfpLslContractSchema(ensNamespaceId);
 
   const parsed = efpLslContractSchema.safeParse(slicedLslContract);
 
