@@ -315,12 +315,21 @@ const makeApiDocumentation = (isSubgraph: boolean) => {
         "A reference the related ListStorageLocation entity. Null if no related ListStorageLocation was ever created or the related ListStorageLocation is in an invalid format.",
     }),
     ...generateTypeDocSetWithTypeName("efp_listStorageLocation", "EFP List Storage Location", {
-      id: "A compound identifier based on the following values: version, type, chainId, listRecordsAddress, slot",
+      id: "Encoded LSL value",
       chainId: "EVM chain ID of the chain where the EFP list records are stored",
       listRecordsAddress: "Contract address on chainId where the EFP list records are stored",
       slot: "The 32-byte value that specifies the storage slot of the EFP list records within the listRecordsAddress contract. This disambiguates multiple lists stored within the same contract and de-couples it from the EFP List NFT token id which is stored on the EFP deployment root chain and inaccessible on other chains.",
       listTokenId: "Unique identifier for this EFP list token",
       listToken: "A reference to the related ListToken entity",
     }),
+    ...generateTypeDocSetWithTypeName(
+      "efp_unrecognizedListStorageLocation",
+      "EFP Unrecognized List Storage Location",
+      {
+        id: "Encoded LSL value",
+        listTokenId: "Unique identifier for this EFP list token",
+        listToken: "A reference to the related ListToken entity",
+      },
+    ),
   });
 };
