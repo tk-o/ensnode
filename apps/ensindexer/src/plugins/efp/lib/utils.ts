@@ -19,3 +19,29 @@ export type EvmAddress = Address & { __brand: "EvmAddress" };
 export function parseEvmAddress(value: string): EvmAddress {
   return getAddress(value).toLowerCase() as EvmAddress;
 }
+
+export type ListTokenId = bigint & { __brand: "ListTokenId" };
+
+/**
+ * Parses a List Token ID from a string representation.
+ *
+ * @param value - The string representation of a List Token ID (uint256).
+ * @returns {ListTokenId} The parsed List Token ID.
+ */
+export function parseListTokenId(value: string): ListTokenId {
+  let listTokenId: bigint;
+
+  try {
+    listTokenId = BigInt(value);
+  } catch (error) {
+    throw new Error(
+      `List Token ID "${value}" is invalid. It must be a string representation of uint256 value.`,
+    );
+  }
+
+  if (listTokenId < 0) {
+    throw new Error(`List Token ID "${value}" is invalid. It must be a non-negative value.`);
+  }
+
+  return listTokenId as ListTokenId;
+}

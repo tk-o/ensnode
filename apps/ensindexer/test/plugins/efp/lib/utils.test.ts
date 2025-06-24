@@ -1,4 +1,4 @@
-import { parseEvmAddress } from "@/plugins/efp/lib/utils";
+import { parseEvmAddress, parseListTokenId } from "@/plugins/efp/lib/utils";
 import { describe, expect, it } from "vitest";
 
 describe("EFP utils", () => {
@@ -16,6 +16,31 @@ describe("EFP utils", () => {
 
 - Address must be a hex value of 20 bytes (40 hex characters).
 - Address must match its checksum counterpart.`);
+    });
+  });
+
+  describe("parseListTokenId", () => {
+    it("should parse a valid List Token ID", () => {
+      const listTokenId = "1234567890123456789012345678901234567890123456789012345678901234567890";
+      const parsedListTokenId = parseListTokenId(listTokenId);
+      expect(parsedListTokenId).toBe(
+        1234567890123456789012345678901234567890123456789012345678901234567890n,
+      );
+    });
+
+    it("should throw an error for an invalid List Token ID", () => {
+      const invalidListTokenId = "invalid-token-id";
+      expect(() => parseListTokenId(invalidListTokenId)).toThrowError(
+        `List Token ID "invalid-token-id" is invalid. It must be a string representation of uint256 value.`,
+      );
+    });
+
+    it("should throw an error for a negative List Token ID", () => {
+      const negativeListTokenId =
+        "-1234567890123456789012345678901234567890123456789012345678901234567890";
+      expect(() => parseListTokenId(negativeListTokenId)).toThrowError(
+        `List Token ID "-1234567890123456789012345678901234567890123456789012345678901234567890" is invalid. It must be a non-negative value.`,
+      );
     });
   });
 });
