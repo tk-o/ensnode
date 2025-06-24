@@ -3,10 +3,10 @@
  */
 
 import type { ENSNamespaceId } from "@ensnode/datasources";
-import type { Address } from "viem";
-import { getAddress } from "viem/utils";
+import type { Address, Hex } from "viem";
 import { prettifyError, z } from "zod/v4";
 import { type EFPDeploymentChainId, getEFPDeploymentChainIds } from "./chains";
+import { parseEvmAddress } from "./utils";
 
 /**
  * Enum defining recognized List Storage Location Types
@@ -88,12 +88,27 @@ export interface ListStorageLocationContract
 }
 
 /**
- * An encoded List Storage Location is a bytes array with the following structure:
+ * Encoded List Storage Location
+ *
+ * An encoded List Storage Location is a string formatted as the lowercase hexadecimal representation of a bytes array with the following structure:
  * - `version`: A string representation of `uint8` value indicating the version of the List Storage Location. This is used to ensure compatibility and facilitate future upgrades.
  * - `type`: A string representation of `uint8` value indicating the type of list storage location. This identifies the kind of data the data field contains..
  * - `data:` A string representation of a bytes array containing the actual data of the list storage location. The structure of this data depends on the location type.
+ *
+ * Note: To prevent any `Hex` value from being able to be represented as an Encoded LSL, we apply a brand to the type.
  */
-type EncodedLsl = string;
+export type EncodedLsl = Hex & { readonly __brand: "EncodedLsl" };
+
+/**
+ * Parse a string value into an Encoded LSL.
+ */
+export function parseEncodedLsl(value: string): EncodedLsl {
+  if (!value.startsWith("0x")) {
+    throw new Error("Encoded LSL must start with '0x'");
+  }
+
+  return value.toLowerCase() as EncodedLsl;
+}
 
 /**
  * An encoded representation of an EVMContract List Storage Location.
@@ -101,11 +116,13 @@ type EncodedLsl = string;
  * - `version`: A string representation of `uint8` value indicating the version of the List Storage Location. This is used to ensure compatibility and facilitate future upgrades.
  * - `type`: A string representation of `uint8` value set to {@link ListStorageLocationType.EVMContract}
  * - `data:` A string representation of a bytes array containing the actual data of the list storage location. The structure of this data depends on the location type.
+ *
+ * Note: To prevent any `Hex` value from being able to be represented as an Encoded LSL, we apply a brand to the type.
  */
-type EncodedLslContract = `0x${string}01${string}`;
+export type EncodedLslContract = `0x0101${string}` & EncodedLsl;
 
 /**
- * Data structure helpful for parsing an EncodedLsl.
+ * Intermediate data structure to help parse an {@link EncodedLsl} into an {@link ListStorageLocationContract}.
  */
 interface SlicedLslContract {
   /**
@@ -151,13 +168,13 @@ interface SlicedLslContract {
 }
 
 /**
- * Parse encoded representation of an EVMContract LSL.
+ * Validate encoded representation of an EVMContract LSL.
  *
  * @param {EncodedLsl} encodedLsl
- * @returns {EncodedLslContract} encoded representation of an EVMContract LSL
  * @throws {Error} when the encodedLsl is not of expected length of a V1 LSL for an EVM Contract
+ * @throws {Error} when the encodedLsl is not of expected EVMContract type
  */
-function parseEncodedLslContract(encodedLsl: EncodedLsl): EncodedLslContract {
+export function validateEncodedLslContract(encodedLsl: EncodedLsl): void {
   if (encodedLsl.length !== 174) {
     throw new Error(
       "Encoded List Storage Location values for a LSL v1 Contract must be a 174-character long string",
@@ -172,8 +189,21 @@ function parseEncodedLslContract(encodedLsl: EncodedLsl): EncodedLslContract {
       `Encoded List Storage Location type value for an EVMContract LSL must be set to ${evmContractTypePadded}`,
     );
   }
+}
 
-  return encodedLsl as EncodedLslContract;
+/**
+ *  Check if the provided encodedLsl is a valid {@link EncodedLslContract}.
+ *
+ * @param {EncodedLsl} encodedLsl - Encoded representation of an EVMContract List Storage Location.
+ * @returns {boolean} true if the encodedLsl is a valid EncodedLslContract, false otherwise.
+ */
+export function isEncodedLslContract(encodedLsl: EncodedLsl): encodedLsl is EncodedLslContract {
+  try {
+    validateEncodedLslContract(encodedLsl);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -222,14 +252,14 @@ const createEfpLslContractSchema = (ensNamespaceId: ENSNamespaceId) => {
       .transform((v) => BigInt(`0x${v}`))
       // invariant: chainId can be converted into a positive safe integer
       .refine((v) => v > 0 && v <= Number.MAX_SAFE_INTEGER, {
-        message: "chainId must be a positive safe integer value",
+        message: "chainId must be in the accepted range",
       })
       // prep: map a bigint chainId value into number
       .transform((v) => Number(v))
-      // invariant: chainId is from one of the EFP Deployment Chain IDs
+      // invariant: chainId is from one of the allowlisted EFP Deployment Chain IDs for the ENS Namespace ID
       // https://docs.efp.app/production/deployments/
       .refine((v) => efpDeploymentChainIds.includes(v), {
-        message: `chainId must be one of the EFP deployment Chain IDs: ${efpDeploymentChainIds.join(", ")}`,
+        message: `chainId must be one of the EFP deployment Chain IDs defined for the ENSNamespace "${ensNamespaceId}": ${efpDeploymentChainIds.join(", ")}`,
       }),
 
     listRecordsAddress: z
@@ -237,7 +267,7 @@ const createEfpLslContractSchema = (ensNamespaceId: ENSNamespaceId) => {
       .length(40)
       .transform((v) => `0x${v}`)
       // ensure EVM address correctness and map it into lowercase for ease of equality comparisons
-      .transform((v) => getAddress(v).toLowerCase() as Address),
+      .transform((v) => parseEvmAddress(v) as Address),
 
     slot: z
       .string()
@@ -251,15 +281,14 @@ const createEfpLslContractSchema = (ensNamespaceId: ENSNamespaceId) => {
  * Decodes an EncodedLsl into a ListStorageLocationContract.
  *
  * @param {ENSNamespaceId} ensNamespaceId - The ENS Namespace ID to use for decoding.
- * @param {EncodedLsl} encodedLsl - The encoded List Storage Location string to parse.
+ * @param {EncodedLslContract} encodedLslContract - The encoded V1 EVMContract List Storage Location string to parse.
  * @returns A decoded {@link ListStorageLocationContract} object.
  * @throws An error if parsing could not be completed successfully.
  */
 export function decodeListStorageLocationContract(
   ensNamespaceId: ENSNamespaceId,
-  encodedLsl: EncodedLsl,
+  encodedLslContract: EncodedLslContract,
 ): ListStorageLocationContract {
-  const encodedLslContract = parseEncodedLslContract(encodedLsl);
   const slicedLslContract = sliceEncodedLslContract(encodedLslContract);
   const efpLslContractSchema = createEfpLslContractSchema(ensNamespaceId);
 

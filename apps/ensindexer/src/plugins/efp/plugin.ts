@@ -1,7 +1,7 @@
 /**
  * The EFP plugin describes indexing behavior for the Ethereum Follow Protocol.
  *
- * NOTE: this is an early version of the experimental EFP plugin and is not complete or production ready.
+ * NOTE: this is an early version of an experimental EFP plugin and is not complete or production ready.
  */
 
 import type { ENSIndexerConfig } from "@/config/types";
@@ -22,7 +22,7 @@ const pluginName = PluginName.EFP;
 // Define the DatasourceNames for Datasources required by the plugin
 const requiredDatasources = [DatasourceNames.EFPRoot];
 
-// construct a unique contract namespace for this plugin
+// Construct a unique plugin namespace to wrap contract names
 const pluginNamespace = makePluginNamespace(pluginName);
 
 // config object factory used to derive PonderConfig type
