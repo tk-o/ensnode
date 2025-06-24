@@ -2,6 +2,7 @@
  * The Subgraph plugin describes indexing behavior for the 'Root' Datasource, in alignment with the
  * legacy ENS Subgraph indexing logic.
  */
+
 import { DatasourceNames } from "@ensnode/datasources";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import { createConfig } from "ponder";
@@ -18,11 +19,10 @@ import {
 
 const pluginName = PluginName.Subgraph;
 
-// enlist datasources used within createPonderConfig function
-// useful for config validation
+// Define the Datasources required by the plugin
 const requiredDatasources = [DatasourceNames.ENSRoot];
 
-// construct a unique contract namespace for this plugin
+// Construct a unique plugin namespace to wrap contract names
 const pluginNamespace = makePluginNamespace(pluginName);
 
 // config object factory used to derive PluginConfig type
@@ -67,7 +67,7 @@ function createPonderConfig(config: ENSIndexerConfig) {
   });
 }
 
-// Implicitly define the type returned by createPonderConfig
+// Implicitly define the type returned by createPluginConfig
 type PonderConfig = ReturnType<typeof createPonderConfig>;
 
 export default {
@@ -92,7 +92,7 @@ export default {
    */
   createPonderConfig,
 
-  /** The unique plugin name */
+  /** The unique plugin name  */
   pluginName,
 
   /** The plugin's required Datasources */

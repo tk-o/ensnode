@@ -2,6 +2,7 @@
  * The Basenames plugin describes indexing behavior for the Basenames ENS Datasource, leveraging
  * the shared Subgraph-compatible indexing logic.
  */
+
 import { DatasourceNames } from "@ensnode/datasources";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import { createConfig } from "ponder";
@@ -21,7 +22,7 @@ const pluginName = PluginName.Basenames;
 // Define the Datasources required by the plugin
 const requiredDatasources = [DatasourceNames.Basenames];
 
-// construct a unique contract namespace for this plugin
+// Construct a unique plugin namespace to wrap contract names
 const pluginNamespace = makePluginNamespace(pluginName);
 
 // config object factory used to derive PluginConfig type
@@ -58,7 +59,7 @@ function createPonderConfig(config: ENSIndexerConfig) {
   });
 }
 
-// implicitly define the type returned by createPonderConfig
+// Implicitly define the type returned by createPonderConfig
 type PonderConfig = ReturnType<typeof createPonderConfig>;
 
 export default {
