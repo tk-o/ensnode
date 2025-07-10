@@ -1,7 +1,4 @@
-import {
-  UnixTimestampInSeconds,
-  unixTimestampToDate,
-} from "@/components/recent-registrations/utils";
+import { UnixTimestampInSeconds, unixTimestampToDate } from "@/components/datetime-utils";
 import { ensAdminVersion } from "@/lib/env";
 import { ENSNamespaceId, getNameWrapperAddress } from "@ensnode/datasources";
 import { useQuery } from "@tanstack/react-query";
