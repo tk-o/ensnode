@@ -6,18 +6,30 @@ import type {
   UrlString,
 } from "./serialized-types";
 
-export function serializeChainIdString(chainId: ChainId): ChainIdString {
+/**
+ * Serializes a {@link ChainId} value into its string representation.
+ */
+export function serializeChainId(chainId: ChainId): ChainIdString {
   return chainId.toString();
 }
 
+/**
+ * Serializes a {@link Datetime} value into its string representation.
+ */
 export function serializeDatetime(datetime: Datetime): DatetimeIso8601 {
   return datetime.toISOString();
 }
 
+/**
+ * Serializes a {@link URL} value into its string representation.
+ */
 export function serializeUrl(url: URL): UrlString {
   return url.toString();
 }
 
+/**
+ * Serializes a {@link BlockRef} object.
+ */
 export function serializeBlockRef(blockRef: BlockRef): SerializedBlockRef {
   return {
     createdAt: serializeDatetime(blockRef.createdAt),

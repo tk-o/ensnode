@@ -36,6 +36,9 @@ export type RpcUrl = URL;
  * BlockRef
  *
  * Describes a block.
+ *
+ * We use parameter types to maintain fields layout and documentation across
+ * the domain model and its serialized counterpart.
  */
 export interface BlockRef<DatetimeType = Datetime> {
   /** Block number (height) */
@@ -75,7 +78,7 @@ export interface Blockrange {
  * - Etc..
  *
  * Each ENS namespace is logically independent of & isolated from the others, and not exclusively
- * correlated with a specific L1 chain. For example, the Sepolia and Holesky testnet ENS namepaces
+ * correlated with a specific L1 chain. For example, the Sepolia and Holesky testnet ENS namespaces
  * are independent of the canonical ENS namespace on mainnet, and there could be an additional
  * deployment of the ENS protocol to mainnet, configured with different Datasources, resulting in a
  * logically isolated set of ENS names.

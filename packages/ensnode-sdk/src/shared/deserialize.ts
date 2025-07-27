@@ -1,3 +1,4 @@
+import { prettifyError } from "zod/v4";
 import type { BlockRef, ChainId, Datetime } from "./domain-types";
 import type {
   ChainIdString,
@@ -5,20 +6,44 @@ import type {
   SerializedBlockRef,
   UrlString,
 } from "./serialized-types";
-import { BlockRefSchema, ChainIdSchema, DatetimeSchema, UrlSchema } from "./zod-schemas";
+import { BlockRefSchema, ChainIdStringSchema, DatetimeSchema, UrlSchema } from "./zod-schemas";
 
-export function deserializeChainIdString(maybeChainId: ChainIdString): ChainId {
-  return ChainIdSchema.parse(maybeChainId);
+export function deserializeChainId(maybeChainId: ChainIdString): ChainId {
+  const parsed = ChainIdStringSchema.safeParse(maybeChainId);
+
+  if (parsed.error) {
+    throw new Error(`Cannot deserialize ChainId:\n${prettifyError(parsed.error)}\n`);
+  }
+
+  return parsed.data;
 }
 
 export function deserializeDatetime(maybeDatetime: DatetimeIso8601): Datetime {
-  return DatetimeSchema.parse(maybeDatetime);
+  const parsed = DatetimeSchema.safeParse(maybeDatetime);
+
+  if (parsed.error) {
+    throw new Error(`Cannot deserialize Datetime:\n${prettifyError(parsed.error)}\n`);
+  }
+
+  return parsed.data;
 }
 
 export function deserializeUrl(maybeUrl: UrlString): URL {
-  return UrlSchema.parse(maybeUrl);
+  const parsed = UrlSchema.safeParse(maybeUrl);
+
+  if (parsed.error) {
+    throw new Error(`Cannot deserialize URL:\n${prettifyError(parsed.error)}\n`);
+  }
+
+  return parsed.data;
 }
 
 export function deserializeBlockRef(maybeBlockRef: SerializedBlockRef): BlockRef {
-  return BlockRefSchema.parse(maybeBlockRef);
+  const parsed = BlockRefSchema.safeParse(maybeBlockRef);
+
+  if (parsed.error) {
+    throw new Error(`Cannot deserialize BlockRef:\n${prettifyError(parsed.error)}\n`);
+  }
+
+  return parsed.data;
 }

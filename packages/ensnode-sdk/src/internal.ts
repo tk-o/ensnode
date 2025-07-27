@@ -7,4 +7,11 @@
  * use `@ensnode/ensnode-sdk/internal` path. This path is available in any
  * app/package in the monorepo which requires `@ensnode/ensnode-sdk` dependency.
  */
-export { BlockRefSchema, ChainIdSchema, DatetimeSchema, UrlSchema } from "./shared/zod-schemas";
+export {
+  BlockRefSchema,
+  ChainIdSchema,
+  ChainIdStringSchema,
+  DatetimeSchema,
+  ENSNamespaceSchema,
+  UrlSchema,
+} from "./shared/zod-schemas";
