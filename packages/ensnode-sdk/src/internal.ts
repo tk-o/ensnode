@@ -9,9 +9,12 @@
  */
 export {
   BlockRefSchema,
+  BooleanSchema,
   ChainIdSchema,
   ChainIdStringSchema,
   DatetimeSchema,
   ENSNamespaceSchema,
+  PortSchema,
+  PositiveIntegerSchema,
   UrlSchema,
 } from "./shared/zod-schemas";

@@ -1,5 +1,5 @@
 import z from "zod/v4";
-import type { ChainId } from "../../shared/domain-types";
+import { uniq } from "../../shared";
 import {
   BooleanSchema,
   ChainIdSchema,
@@ -8,7 +8,6 @@ import {
   PositiveIntegerSchema,
   UrlSchema,
 } from "../../shared/zod-schemas";
-import { uniq } from "../../utils/collections";
 import { PluginName } from "./domain-types";
 import type { ENSIndexerPublicConfig, IndexedChainIds } from "./domain-types";
 import { isSubgraphCompatible } from "./helpers";
