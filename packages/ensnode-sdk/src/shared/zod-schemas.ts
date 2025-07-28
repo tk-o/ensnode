@@ -9,65 +9,150 @@ import { ENSNamespaceIds } from "./domain-types";
 import type { BlockRef, ChainId, Datetime } from "./domain-types";
 
 /**
- * Parses value as a positive integer.
+ * Parses value as a boolean.
  */
-export const PositiveIntegerSchema = z.int().positive();
+export const makeBooleanSchema = (valueLabel: string = "Value") =>
+  z.boolean({
+    error: `${valueLabel} must be a boolean.`,
+  });
+
+/**
+ * Parses a string value as a boolean.
+ */
+export const makeBooleanStringSchema = (valueLabel: string = "Value") =>
+  z
+    .string()
+    .pipe(
+      z.enum(["true", "false"], {
+        error: `${valueLabel} must be 'true' or 'false'.`,
+      }),
+    )
+    .transform((val) => val === "true");
+
+/**
+ * Parses a numeric value as an integer.
+ */
+export const makeIntegerSchema = (valueLabel: string = "Value") =>
+  z.int({
+    error: `${valueLabel} must be an integer.`,
+  });
+
+/**
+ * Parses a numeric value as a positive integer.
+ */
+export const makePositiveIntegerSchema = (valueLabel: string = "Value") =>
+  makeIntegerSchema(valueLabel).positive({
+    error: `${valueLabel} must be a positive integer (>0).`,
+  });
+
+/**
+ * Parses a numeric value as a non-negative integer.
+ */
+export const makeNonNegativeIntegerSchema = (valueLabel: string = "Value") =>
+  makeIntegerSchema(valueLabel).nonnegative({
+    error: `${valueLabel} must be a non-negative integer (>=0).`,
+  });
+
+/**
+ * Parses value as a string.
+ */
+export const makeStringSchema = (valueLabel: string = "Value") =>
+  z.string({ error: `${valueLabel} must be a string.` }).trim();
+
+/**
+ * Parses a string value as a non-empty string.
+ */
+export const makeNonEmptyStringSchema = (valueLabel: string = "Value") =>
+  makeStringSchema(valueLabel).nonempty({
+    error: `${valueLabel} must be a non-empty string.`,
+  });
 
 /**
  * Parses Chain ID
  *
  * {@link ChainId}
  */
-export const ChainIdSchema = PositiveIntegerSchema;
+export const makeChainIdSchema = (valueLabel: string = "Chain ID") =>
+  makePositiveIntegerSchema(valueLabel);
 
 /**
  * Parses a string representation of {@link ChainId}.
  */
-export const ChainIdStringSchema = z.string().transform(Number).pipe(ChainIdSchema);
+export const makeChainIdStringSchema = (valueLabel: string = "Chain ID string") =>
+  z.string().transform(Number).pipe(makeChainIdSchema(valueLabel));
 
 /**
- * Parses an ISO-8601 string representations of {@link Datetime}
+ * Parses an ISO 8601 string representations of {@link Datetime}
  */
-export const DatetimeSchema = z.iso.datetime().transform((v) => new Date(v));
+export const makeDatetimeSchema = (valueLabel: string = "Datetime string") =>
+  z.iso
+    .datetime({ error: `${valueLabel} must be a string in ISO 8601 format.` })
+    .transform((v) => new Date(v));
 
 /**
  * Parses a string representations of {@link URL}
  */
-export const UrlSchema = z.url().transform((v) => new URL(v));
+export const makeUrlSchema = (valueLabel: string = "Value") =>
+  z
+    .url({
+      error: `${valueLabel} must be a valid URL string (e.g., http://localhost:8080 or https://example.com).`,
+    })
+    .transform((v) => new URL(v));
 
 /**
- * Parses value as a boolean.
+ * Parses a numeric value as a block number.
  */
-export const BooleanSchema = z.boolean();
+export const makeBlockNumberSchema = (valueLabel: string = "Block number") =>
+  makeNonNegativeIntegerSchema(valueLabel);
 
 /**
- * Parses value as the {@link BlockRef} object.
+ * Parses an object value as the {@link BlockRef} object.
  */
-export const BlockRefSchema = z.object({
-  createdAt: DatetimeSchema,
-  number: ChainIdSchema,
-});
-
-/**
- * Parses value as the {@link BlockRange} object.
- */
-export const BlockrangeSchema = z
-  .object({
-    startBlock: PositiveIntegerSchema.optional(),
-    endBlock: PositiveIntegerSchema.optional(),
-  })
-  .refine(
-    (val) =>
-      val.startBlock === undefined || val.endBlock === undefined || val.endBlock > val.startBlock,
-    { error: "endBlock must be greater than startBlock." },
+export const makeBlockRefSchema = (valueLabel: string = "Value") =>
+  z.object(
+    {
+      createdAt: makeDatetimeSchema(),
+      number: makeBlockNumberSchema(),
+    },
+    {
+      error: `${valueLabel} must be a valid BlockRef object.`,
+    },
   );
 
-export const ENSNamespaceSchema = z.enum(ENSNamespaceIds, {
-  error() {
-    return `Invalid ENS namespace. Supported ENS namespaces are: ${Object.keys(ENSNamespaceIds).join(", ")}`;
-  },
-});
+/**
+ * Parses an object value as the {@link BlockRange} object.
+ */
+export const makeBlockrangeSchema = (valueLabel: string = "Value") =>
+  z
+    .object(
+      {
+        startBlock: makePositiveIntegerSchema().optional(),
+        endBlock: makePositiveIntegerSchema().optional(),
+      },
+      {
+        error: `${valueLabel} must be a valid Blockrange object.`,
+      },
+    )
+    .refine(
+      (val) =>
+        val.startBlock === undefined || val.endBlock === undefined || val.endBlock > val.startBlock,
+      { error: `${valueLabel}.endBlock must be greater than ${valueLabel}.startBlock.` },
+    );
 
-export const PortSchema = PositiveIntegerSchema.max(65535, {
-  error: "Port must be an integer between 1 and 65535.",
-});
+/**
+ * Parses a string value as ENSNamespaceId.
+ */
+export const makeENSNamespaceIdSchema = (valueLabel: string = "ENSNamespaceId") =>
+  z.enum(ENSNamespaceIds, {
+    error() {
+      return `Invalid ${valueLabel}. Supported ENS namespace IDs are: ${Object.keys(ENSNamespaceIds).join(", ")}`;
+    },
+  });
+
+/**
+ * Parses a numeric value as a port number.
+ */
+export const makePortSchema = (valueLabel: string = "Port") =>
+  makePositiveIntegerSchema(valueLabel).max(65535, {
+    error: `${valueLabel} must be an integer between 1 and 65535.`,
+  });

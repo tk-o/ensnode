@@ -33,7 +33,7 @@ describe("ENSIndexer: Shared", () => {
       expect(serializeChainId(8543)).toBe("8543");
     });
 
-    it("can serialize Datetime into an ISO-8601 string representation", () => {
+    it("can serialize Datetime into an ISO 8601 string representation", () => {
       const datetime = new Date(2020, 1, 2, 3, 22, 59, 123);
 
       expect(serializeDatetime(datetime)).toBe("2020-02-02T02:22:59.123Z");
@@ -76,7 +76,7 @@ describe("ENSIndexer: Shared", () => {
           number: 123,
         } satisfies SerializedBlockRef),
       ).toThrowError(`Cannot deserialize BlockRef:
-✖ Invalid ISO datetime
+✖ Datetime string must be a string in ISO 8601 format.
   → at createdAt`);
 
       expect(() =>
@@ -85,7 +85,7 @@ describe("ENSIndexer: Shared", () => {
           number: -123,
         } satisfies SerializedBlockRef),
       ).toThrowError(`Cannot deserialize BlockRef:
-✖ Too small: expected number to be >0
+✖ Block number must be a non-negative integer (>=0).
   → at number`);
     });
 
@@ -95,16 +95,16 @@ describe("ENSIndexer: Shared", () => {
 
     it("refuses to deserialize ChainId for invalid input", () => {
       expect(() => deserializeChainId("-8543")).toThrowError(`Cannot deserialize ChainId:
-✖ Too small: expected number to be >0`);
+✖ Chain ID string must be a positive integer (>0)`);
 
       expect(() => deserializeChainId("8543.5")).toThrowError(`Cannot deserialize ChainId:
-✖ Invalid input: expected int, received number`);
+✖ Chain ID string must be an integer.`);
 
       expect(() => deserializeChainId("vitalik")).toThrowError(`Cannot deserialize ChainId:
-✖ Invalid input: expected number, received NaN`);
+✖ Chain ID string must be an integer.`);
     });
 
-    it("can deserialize Datetime from an ISO-8601 string representation", () => {
+    it("can deserialize Datetime from an ISO 8601 string representation", () => {
       const resultDatetime = new Date(2020, 1, 2, 3, 22, 59, 123);
 
       expect(deserializeDatetime("2020-02-02T02:22:59.123Z")).toStrictEqual(resultDatetime);
@@ -114,12 +114,12 @@ describe("ENSIndexer: Shared", () => {
       expect(() =>
         deserializeDatetime("202-02-02T02:22:59.123Z"),
       ).toThrowError(`Cannot deserialize Datetime:
-✖ Invalid ISO datetime`);
+✖ Datetime string must be a string in ISO 8601 format.`);
 
       expect(() =>
         deserializeDatetime(123 as unknown as string),
       ).toThrowError(`Cannot deserialize Datetime:
-✖ Invalid input: expected string, received number`);
+✖ Datetime string must be a string in ISO 8601 format.`);
     });
 
     it("can deserialize URL from its string representation", () => {
@@ -134,14 +134,13 @@ describe("ENSIndexer: Shared", () => {
     });
 
     it("refuses to deserialize URL for invalid input", () => {
-      expect(() => deserializeUrl("example.com")).toThrowError(`Cannot deserialize URL:
-✖ Invalid URL`);
+      const errorMessage = `Cannot deserialize URL:
+✖ Value must be a valid URL string (e.g., http://localhost:8080 or https://example.com).`;
+      expect(() => deserializeUrl("example.com")).toThrowError(errorMessage);
 
-      expect(() => deserializeUrl("https://")).toThrowError(`Cannot deserialize URL:
-✖ Invalid URL`);
+      expect(() => deserializeUrl("https://")).toThrowError(errorMessage);
 
-      expect(() => deserializeUrl("//example.com")).toThrowError(`Cannot deserialize URL:
-✖ Invalid URL`);
+      expect(() => deserializeUrl("//example.com")).toThrowError(errorMessage);
     });
   });
 });

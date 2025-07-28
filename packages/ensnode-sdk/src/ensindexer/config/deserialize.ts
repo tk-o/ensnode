@@ -1,15 +1,17 @@
 import { prettifyError } from "zod/v4";
 import type { ENSIndexerPublicConfig } from "./domain-types";
 import type { SerializedENSIndexerPublicConfig } from "./serialized-types";
-import { ENSIndexerPublicConfigSchema } from "./zod-schemas";
+import { makeENSIndexerPublicConfigSchema } from "./zod-schemas";
 
 /**
  * Serialize a {@link ENSIndexerPublicConfig} object.
  */
 export function deserializeENSIndexerPublicConfig(
   maybeConfig: SerializedENSIndexerPublicConfig,
+  valueLabel?: string,
 ): ENSIndexerPublicConfig {
-  const parsed = ENSIndexerPublicConfigSchema.safeParse(maybeConfig);
+  const schema = makeENSIndexerPublicConfigSchema(valueLabel);
+  const parsed = schema.safeParse(maybeConfig);
 
   if (parsed.error) {
     throw new Error(`Cannot deserialize ENSIndexerPublicConfig:\n${prettifyError(parsed.error)}\n`);

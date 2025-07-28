@@ -23,7 +23,7 @@ import {
 import { uniq } from "@/lib/lib-helpers";
 import { ENSNamespaceIds } from "@ensnode/datasources";
 import { PluginName } from "@ensnode/ensnode-sdk";
-import { ChainIdSchema } from "@ensnode/ensnode-sdk/internal";
+import { makeChainIdStringSchema } from "@ensnode/ensnode-sdk/internal";
 
 // parses an env string bool with strict requirement of 'true' or 'false'
 const makeEnvStringBoolSchema = (envVarKey: string) =>
@@ -130,13 +130,9 @@ const PortSchema = z.coerce
 
 const EnsRainbowEndpointUrlSchema = makeUrlSchema("ENSRAINBOW_URL");
 
-const RpcConfigsSchema = z.record(
-  z.string().transform(Number).pipe(ChainIdSchema),
-  RpcConfigSchema,
-  {
-    error: "Chains configuration must be an object mapping valid chain IDs to their configs.",
-  },
-);
+const RpcConfigsSchema = z.record(makeChainIdStringSchema(), RpcConfigSchema, {
+  error: "Chains configuration must be an object mapping valid chain IDs to their configs.",
+});
 
 const DatabaseUrlSchema = z.union(
   [

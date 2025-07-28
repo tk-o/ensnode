@@ -6,10 +6,16 @@ import type {
   SerializedBlockRef,
   UrlString,
 } from "./serialized-types";
-import { BlockRefSchema, ChainIdStringSchema, DatetimeSchema, UrlSchema } from "./zod-schemas";
+import {
+  makeBlockRefSchema,
+  makeChainIdStringSchema,
+  makeDatetimeSchema,
+  makeUrlSchema,
+} from "./zod-schemas";
 
-export function deserializeChainId(maybeChainId: ChainIdString): ChainId {
-  const parsed = ChainIdStringSchema.safeParse(maybeChainId);
+export function deserializeChainId(maybeChainId: ChainIdString, valueLabel?: string): ChainId {
+  const schema = makeChainIdStringSchema(valueLabel);
+  const parsed = schema.safeParse(maybeChainId);
 
   if (parsed.error) {
     throw new Error(`Cannot deserialize ChainId:\n${prettifyError(parsed.error)}\n`);
@@ -18,8 +24,9 @@ export function deserializeChainId(maybeChainId: ChainIdString): ChainId {
   return parsed.data;
 }
 
-export function deserializeDatetime(maybeDatetime: DatetimeIso8601): Datetime {
-  const parsed = DatetimeSchema.safeParse(maybeDatetime);
+export function deserializeDatetime(maybeDatetime: DatetimeIso8601, valueLabel?: string): Datetime {
+  const schema = makeDatetimeSchema(valueLabel);
+  const parsed = schema.safeParse(maybeDatetime);
 
   if (parsed.error) {
     throw new Error(`Cannot deserialize Datetime:\n${prettifyError(parsed.error)}\n`);
@@ -28,8 +35,9 @@ export function deserializeDatetime(maybeDatetime: DatetimeIso8601): Datetime {
   return parsed.data;
 }
 
-export function deserializeUrl(maybeUrl: UrlString): URL {
-  const parsed = UrlSchema.safeParse(maybeUrl);
+export function deserializeUrl(maybeUrl: UrlString, valueLabel?: string): URL {
+  const schema = makeUrlSchema(valueLabel);
+  const parsed = schema.safeParse(maybeUrl);
 
   if (parsed.error) {
     throw new Error(`Cannot deserialize URL:\n${prettifyError(parsed.error)}\n`);
@@ -38,8 +46,12 @@ export function deserializeUrl(maybeUrl: UrlString): URL {
   return parsed.data;
 }
 
-export function deserializeBlockRef(maybeBlockRef: SerializedBlockRef): BlockRef {
-  const parsed = BlockRefSchema.safeParse(maybeBlockRef);
+export function deserializeBlockRef(
+  maybeBlockRef: SerializedBlockRef,
+  valueLabel?: string,
+): BlockRef {
+  const schema = makeBlockRefSchema(valueLabel);
+  const parsed = schema.safeParse(maybeBlockRef);
 
   if (parsed.error) {
     throw new Error(`Cannot deserialize BlockRef:\n${prettifyError(parsed.error)}\n`);
