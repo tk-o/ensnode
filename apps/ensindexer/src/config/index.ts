@@ -5,7 +5,7 @@ import { getRpcConfigsFromEnv } from "@/lib/lib-config";
 // format the relevant environment variables into the shape of an ENSIndexerEnvironment
 const environment = {
   port: process.env.PORT,
-  ponderDatabaseSchema: process.env.DATABASE_SCHEMA,
+  databaseSchemaName: process.env.DATABASE_SCHEMA,
   databaseUrl: process.env.DATABASE_URL,
   namespace: process.env.NAMESPACE,
   plugins: process.env.PLUGINS,

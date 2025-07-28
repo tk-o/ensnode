@@ -29,7 +29,7 @@ export const makeIndexedChainIdsSchema = (valueLabel: string = "Indexed Chain ID
  *
  * The list is guaranteed to include at least one item exists, and no duplicates.
  */
-export const makePluginsSchema = (valueLabel: string = "Plugins") =>
+export const makePluginsListSchema = (valueLabel: string = "Plugins") =>
   z
     .array(
       z.enum(PluginName, {
@@ -41,7 +41,7 @@ export const makePluginsSchema = (valueLabel: string = "Plugins") =>
     .min(1, {
       error: `${valueLabel} must be a list with at least one valid plugin name. Valid plugins are: ${Object.values(
         PluginName,
-      ).join(", ")}.`,
+      ).join(", ")}`,
     })
     .refine((arr) => arr.length === uniq(arr).length, {
       error: `${valueLabel} cannot contain duplicate values.`,
@@ -54,9 +54,9 @@ export const makePluginsSchema = (valueLabel: string = "Plugins") =>
  */
 export const makeDatabaseSchemaNameSchema = (valueLabel: string = "Database schema name") =>
   z
-    .string()
+    .string({ error: `${valueLabel} must be a string` })
     .trim()
-    .min(1, {
+    .nonempty({
       error: `${valueLabel} is required and must be a non-empty string.`,
     });
 
@@ -154,11 +154,16 @@ export const makeENSIndexerPublicConfigSchema = (valueLabel: string = "ENSIndexe
       indexedChainIds: makeIndexedChainIdsSchema(`${valueLabel}.indexedChainIds`),
       isSubgraphCompatible: makeBooleanSchema(`${valueLabel}.isSubgraphCompatible`),
       namespace: makeENSNamespaceIdSchema(`${valueLabel}.namespace`),
-      plugins: makePluginsSchema(`${valueLabel}.plugins`),
+      plugins: makePluginsListSchema(`${valueLabel}.plugins`),
       databaseSchemaName: makeDatabaseSchemaNameSchema(`${valueLabel}.databaseSchemaName`),
       port: makePortSchema(`${valueLabel}.port`),
       versionInfo: makeVersionInfoSchema(`${valueLabel}.versionInfo`),
     })
+    /**
+     * Validations
+     *
+     * All required data validations must be performed below.
+     */
     .check(invariant_reverseResolversPluginNeedsResolverRecords)
     .check(invariant_experimentalResolutionNeedsReverseResolversPlugin)
     .check(invariant_isSubgraphCompatibleRequirements);

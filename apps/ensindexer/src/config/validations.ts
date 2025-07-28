@@ -70,21 +70,15 @@ export function invariant_rpcConfigsSpecifiedForIndexedChains(
 
 // Invariant: if a global blockrange is defined, only one chain is indexed
 export function invariant_globalBlockrange(
-  ctx: ZodCheckFnInput<Pick<ENSIndexerConfig, "globalBlockrange" | "namespace" | "plugins">>,
+  ctx: ZodCheckFnInput<
+    Pick<ENSIndexerConfig, "globalBlockrange" | "indexedChainIds" | "namespace" | "plugins">
+  >,
 ) {
   const { value: config } = ctx;
-  const { globalBlockrange } = config;
+  const { globalBlockrange, indexedChainIds } = config;
 
   if (globalBlockrange.startBlock !== undefined || globalBlockrange.endBlock !== undefined) {
-    const datasources = getENSNamespaceAsFullyDefinedAtCompileTime(config.namespace);
-    const indexedChainIds = uniq(
-      config.plugins
-        .flatMap((pluginName) => getPlugin(pluginName).requiredDatasourceNames)
-        .map((datasourceName) => datasources[datasourceName])
-        .map((datasource) => datasource.chain.id),
-    );
-
-    if (indexedChainIds.length > 1) {
+    if (indexedChainIds.size > 1) {
       ctx.issues.push({
         code: "custom",
         input: config,

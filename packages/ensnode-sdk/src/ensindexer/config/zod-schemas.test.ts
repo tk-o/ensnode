@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { type ZodSafeParseResult, prettifyError } from "zod/v4";
 import { PluginName, VersionInfo } from "./domain-types";
-import { SerializedENSIndexerPublicConfig } from "./serialized-types";
 import {
   makeDatabaseSchemaNameSchema,
-  makeENSIndexerPublicConfigSchema,
   makeIndexedChainIdsSchema,
-  makePluginsSchema,
+  makePluginsListSchema,
   makeVersionInfoSchema,
 } from "./zod-schemas";
 
@@ -22,13 +20,13 @@ describe("ENSIndexer: Config", () => {
         expect(makeDatabaseSchemaNameSchema().parse("theSchema")).toBe("theSchema");
 
         expect(formatParseError(makeDatabaseSchemaNameSchema().safeParse(1))).toContain(
-          "Invalid input: expected string, received number",
+          "Database schema name must be a string",
         );
       });
 
-      it("can parse plugin name values", () => {
+      it("can parse a list of plugin name values", () => {
         expect(
-          makePluginsSchema().parse([
+          makePluginsListSchema().parse([
             `${PluginName.Subgraph}`,
             `${PluginName.Referrals}`,
             `${PluginName.ReverseResolvers}`,
@@ -37,7 +35,7 @@ describe("ENSIndexer: Config", () => {
 
         expect(
           formatParseError(
-            makePluginsSchema().safeParse([
+            makePluginsListSchema().safeParse([
               `${PluginName.Subgraph}`,
               `${PluginName.Referrals}`,
               `${PluginName.Subgraph}`,
@@ -45,7 +43,7 @@ describe("ENSIndexer: Config", () => {
           ),
         ).toContain("Plugins cannot contain duplicate values");
 
-        expect(formatParseError(makePluginsSchema().safeParse([]))).toContain(
+        expect(formatParseError(makePluginsListSchema().safeParse([]))).toContain(
           "Plugins must be a list with at least one valid plugin name. Valid plugins are: subgraph, basenames, lineanames, threedns, reverse-resolvers, referrals",
         );
       });
@@ -110,7 +108,7 @@ describe("ENSIndexer: Config", () => {
 
         expect(
           formatParseError(
-            makePluginsSchema("PLUGINS env var").safeParse([
+            makePluginsListSchema("PLUGINS env var").safeParse([
               `${PluginName.Subgraph}`,
               `${PluginName.Referrals}`,
               `${PluginName.Subgraph}`,

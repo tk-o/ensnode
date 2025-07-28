@@ -100,6 +100,17 @@ export const makeUrlSchema = (valueLabel: string = "Value") =>
     .transform((v) => new URL(v));
 
 /**
+ * Parses a string representation of a comma separated list.
+ */
+export const makeCommaSeparatedList = (valueLabel: string = "Value") =>
+  z
+    .string({ error: `${valueLabel} must be a comma separated list.` })
+    .transform((val) => val.split(",").filter(Boolean))
+    .refine((val) => val.length > 0, {
+      error: `${valueLabel} must be a comma separated list with at least one value.`,
+    });
+
+/**
  * Parses a numeric value as a block number.
  */
 export const makeBlockNumberSchema = (valueLabel: string = "Block number") =>
@@ -118,26 +129,6 @@ export const makeBlockRefSchema = (valueLabel: string = "Value") =>
       error: `${valueLabel} must be a valid BlockRef object.`,
     },
   );
-
-/**
- * Parses an object value as the {@link BlockRange} object.
- */
-export const makeBlockrangeSchema = (valueLabel: string = "Value") =>
-  z
-    .object(
-      {
-        startBlock: makePositiveIntegerSchema().optional(),
-        endBlock: makePositiveIntegerSchema().optional(),
-      },
-      {
-        error: `${valueLabel} must be a valid Blockrange object.`,
-      },
-    )
-    .refine(
-      (val) =>
-        val.startBlock === undefined || val.endBlock === undefined || val.endBlock > val.startBlock,
-      { error: `${valueLabel}.endBlock must be greater than ${valueLabel}.startBlock.` },
-    );
 
 /**
  * Parses a string value as ENSNamespaceId.
