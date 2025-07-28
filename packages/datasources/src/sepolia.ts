@@ -1,14 +1,22 @@
-import { baseSepolia, lineaSepolia, sepolia } from "viem/chains";
+import {
+  arbitrumSepolia,
+  baseSepolia,
+  lineaSepolia,
+  optimismSepolia,
+  scrollSepolia,
+  sepolia,
+} from "viem/chains";
 
-import { ResolverConfig } from "./lib/resolver";
 import { DatasourceNames, type ENSNamespace } from "./lib/types";
 
 // ABIs for ENSRoot Datasource
 import { BaseRegistrar as root_BaseRegistrar } from "./abis/root/BaseRegistrar";
-import { EthRegistrarController as root_EthRegistrarController } from "./abis/root/EthRegistrarController";
-import { EthRegistrarControllerOld as root_EthRegistrarControllerOld } from "./abis/root/EthRegistrarControllerOld";
+import { LegacyEthRegistrarController as root_LegacyEthRegistrarController } from "./abis/root/LegacyEthRegistrarController";
 import { NameWrapper as root_NameWrapper } from "./abis/root/NameWrapper";
 import { Registry as root_Registry } from "./abis/root/Registry";
+import { UniversalResolver as root_UniversalResolver } from "./abis/root/UniversalResolver";
+import { UnwrappedEthRegistrarController as root_UnwrappedEthRegistrarController } from "./abis/root/UnwrappedEthRegistrarController";
+import { WrappedEthRegistrarController as root_WrappedEthRegistrarController } from "./abis/root/WrappedEthRegistrarController";
 
 // ABIs for Basenames Datasource
 import { BaseRegistrar as base_BaseRegistrar } from "./abis/basenames/BaseRegistrar";
@@ -21,6 +29,9 @@ import { BaseRegistrar as linea_BaseRegistrar } from "./abis/lineanames/BaseRegi
 import { EthRegistrarController as linea_EthRegistrarController } from "./abis/lineanames/EthRegistrarController";
 import { NameWrapper as linea_NameWrapper } from "./abis/lineanames/NameWrapper";
 import { Registry as linea_Registry } from "./abis/lineanames/Registry";
+
+// Shared Resolver Config
+import { ResolverConfig } from "./lib/resolver";
 
 /**
  * The Sepolia ENSNamespace
@@ -54,20 +65,30 @@ export default {
         address: "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85",
         startBlock: 3702731,
       },
-      EthRegistrarControllerOld: {
-        abi: root_EthRegistrarControllerOld,
+      LegacyEthRegistrarController: {
+        abi: root_LegacyEthRegistrarController,
         address: "0x7e02892cfc2Bfd53a75275451d73cF620e793fc0",
         startBlock: 3790197,
       },
-      EthRegistrarController: {
-        abi: root_EthRegistrarController,
+      WrappedEthRegistrarController: {
+        abi: root_WrappedEthRegistrarController,
         address: "0xFED6a969AaA60E4961FCD3EBF1A2e8913ac65B72",
         startBlock: 3790244,
+      },
+      UnwrappedEthRegistrarController: {
+        abi: root_UnwrappedEthRegistrarController,
+        address: "0xfb3cE5D01e0f33f41DbB39035dB9745962F1f968",
+        startBlock: 8579988,
       },
       NameWrapper: {
         abi: root_NameWrapper,
         address: "0x0635513f179D50A207757E05759CbD106d7dFcE8",
         startBlock: 3790153,
+      },
+      UniversalResolver: {
+        abi: root_UniversalResolver,
+        address: "0xb7B7DAdF4D42a08B3eC1d3A1079959Dfbc8CFfCC",
+        startBlock: 8515717,
       },
     },
   },
@@ -170,6 +191,90 @@ export default {
         abi: linea_NameWrapper,
         address: "0xF127De9E039a789806fEd4C6b1C0f3aFfeA9425e",
         startBlock: 2395202,
+      },
+    },
+  },
+
+  /**
+   * The Reverse Resolver on the (Sepolia) ENS Root chain.
+   */
+  [DatasourceNames.ReverseResolverRoot]: {
+    chain: sepolia,
+    contracts: {
+      ReverseResolver: {
+        abi: ResolverConfig.abi,
+        address: "0x8FADE66B79cC9f707aB26799354482EB93a5B7dD",
+        startBlock: 3790251,
+      },
+    },
+  },
+
+  /**
+   * The Reverse Resolver on Base Sepolia.
+   */
+  [DatasourceNames.ReverseResolverBase]: {
+    chain: baseSepolia,
+    contracts: {
+      ReverseResolver: {
+        abi: ResolverConfig.abi,
+        address: "0x00000BeEF055f7934784D6d81b6BC86665630dbA",
+        startBlock: 21788010,
+      },
+    },
+  },
+
+  /**
+   * The Reverse Resolver on Optimism Sepolia.
+   */
+  [DatasourceNames.ReverseResolverOptimism]: {
+    chain: optimismSepolia,
+    contracts: {
+      ReverseResolver: {
+        abi: ResolverConfig.abi,
+        address: "0x00000BeEF055f7934784D6d81b6BC86665630dbA",
+        startBlock: 23770766,
+      },
+    },
+  },
+
+  /**
+   * The Reverse Resolver on Arbitrum Sepolia.
+   */
+  [DatasourceNames.ReverseResolverArbitrum]: {
+    chain: arbitrumSepolia,
+    contracts: {
+      ReverseResolver: {
+        abi: ResolverConfig.abi,
+        address: "0x00000BeEF055f7934784D6d81b6BC86665630dbA",
+        startBlock: 123142726,
+      },
+    },
+  },
+
+  /**
+   * The Reverse Resolver on Scroll Sepolia.
+   */
+  [DatasourceNames.ReverseResolverScroll]: {
+    chain: scrollSepolia,
+    contracts: {
+      ReverseResolver: {
+        abi: ResolverConfig.abi,
+        address: "0x00000BeEF055f7934784D6d81b6BC86665630dbA",
+        startBlock: 8175276,
+      },
+    },
+  },
+
+  /**
+   * The Reverse Resolver on Linea Sepolia.
+   */
+  [DatasourceNames.ReverseResolverLinea]: {
+    chain: lineaSepolia,
+    contracts: {
+      ReverseResolver: {
+        abi: ResolverConfig.abi,
+        address: "0x00000BeEF055f7934784D6d81b6BC86665630dbA",
+        startBlock: 9267966,
       },
     },
   },
