@@ -21,14 +21,30 @@ export function serializeENSIndexerPublicConfig(
     ensNodePublicUrl,
     ensRainbowEndpointUrl,
     indexedChainIds,
-    ...remainingConfig
+    databaseSchemaName,
+    experimentalResolution,
+    healReverseAddresses,
+    indexAdditionalResolverRecords,
+    isSubgraphCompatible,
+    namespace,
+    plugins,
+    port,
+    versionInfo,
   } = config;
 
   return {
-    ensAdminUrl: serializeUrl(config.ensAdminUrl),
-    ensNodePublicUrl: serializeUrl(config.ensNodePublicUrl),
-    ensRainbowEndpointUrl: serializeUrl(config.ensRainbowEndpointUrl),
-    indexedChainIds: serializeIndexedChainIds(config.indexedChainIds),
-    ...remainingConfig,
+    ensAdminUrl: serializeUrl(ensAdminUrl),
+    ensNodePublicUrl: serializeUrl(ensNodePublicUrl),
+    ensRainbowEndpointUrl: serializeUrl(ensRainbowEndpointUrl),
+    indexedChainIds: serializeIndexedChainIds(indexedChainIds),
+    databaseSchemaName,
+    experimentalResolution,
+    healReverseAddresses,
+    indexAdditionalResolverRecords,
+    isSubgraphCompatible,
+    namespace,
+    plugins,
+    port,
+    versionInfo,
   } satisfies SerializedENSIndexerPublicConfig;
 }
