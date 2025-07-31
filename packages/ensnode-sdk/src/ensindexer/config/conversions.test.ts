@@ -40,6 +40,13 @@ describe("ENSIndexer: Config", () => {
         ensRainbowEndpointUrl: "https://api.ensrainbow.io/",
         indexedChainIds: [1, 10, 8453],
       } satisfies SerializedENSIndexerPublicConfig);
+
+      // bonus step: deserialize the serialized
+      // act
+      const deserializedResult = deserializeENSIndexerPublicConfig(result);
+
+      // assert
+      expect(deserializedResult).toStrictEqual(config);
     });
   });
 

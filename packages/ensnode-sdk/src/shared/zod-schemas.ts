@@ -9,6 +9,11 @@ import { ENSNamespaceIds } from "./domain-types";
 import type { BlockRef, ChainId, Datetime } from "./domain-types";
 
 /**
+ * Zod `.check()` function input.
+ */
+export type ZodCheckFnInput<T> = z.core.ParsePayload<T>;
+
+/**
  * Parses value as a boolean.
  */
 export const makeBooleanSchema = (valueLabel: string = "Value") =>

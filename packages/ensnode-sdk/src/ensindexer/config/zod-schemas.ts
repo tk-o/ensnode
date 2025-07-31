@@ -1,6 +1,7 @@
 import z from "zod/v4";
 import { uniq } from "../../shared";
 import {
+  ZodCheckFnInput,
   makeBooleanSchema,
   makeChainIdSchema,
   makeENSNamespaceIdSchema,
@@ -72,9 +73,6 @@ export const makeVersionInfoSchema = (valueLabel: string = "Value") =>
       error: `${valueLabel} must be a valid VersionInfo object.`,
     },
   );
-
-// type alias to highlight the input param of Zod's check() method
-type ZodCheckFnInput<T> = z.core.ParsePayload<T>;
 
 // Invariant: ReverseResolvers plugin requires indexAdditionalResolverRecords
 export function invariant_reverseResolversPluginNeedsResolverRecords(
