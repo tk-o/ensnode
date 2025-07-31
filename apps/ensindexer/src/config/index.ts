@@ -1,6 +1,18 @@
-import { buildConfigFromEnvironment } from "@/config/config.schema";
+/**
+ * Bootstrap ENSIndexer
+ *
+ * The ENSIndexer application lifecycle starts right here, in this file.
+ * All application dependencies must be resolved in this file, before the application can start.
+ */
+import { EnsRainbowEndpointUrlSchema, buildConfigFromEnvironment } from "@/config/config.schema";
 import { ENSIndexerEnvironment } from "@/config/types";
+import { getENSRainbowVersionInfo, getPackageVersion } from "@/lib/bootstrap-helpers";
 import { getRpcConfigsFromEnv } from "@/lib/lib-config";
+
+// Fetch ENSRainbow Version info
+const ensRainbowEndpointUrl = EnsRainbowEndpointUrlSchema.parse(process.env.ENSRAINBOW_URL);
+const { versionInfo: ensRainbowVersionInfo } =
+  await getENSRainbowVersionInfo(ensRainbowEndpointUrl);
 
 // format the relevant environment variables into the shape of an ENSIndexerEnvironment
 const environment = {
@@ -20,6 +32,12 @@ const environment = {
     endBlock: process.env.END_BLOCK,
   },
   rpcConfigs: getRpcConfigsFromEnv(),
+  versionInfo: {
+    nodejs: process.versions.node,
+    ponder: getPackageVersion("ponder"),
+    ensRainbow: ensRainbowVersionInfo.version,
+    ensRainbowSchema: ensRainbowVersionInfo.schema_version,
+  },
 } satisfies ENSIndexerEnvironment;
 
 // build, validate, and export the ENSIndexerConfig

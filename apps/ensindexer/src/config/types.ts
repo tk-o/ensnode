@@ -228,4 +228,10 @@ export interface ENSIndexerEnvironment {
     endBlock: string | undefined;
   };
   rpcConfigs: Record<number, RpcConfigEnvironment>;
+  versionInfo: {
+    nodejs: string | undefined;
+    ponder: string | undefined;
+    ensRainbow: string | undefined;
+    ensRainbowSchema: number | undefined;
+  };
 }

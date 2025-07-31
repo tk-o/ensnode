@@ -135,10 +135,10 @@ export function invariant_isSubgraphCompatibleRequirements(
 }
 
 /**
- * ENSIndexer Public Schema
+ * ENSIndexer Public Config Schema
  *
- * A configuration object which includes all important settings that
- * the ENSIndexer instance applies at its runtime.
+ * Makes a Zod schema definition for validating all important settings used
+ * during runtime of the ENSIndexer instance.
  */
 export const makeENSIndexerPublicConfigSchema = (valueLabel: string = "ENSIndexerPublicConfig") =>
   z

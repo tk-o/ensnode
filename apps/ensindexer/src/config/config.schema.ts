@@ -95,7 +95,7 @@ const PortSchema = z.coerce
   .pipe(makePortSchema("PORT"))
   .default(DEFAULT_PORT);
 
-const EnsRainbowEndpointUrlSchema = makeUrlSchema("ENSRAINBOW_URL");
+export const EnsRainbowEndpointUrlSchema = makeUrlSchema("ENSRAINBOW_URL");
 
 const RpcConfigSchema = z.object({
   url: makeUrlSchema("RPC_URL_*"),
@@ -147,15 +147,7 @@ const ENSIndexerConfigSchema = z
     ensRainbowEndpointUrl: EnsRainbowEndpointUrlSchema,
     rpcConfigs: RpcConfigsSchema,
     databaseUrl: DatabaseUrlSchema,
-    versionInfo: VersionInfoSchema
-      // TODO: remove optionality and the default value once version info getters are implemented
-      .optional()
-      .default({
-        nodejs: "v22",
-        ponder: "0.11.25",
-        ensRainbow: "0.32.0",
-        ensRainbowSchema: 2,
-      }),
+    versionInfo: VersionInfoSchema,
   })
   /**
    * Invariant enforcement
