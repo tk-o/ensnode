@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { deserializeENSIndexerPublicConfig } from "./deserialize";
-import { type ENSIndexerPublicConfig, PluginName } from "./domain-types";
 import { serializeENSIndexerPublicConfig } from "./serialize";
 import type { SerializedENSIndexerPublicConfig } from "./serialized-types";
+import { type ENSIndexerPublicConfig, PluginName } from "./types";
 
 describe("ENSIndexer: Config", () => {
   describe("serialization", () => {

@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { deserializeENSIndexerIndexingStatus } from "./deserialize";
-import {
-  ChainIndexingBackfillStatus,
-  ChainIndexingNotStartedStatus,
-  ChainIndexingStatusIds,
-  ENSIndexerIndexingStatus,
-} from "./domain-types";
 import { serializeENSIndexerIndexingStatus } from "./serialize";
 import { SerializedENSIndexerIndexingStatus } from "./serialized-types";
 import {
@@ -18,6 +12,12 @@ import {
   latestBlockRef,
   latestSerializedBlockRef,
 } from "./test-helpers";
+import {
+  ChainIndexingBackfillStatus,
+  ChainIndexingNotStartedStatus,
+  ChainIndexingStatusIds,
+  ENSIndexerIndexingStatus,
+} from "./types";
 
 describe("ENSIndexer: Indexing Status", () => {
   describe("ENSIndexerIndexingStatus", () => {

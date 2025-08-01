@@ -1,11 +1,11 @@
 import { prettifyError } from "zod/v4";
-import type { BlockRef, ChainId, Datetime } from "./domain-types";
 import type {
   ChainIdString,
   DatetimeIso8601,
   SerializedBlockRef,
   UrlString,
 } from "./serialized-types";
+import type { BlockRef, ChainId, Datetime } from "./types";
 import {
   makeBlockRefSchema,
   makeChainIdStringSchema,

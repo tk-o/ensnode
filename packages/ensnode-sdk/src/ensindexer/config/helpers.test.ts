@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PluginName } from "./domain-types";
 import { isSubgraphCompatible } from "./helpers";
+import { PluginName } from "./types";
 describe("ENSIndexer: Config helpers", () => {
   describe("isSubgraphCompatible", () => {
     it(`returns 'true' when only the '${PluginName.Subgraph}' plugins is active and no extended indexing features are on`, () => {

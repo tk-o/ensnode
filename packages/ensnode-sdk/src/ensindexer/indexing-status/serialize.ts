@@ -1,6 +1,11 @@
 import { SerializedBlockRef } from "../../shared";
 import { serializeBlockRef } from "../../shared/serialize";
 import {
+  SerializedChainIndexingStatus,
+  SerializedChainIndexingStatuses,
+  SerializedENSIndexerIndexingStatus,
+} from "./serialized-types";
+import {
   ChainIndexingBackfillStatus,
   ChainIndexingCompletedStatus,
   ChainIndexingFollowingStatus,
@@ -9,12 +14,7 @@ import {
   ChainIndexingStatusIds,
   ChainIndexingStatuses,
   type ENSIndexerIndexingStatus,
-} from "./domain-types";
-import {
-  SerializedChainIndexingStatus,
-  SerializedChainIndexingStatuses,
-  SerializedENSIndexerIndexingStatus,
-} from "./serialized-types";
+} from "./types";
 
 /**
  * Serialize a {@link ChainIndexingStatus} object.

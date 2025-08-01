@@ -1,9 +1,5 @@
 import type { ChainIdString, SerializedBlockRef } from "../../shared";
-import type {
-  ChainIndexingStatus,
-  ChainIndexingStatuses,
-  ENSIndexerIndexingStatus,
-} from "./domain-types";
+import type { ChainIndexingStatus, ChainIndexingStatuses, ENSIndexerIndexingStatus } from "./types";
 
 /**
  * Serialized representation of {@link ChainIndexingStatus}

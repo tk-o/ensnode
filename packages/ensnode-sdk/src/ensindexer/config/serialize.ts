@@ -1,6 +1,6 @@
 import { serializeUrl } from "../../shared/serialize";
-import { ENSIndexerPublicConfig, IndexedChainIds } from "./domain-types";
 import { SerializedENSIndexerPublicConfig, SerializedIndexedChainIds } from "./serialized-types";
+import { ENSIndexerPublicConfig, IndexedChainIds } from "./types";
 
 /**
  * Serializes a {@link ChainConfig} object.

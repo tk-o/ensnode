@@ -1,6 +1,6 @@
 import { prettifyError } from "zod/v4";
-import type { ENSIndexerIndexingStatus } from "./domain-types";
 import type { SerializedENSIndexerIndexingStatus } from "./serialized-types";
+import type { ENSIndexerIndexingStatus } from "./types";
 import { makeENSIndexerIndexingStatusSchema } from "./zod-schemas";
 
 /**

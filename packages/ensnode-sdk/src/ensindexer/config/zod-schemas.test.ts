@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type ZodSafeParseResult, prettifyError } from "zod/v4";
-import { PluginName, VersionInfo } from "./domain-types";
+import { PluginName, VersionInfo } from "./types";
 import {
   makeDatabaseSchemaNameSchema,
   makeIndexedChainIdsSchema,

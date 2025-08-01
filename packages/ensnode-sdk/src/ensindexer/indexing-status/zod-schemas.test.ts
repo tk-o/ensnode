@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type ZodSafeParseResult, prettifyError } from "zod/v4";
 import { SerializedBlockRef, deserializeBlockRef } from "../../shared";
-import {
-  ChainIndexingBackfillStatus,
-  ChainIndexingCompletedStatus,
-  ChainIndexingFollowingStatus,
-  ChainIndexingNotStartedStatus,
-  ChainIndexingStatusIds,
-} from "./domain-types";
 import { SerializedChainIndexingStatus } from "./serialized-types";
 import {
   earlierBlockRef,
@@ -19,6 +12,13 @@ import {
   latestBlockRef,
   latestSerializedBlockRef,
 } from "./test-helpers";
+import {
+  ChainIndexingBackfillStatus,
+  ChainIndexingCompletedStatus,
+  ChainIndexingFollowingStatus,
+  ChainIndexingNotStartedStatus,
+  ChainIndexingStatusIds,
+} from "./types";
 import { makeChainIndexingStatusSchema } from "./zod-schemas";
 
 describe("ENSIndexer: Indexing Status", () => {

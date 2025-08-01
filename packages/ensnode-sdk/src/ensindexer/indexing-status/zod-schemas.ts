@@ -6,14 +6,14 @@
  */
 import z from "zod/v4";
 import { BlockRef, deserializeChainId } from "../../shared";
-import { blockRef } from "../../shared/helpers";
+import * as blockRef from "../../shared/block-ref";
 import {
   type ZodCheckFnInput,
   makeBlockRefSchema,
   makeChainIdStringSchema,
   makeDurationSchema,
 } from "../../shared/zod-schemas";
-import { ChainIndexingStatusIds } from "./domain-types";
+import { ChainIndexingStatusIds } from "./types";
 import type {
   ChainIndexingBackfillStatus,
   ChainIndexingCompletedStatus,
@@ -22,7 +22,7 @@ import type {
   ChainIndexingStatus,
   ChainIndexingStatuses,
   ENSIndexerIndexingStatus,
-} from "./domain-types";
+} from "./types";
 
 /**
  * Makes Zod schema for {@link ChainIndexingNotStartedStatus} type.

@@ -6,7 +6,7 @@
  */
 import z from "zod/v4";
 import { ENSNamespaceIds } from "../ens";
-import type { BlockRef, ChainId, Datetime, Duration } from "./domain-types";
+import type { BlockRef, ChainId, Datetime, Duration } from "./types";
 
 /**
  * Zod `.check()` function input.

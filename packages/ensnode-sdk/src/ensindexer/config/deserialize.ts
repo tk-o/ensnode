@@ -1,6 +1,6 @@
 import { prettifyError } from "zod/v4";
-import type { ENSIndexerPublicConfig } from "./domain-types";
 import type { SerializedENSIndexerPublicConfig } from "./serialized-types";
+import type { ENSIndexerPublicConfig } from "./types";
 import { makeENSIndexerPublicConfigSchema } from "./zod-schemas";
 
 /**

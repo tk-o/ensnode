@@ -16,9 +16,9 @@ import {
   makePositiveIntegerSchema,
   makeUrlSchema,
 } from "../../shared/zod-schemas";
-import { PluginName } from "./domain-types";
-import type { ENSIndexerPublicConfig, IndexedChainIds } from "./domain-types";
 import { isSubgraphCompatible } from "./helpers";
+import { PluginName } from "./types";
+import type { ENSIndexerPublicConfig, IndexedChainIds } from "./types";
 
 /**
  * Makes a schema for parsing {@link IndexedChainIds}.

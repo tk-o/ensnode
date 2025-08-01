@@ -3,7 +3,7 @@ import {
   evmChainIdToCoinType as _evmChainIdToCoinType,
 } from "@ensdomains/address-encoder/utils";
 import { ETH_COIN_TYPE } from "./constants";
-import { CoinType } from "./domain-types";
+import { CoinType } from "./types";
 
 // NOTE: for whatever reason @ensdomains/address-encoder#coinTypeToEvmChainId doesn't handle the
 // mainnet case so we implement that here

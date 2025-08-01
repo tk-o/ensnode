@@ -1,5 +1,5 @@
 import type { ChainId, UrlString } from "../../shared";
-import type { ENSIndexerPublicConfig } from "./domain-types";
+import type { ENSIndexerPublicConfig } from "./types";
 
 export type SerializedIndexedChainIds = Array<ChainId>;
 

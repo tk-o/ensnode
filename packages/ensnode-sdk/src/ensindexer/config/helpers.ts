@@ -1,4 +1,4 @@
-import { ENSIndexerPublicConfig, PluginName } from "./domain-types";
+import { ENSIndexerPublicConfig, PluginName } from "./types";
 
 /**
  * Subgraph compatibility
