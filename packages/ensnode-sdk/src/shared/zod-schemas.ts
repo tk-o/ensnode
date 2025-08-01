@@ -5,7 +5,7 @@
  * `./src/internal.ts` file.
  */
 import { z } from "zod/v4";
-import { ENSNamespaceIds } from "./domain-types";
+import { ENSNamespaceIds } from "../ens";
 import type { BlockRef, ChainId, Datetime } from "./domain-types";
 
 /**

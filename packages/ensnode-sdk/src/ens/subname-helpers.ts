@@ -1,7 +1,7 @@
 import { Address, concat, isAddress, isHash, keccak256, toHex } from "viem";
 
 import { labelhash } from "viem/ens";
-import type { Label, LabelHash, Node } from "../shared";
+import type { Label, LabelHash, Node } from "./domain-types";
 import { addrReverseLabel } from "./reverse-name";
 
 /**

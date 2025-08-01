@@ -3,3 +3,4 @@ export * from "./subname-helpers";
 export * from "./coin-type";
 export * from "./names";
 export * from "./reverse-name";
+export * from "./domain-types";

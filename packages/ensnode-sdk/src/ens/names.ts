@@ -1,4 +1,4 @@
-import { Name } from "../shared";
+import type { Name } from "./domain-types";
 
 /**
  * Constructs a name hierarchy from a given Name.

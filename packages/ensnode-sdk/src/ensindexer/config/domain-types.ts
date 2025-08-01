@@ -1,4 +1,5 @@
-import type { ChainId, ENSNamespaceId } from "../../shared";
+import type { ENSNamespaceId } from "../../ens";
+import type { ChainId } from "../../shared";
 
 /**
  * A PluginName is a unique id for a 'plugin': we use the notion of 'plugins' to describe bundles

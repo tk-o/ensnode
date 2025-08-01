@@ -1,5 +1,5 @@
 import { SerializedBlockRef } from "../../shared";
-import { serializeBlockRef, serializeUrl } from "../../shared/serialize";
+import { serializeBlockRef } from "../../shared/serialize";
 import {
   ChainIndexingBackfillStatus,
   ChainIndexingCompletedStatus,
