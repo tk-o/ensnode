@@ -14,15 +14,39 @@ export type ChainIndexingStatusId =
   (typeof ChainIndexingStatusIds)[keyof typeof ChainIndexingStatusIds];
 
 /**
+ * Chain Indexing Status Config
+ *
+ * Configuration applied for chain indexing.
+ */
+export interface ChainIndexingStatusConfig<BlockRefType = BlockRef> {
+  /**
+   * Chain indexing begins from that block.
+   *
+   * A chain must always have its `startBlock` defined.
+   */
+  startBlock: BlockRefType;
+
+  /**
+   * Chain indexing ends at that block.
+   *
+   * The `endBlock` definition for chain indexing is optional.
+   */
+  endBlock: BlockRefType | null;
+}
+
+/**
  * Chain Indexing: Not started status
  *
  * Notes:
  * - The "notStarted" status applies when using omnichain ordering and the
  *   overall progress checkpoint has not reached the startBlock of the chain.
+ *
+ * Invariants:
+ * - `config.startBlock` is always before or the same as `config.endBlock` (if present)
  */
 export interface ChainIndexingNotStartedStatus<BlockRefType = BlockRef> {
   status: typeof ChainIndexingStatusIds.NotStarted;
-  startBlock: BlockRefType;
+  config: ChainIndexingStatusConfig<BlockRefType>;
 }
 
 /**
@@ -34,13 +58,14 @@ export interface ChainIndexingNotStartedStatus<BlockRefType = BlockRef> {
  *   and the status will change to "following" or "completed".
  *
  * Invariants:
- * - startBlock is always before or the same as latestIndexedBlock
- * - latestIndexedBlock is always before or the same as latestKnownBlock
- * - backfillEndBlock is always the same as latestKnownBlock
+ * - `config.startBlock` is always before or the same as `latestIndexedBlock`
+ * - `latestIndexedBlock` is always before or the same as `latestKnownBlock`
+ * - `latestKnownBlock` is always the same as `backfillEndBlock`
+ * - `backfillEndBlock` is always the same as `config.endBlock` (if present)
  */
 export interface ChainIndexingBackfillStatus<BlockRefType = BlockRef> {
   status: typeof ChainIndexingStatusIds.Backfill;
-  startBlock: BlockRefType;
+  config: ChainIndexingStatusConfig<BlockRefType>;
   latestIndexedBlock: BlockRefType;
   latestKnownBlock: BlockRefType;
   backfillEndBlock: BlockRefType;
@@ -50,13 +75,13 @@ export interface ChainIndexingBackfillStatus<BlockRefType = BlockRef> {
  * Chain Indexing: Following status
  *
  * Invariants:
- * - startBlock is always before or the same as latestIndexedBlock
- * - latestIndexedBlock is always before or the same as latestKnownBlock
- * - approximateRealtimeDistance is always a non-negative integer value holding a duration
+ * - `config.startBlock` is always before or the same as `latestIndexedBlock`
+ * - `latestIndexedBlock` is always before or the same as `latestKnownBlock`
+ * - `approximateRealtimeDistance` is always a non-negative integer value holding a duration
  */
 export interface ChainIndexingFollowingStatus<BlockRefType = BlockRef> {
   status: typeof ChainIndexingStatusIds.Following;
-  startBlock: BlockRefType;
+  config: Omit<ChainIndexingStatusConfig<BlockRefType>, "endBlock">;
   latestIndexedBlock: BlockRefType;
   latestKnownBlock: BlockRefType;
   approximateRealtimeDistance: Duration;
@@ -70,12 +95,13 @@ export interface ChainIndexingFollowingStatus<BlockRefType = BlockRef> {
  *   have a defined endBlock. This means the chain will not enter the "following" status.
  *
  * Invariants:
- * - startBlock is always before or the same as latestIndexedBlock
- * - latestIndexedBlock is always the same as latestKnownBlock
+ * - `config.startBlock` is always before or the same as `latestIndexedBlock`
+ * - `latestIndexedBlock` is always the same as `latestKnownBlock`
+ * - `latestKnownBlock` is always the same as `config.endBlock` (if present)
  */
 export interface ChainIndexingCompletedStatus<BlockRefType = BlockRef> {
   status: typeof ChainIndexingStatusIds.Completed;
-  startBlock: BlockRefType;
+  config: ChainIndexingStatusConfig<BlockRefType>;
   latestIndexedBlock: BlockRefType;
   latestKnownBlock: BlockRefType;
 }
@@ -83,7 +109,7 @@ export interface ChainIndexingCompletedStatus<BlockRefType = BlockRef> {
 /**
  * Chain Indexing Status
  *
- * Chain Indexing is guaranteed to be always in exactly one of the statuses defined with `ChainIndexingStatus` type.
+ * Chain Indexing might be in one of many statuses.
  */
 export type ChainIndexingStatus<BlockRefType = BlockRef> =
   | ChainIndexingNotStartedStatus<BlockRefType>

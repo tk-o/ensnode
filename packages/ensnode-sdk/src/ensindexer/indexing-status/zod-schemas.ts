@@ -6,6 +6,7 @@
  */
 import z from "zod/v4";
 import { BlockRef, deserializeChainId } from "../../shared";
+import { blockRef } from "../../shared/helpers";
 import {
   type ZodCheckFnInput,
   makeBlockRefSchema,
@@ -24,99 +25,24 @@ import type {
 } from "./domain-types";
 
 /**
- * Invariant: startBlock is before or the same as the latestIndexedBlock.
- */
-function invariant_startBlockIsBeforeOrTheSameAsLatestIndexedBlock(
-  ctx: ZodCheckFnInput<{
-    startBlock: BlockRef;
-    latestIndexedBlock: BlockRef;
-  }>,
-) {
-  const { value: status } = ctx;
-
-  if (status.startBlock.createdAt.getTime() > status.latestIndexedBlock.createdAt.getTime()) {
-    ctx.issues.push({
-      code: "custom",
-      input: status,
-      message: "The startBlock date must be before or at the latestIndexedBlock date.",
-    });
-  }
-
-  if (status.startBlock.number > status.latestIndexedBlock.number) {
-    ctx.issues.push({
-      code: "custom",
-      input: status,
-      message:
-        "The startBlock number must be lower than or equal to the latestIndexedBlock number.",
-    });
-  }
-}
-
-/**
- * Invariant: latestIndexedBlock is before or the same as the latestKnownBlock.
- */
-function invariant_latestIndexedBlockIsBeforeOrTheSameAsLatestKnownBlock(
-  ctx: ZodCheckFnInput<{
-    latestIndexedBlock: BlockRef;
-    latestKnownBlock: BlockRef;
-  }>,
-) {
-  const { value: status } = ctx;
-
-  if (status.latestIndexedBlock.createdAt.getTime() > status.latestKnownBlock.createdAt.getTime()) {
-    ctx.issues.push({
-      code: "custom",
-      input: status,
-      message: "The latestIndexedBlock date must be before or at the latestKnownBlock date.",
-    });
-  }
-
-  if (status.latestIndexedBlock.number > status.latestKnownBlock.number) {
-    ctx.issues.push({
-      code: "custom",
-      input: status,
-      message:
-        "The latestIndexedBlock number must be lower than or equal to the latestKnownBlock number.",
-    });
-  }
-}
-
-/**
- * Invariant: backfillEndBlock is the same as the latestKnownBlock.
- */
-function invariant_backfillEndIsBlockTheSameAsLatestKnownBlock(
-  ctx: ZodCheckFnInput<{
-    backfillEndBlock: BlockRef;
-    latestKnownBlock: BlockRef;
-  }>,
-) {
-  const { value: status } = ctx;
-
-  if (status.backfillEndBlock.createdAt.getTime() !== status.latestKnownBlock.createdAt.getTime()) {
-    ctx.issues.push({
-      code: "custom",
-      input: status,
-      message: "The backfillEndBlock date must be equal to the latestKnownBlock date.",
-    });
-  }
-
-  if (status.backfillEndBlock.number !== status.latestKnownBlock.number) {
-    ctx.issues.push({
-      code: "custom",
-      input: status,
-      message: "The backfillEndBlock number must be equal to the latestKnownBlock number.",
-    });
-  }
-}
-
-/**
  * Makes Zod schema for {@link ChainIndexingNotStartedStatus} type.
  */
 export const makeChainIndexingNotStartedStatusSchema = (valueLabel: string = "Value") =>
-  z.strictObject({
-    status: z.literal(ChainIndexingStatusIds.NotStarted),
-    startBlock: makeBlockRefSchema(valueLabel),
-  });
+  z
+    .strictObject({
+      status: z.literal(ChainIndexingStatusIds.NotStarted),
+      config: z.strictObject({
+        startBlock: makeBlockRefSchema(valueLabel),
+        endBlock: makeBlockRefSchema(valueLabel).nullable(),
+      }),
+    })
+    .refine(
+      ({ config }) =>
+        config.endBlock === null || blockRef.isBeforeOrSameAs(config.startBlock, config.endBlock),
+      {
+        error: `config.startBlock must be before or same as config.endBlock.`,
+      },
+    );
 
 /**
  * Makes Zod schema for {@link ChainIndexingBackfillStatus} type.
@@ -125,14 +51,42 @@ export const makeChainIndexingBackfillStatusSchema = (valueLabel: string = "Valu
   z
     .strictObject({
       status: z.literal(ChainIndexingStatusIds.Backfill),
-      startBlock: makeBlockRefSchema(valueLabel),
+      config: z.strictObject({
+        startBlock: makeBlockRefSchema(valueLabel),
+        endBlock: makeBlockRefSchema(valueLabel).nullable(),
+      }),
       latestIndexedBlock: makeBlockRefSchema(valueLabel),
       latestKnownBlock: makeBlockRefSchema(valueLabel),
       backfillEndBlock: makeBlockRefSchema(valueLabel),
     })
-    .check(invariant_startBlockIsBeforeOrTheSameAsLatestIndexedBlock)
-    .check(invariant_latestIndexedBlockIsBeforeOrTheSameAsLatestKnownBlock)
-    .check(invariant_backfillEndIsBlockTheSameAsLatestKnownBlock);
+    .refine(
+      ({ config, latestIndexedBlock }) =>
+        blockRef.isBeforeOrSameAs(config.startBlock, latestIndexedBlock),
+      {
+        error: `config.startBlock must be before or same as latestIndexedBlock.`,
+      },
+    )
+    .refine(
+      ({ latestIndexedBlock, latestKnownBlock }) =>
+        blockRef.isBeforeOrSameAs(latestIndexedBlock, latestKnownBlock),
+      {
+        error: `latestIndexedBlock must be before or same as latestKnownBlock.`,
+      },
+    )
+    .refine(
+      ({ latestKnownBlock, backfillEndBlock }) =>
+        blockRef.isSameAs(latestKnownBlock, backfillEndBlock),
+      {
+        error: `latestKnownBlock must be the same as backfillEndBlock.`,
+      },
+    )
+    .refine(
+      ({ config, backfillEndBlock }) =>
+        config.endBlock === null || blockRef.isSameAs(backfillEndBlock, config.endBlock),
+      {
+        error: `backfillEndBlock must be the same as config.endBlock.`,
+      },
+    );
 
 /**
  * Makes Zod schema for {@link ChainIndexingFollowingStatus} type.
@@ -141,13 +95,27 @@ export const makeChainIndexingFollowingStatusSchema = (valueLabel: string = "Val
   z
     .strictObject({
       status: z.literal(ChainIndexingStatusIds.Following),
-      startBlock: makeBlockRefSchema(valueLabel),
+      config: z.strictObject({
+        startBlock: makeBlockRefSchema(valueLabel),
+      }),
       latestIndexedBlock: makeBlockRefSchema(valueLabel),
       latestKnownBlock: makeBlockRefSchema(valueLabel),
       approximateRealtimeDistance: makeDurationSchema(valueLabel),
     })
-    .check(invariant_startBlockIsBeforeOrTheSameAsLatestIndexedBlock)
-    .check(invariant_latestIndexedBlockIsBeforeOrTheSameAsLatestKnownBlock);
+    .refine(
+      ({ config, latestIndexedBlock }) =>
+        blockRef.isBeforeOrSameAs(config.startBlock, latestIndexedBlock),
+      {
+        error: `config.startBlock must be before or same as latestIndexedBlock.`,
+      },
+    )
+    .refine(
+      ({ latestIndexedBlock, latestKnownBlock }) =>
+        blockRef.isBeforeOrSameAs(latestIndexedBlock, latestKnownBlock),
+      {
+        error: `latestIndexedBlock must be before or same as latestKnownBlock.`,
+      },
+    );
 
 /**
  * Makes Zod schema for {@link ChainIndexingCompletedStatus} type.
@@ -156,12 +124,34 @@ export const makeChainIndexingCompletedStatusSchema = (valueLabel: string = "Val
   z
     .strictObject({
       status: z.literal(ChainIndexingStatusIds.Completed),
-      startBlock: makeBlockRefSchema(valueLabel),
+      config: z.strictObject({
+        startBlock: makeBlockRefSchema(valueLabel),
+        endBlock: makeBlockRefSchema(valueLabel).nullable(),
+      }),
       latestIndexedBlock: makeBlockRefSchema(valueLabel),
       latestKnownBlock: makeBlockRefSchema(valueLabel),
     })
-    .check(invariant_startBlockIsBeforeOrTheSameAsLatestIndexedBlock)
-    .check(invariant_latestIndexedBlockIsBeforeOrTheSameAsLatestKnownBlock);
+    .refine(
+      ({ config, latestIndexedBlock }) =>
+        blockRef.isBeforeOrSameAs(config.startBlock, latestIndexedBlock),
+      {
+        error: `config.startBlock must be before or same as latestIndexedBlock.`,
+      },
+    )
+    .refine(
+      ({ latestIndexedBlock, latestKnownBlock }) =>
+        blockRef.isBeforeOrSameAs(latestIndexedBlock, latestKnownBlock),
+      {
+        error: `latestIndexedBlock must be before or same as latestKnownBlock.`,
+      },
+    )
+    .refine(
+      ({ config, latestKnownBlock }) =>
+        config.endBlock === null || blockRef.isSameAs(latestKnownBlock, config.endBlock),
+      {
+        error: `latestKnownBlock must be the same as config.endBlock.`,
+      },
+    );
 
 /**
  * Makes Zod schema for {@link ChainIndexingStatus}

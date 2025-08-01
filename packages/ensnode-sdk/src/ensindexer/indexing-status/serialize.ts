@@ -26,14 +26,24 @@ export function serializeChainIndexingStatus(
     case ChainIndexingStatusIds.NotStarted: {
       return {
         status: chainIndexingStatus.status,
-        startBlock: serializeBlockRef(chainIndexingStatus.startBlock),
+        config: {
+          startBlock: serializeBlockRef(chainIndexingStatus.config.startBlock),
+          endBlock: chainIndexingStatus.config.endBlock
+            ? serializeBlockRef(chainIndexingStatus.config.endBlock)
+            : null,
+        },
       } satisfies ChainIndexingNotStartedStatus<SerializedBlockRef>;
     }
 
     case ChainIndexingStatusIds.Backfill: {
       return {
         status: chainIndexingStatus.status,
-        startBlock: serializeBlockRef(chainIndexingStatus.startBlock),
+        config: {
+          startBlock: serializeBlockRef(chainIndexingStatus.config.startBlock),
+          endBlock: chainIndexingStatus.config.endBlock
+            ? serializeBlockRef(chainIndexingStatus.config.endBlock)
+            : null,
+        },
         backfillEndBlock: serializeBlockRef(chainIndexingStatus.backfillEndBlock),
         latestIndexedBlock: serializeBlockRef(chainIndexingStatus.latestIndexedBlock),
         latestKnownBlock: serializeBlockRef(chainIndexingStatus.latestKnownBlock),
@@ -43,7 +53,9 @@ export function serializeChainIndexingStatus(
     case ChainIndexingStatusIds.Following: {
       return {
         status: chainIndexingStatus.status,
-        startBlock: serializeBlockRef(chainIndexingStatus.startBlock),
+        config: {
+          startBlock: serializeBlockRef(chainIndexingStatus.config.startBlock),
+        },
         latestIndexedBlock: serializeBlockRef(chainIndexingStatus.latestIndexedBlock),
         latestKnownBlock: serializeBlockRef(chainIndexingStatus.latestKnownBlock),
         approximateRealtimeDistance: chainIndexingStatus.approximateRealtimeDistance,
@@ -53,7 +65,12 @@ export function serializeChainIndexingStatus(
     case ChainIndexingStatusIds.Completed: {
       return {
         status: chainIndexingStatus.status,
-        startBlock: serializeBlockRef(chainIndexingStatus.startBlock),
+        config: {
+          startBlock: serializeBlockRef(chainIndexingStatus.config.startBlock),
+          endBlock: chainIndexingStatus.config.endBlock
+            ? serializeBlockRef(chainIndexingStatus.config.endBlock)
+            : null,
+        },
         latestIndexedBlock: serializeBlockRef(chainIndexingStatus.latestIndexedBlock),
         latestKnownBlock: serializeBlockRef(chainIndexingStatus.latestKnownBlock),
       } satisfies ChainIndexingCompletedStatus<SerializedBlockRef>;
