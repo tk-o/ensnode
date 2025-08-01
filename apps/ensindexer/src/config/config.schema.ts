@@ -1,7 +1,7 @@
 import { parse as parseConnectionString } from "pg-connection-string";
 import { prettifyError, z } from "zod/v4";
 
-import { derive_isSubgraphCompatible } from "@/config/derived-params";
+import { derive_indexedChainIds, derive_isSubgraphCompatible } from "@/config/derived-params";
 import type { ENSIndexerConfig, ENSIndexerEnvironment } from "@/config/types";
 import {
   invariant_experimentalResolutionNeedsReverseResolversPlugin,
@@ -20,56 +20,31 @@ import {
   DEFAULT_PORT,
   DEFAULT_RPC_RATE_LIMIT,
 } from "@/lib/lib-config";
-import { uniq } from "@/lib/lib-helpers";
-import { ENSNamespaceIds } from "@ensnode/datasources";
-import { PluginName } from "@ensnode/ensnode-sdk";
+import { PluginName, uniq } from "@ensnode/ensnode-sdk";
+import {
+  makeBlockNumberSchema,
+  makeBooleanStringSchema,
+  makeChainIdStringSchema,
+  makeDatabaseSchemaNameSchema,
+  makeENSNamespaceIdSchema,
+  makePortSchema,
+  makePositiveIntegerSchema,
+  makeUrlSchema,
+  makeVersionInfoSchema,
+} from "@ensnode/ensnode-sdk/internal";
 
-const chainIdSchema = z.number().int().min(1);
-
-// parses an env string bool with strict requirement of 'true' or 'false'
-const makeEnvStringBoolSchema = (envVarKey: string) =>
-  z
-    .string()
-    .pipe(
-      z.enum(["true", "false"], {
-        error: `${envVarKey} must be 'true' or 'false'.`,
-      }),
-    )
-    .transform((val) => val === "true");
-
-const makeUrlSchema = (envVarKey: string) =>
-  z.url({
-    error: `${envVarKey} must be a valid URL string (e.g., http://localhost:8080 or https://example.com).`,
-  });
-
-const makeBlockNumberSchema = (envVarKey: string) =>
-  z.coerce
-    .number({ error: `${envVarKey} must be a positive integer.` })
-    .int({ error: `${envVarKey} must be a positive integer.` })
-    .min(0, { error: `${envVarKey} must be a positive integer.` })
-    .optional();
-
-const RpcConfigSchema = z.object({
-  url: makeUrlSchema("RPC_URL_*"),
-  maxRequestsPerSecond: z.coerce
-    .number({ error: "RPC_REQUEST_RATE_LIMIT_* must be an integer." })
-    .int({ error: "RPC_REQUEST_RATE_LIMIT_* must be an integer." })
-    .min(1, { error: "RPC_REQUEST_RATE_LIMIT_* must be at least 1." })
-    .default(DEFAULT_RPC_RATE_LIMIT),
-});
-
-const ENSNamespaceSchema = z
-  .enum(ENSNamespaceIds, {
-    error: (issue) => {
-      return `Invalid NAMESPACE. Supported ENS namespaces are: ${Object.keys(ENSNamespaceIds).join(", ")}`;
-    },
-  })
-  .default(DEFAULT_NAMESPACE);
+const ENSNamespaceSchema = makeENSNamespaceIdSchema("NAMESPACE").default(DEFAULT_NAMESPACE);
 
 const BlockrangeSchema = z
   .object({
-    startBlock: makeBlockNumberSchema("START_BLOCK"),
-    endBlock: makeBlockNumberSchema("END_BLOCK"),
+    startBlock: z.coerce
+      .number({ error: "START_BLOCK must be a non-negative integer" })
+      .pipe(makeBlockNumberSchema("START_BLOCK"))
+      .optional(),
+    endBlock: z.coerce
+      .number({ error: "END_BLOCK must be a non-negative integer" })
+      .pipe(makeBlockNumberSchema("END_BLOCK"))
+      .optional(),
   })
   .refine(
     (val) =>
@@ -80,14 +55,7 @@ const BlockrangeSchema = z
 const EnsNodePublicUrlSchema = makeUrlSchema("ENSNODE_PUBLIC_URL");
 const EnsAdminUrlSchema = makeUrlSchema("ENSADMIN_URL").default(DEFAULT_ENSADMIN_URL);
 
-const PonderDatabaseSchemaSchema = z
-  .string({
-    error: "DATABASE_SCHEMA is required.",
-  })
-  .trim()
-  .min(1, {
-    error: "DATABASE_SCHEMA is required and cannot be an empty string.",
-  });
+const DatabaseSchemaNameSchema = makeDatabaseSchemaNameSchema("DATABASE_SCHEMA");
 
 const PluginsSchema = z.coerce
   .string()
@@ -111,33 +79,35 @@ const PluginsSchema = z.coerce
     error: "PLUGINS cannot contain duplicate values",
   });
 
-const HealReverseAddressesSchema = makeEnvStringBoolSchema("HEAL_REVERSE_ADDRESSES") //
+const HealReverseAddressesSchema = makeBooleanStringSchema("HEAL_REVERSE_ADDRESSES") //
   .default(DEFAULT_HEAL_REVERSE_ADDRESSES);
 
-const IndexAdditionalResolverRecordsSchema = makeEnvStringBoolSchema(
+const IndexAdditionalResolverRecordsSchema = makeBooleanStringSchema(
   "INDEX_ADDITIONAL_RESOLVER_RECORDS",
 ).default(DEFAULT_INDEX_ADDITIONAL_RESOLVER_RECORDS);
 
-const ExperimentalResolutionSchema = makeEnvStringBoolSchema("EXPERIMENTAL_RESOLUTION").default(
+const ExperimentalResolutionSchema = makeBooleanStringSchema("EXPERIMENTAL_RESOLUTION").default(
   DEFAULT_EXPERIMENTAL_RESOLUTION,
 );
 
 const PortSchema = z.coerce
   .number({ error: "PORT must be an integer." })
-  .int({ error: "PORT must be an integer." })
-  .min(1, { error: "PORT must be an integer between 1 and 65535." })
-  .max(65535, { error: "PORT must be an integer between 1 and 65535." })
+  .pipe(makePortSchema("PORT"))
   .default(DEFAULT_PORT);
 
-const EnsRainbowEndpointUrlSchema = makeUrlSchema("ENSRAINBOW_URL");
+export const EnsRainbowEndpointUrlSchema = makeUrlSchema("ENSRAINBOW_URL");
 
-const RpcConfigsSchema = z.record(
-  z.string().transform(Number).pipe(chainIdSchema),
-  RpcConfigSchema,
-  {
-    error: "Chains configuration must be an object mapping valid chain IDs to their configs.",
-  },
-);
+const RpcConfigSchema = z.object({
+  url: makeUrlSchema("RPC_URL_*"),
+  maxRequestsPerSecond: z.coerce
+    .number({ error: "RPC_REQUEST_RATE_LIMIT_* must be an integer." })
+    .pipe(makePositiveIntegerSchema("RPC_REQUEST_RATE_LIMIT_*"))
+    .default(DEFAULT_RPC_RATE_LIMIT),
+});
+
+const RpcConfigsSchema = z.record(makeChainIdStringSchema(), RpcConfigSchema, {
+  error: "Chains configuration must be an object mapping valid chain IDs to their configs.",
+});
 
 const DatabaseUrlSchema = z.union(
   [
@@ -160,13 +130,15 @@ const DatabaseUrlSchema = z.union(
   },
 );
 
+const VersionInfoSchema = makeVersionInfoSchema();
+
 const ENSIndexerConfigSchema = z
   .object({
     namespace: ENSNamespaceSchema,
     globalBlockrange: BlockrangeSchema,
     ensNodePublicUrl: EnsNodePublicUrlSchema,
     ensAdminUrl: EnsAdminUrlSchema,
-    ponderDatabaseSchema: PonderDatabaseSchemaSchema,
+    databaseSchemaName: DatabaseSchemaNameSchema,
     plugins: PluginsSchema,
     healReverseAddresses: HealReverseAddressesSchema,
     indexAdditionalResolverRecords: IndexAdditionalResolverRecordsSchema,
@@ -175,6 +147,7 @@ const ENSIndexerConfigSchema = z
     ensRainbowEndpointUrl: EnsRainbowEndpointUrlSchema,
     rpcConfigs: RpcConfigsSchema,
     databaseUrl: DatabaseUrlSchema,
+    versionInfo: VersionInfoSchema,
   })
   /**
    * Invariant enforcement
@@ -195,7 +168,6 @@ const ENSIndexerConfigSchema = z
    */
   .check(invariant_requiredDatasources)
   .check(invariant_rpcConfigsSpecifiedForIndexedChains)
-  .check(invariant_globalBlockrange)
   .check(invariant_validContractConfigs)
   .check(invariant_reverseResolversPluginNeedsResolverRecords)
   .check(invariant_experimentalResolutionNeedsReverseResolversPlugin)
@@ -222,7 +194,10 @@ const ENSIndexerConfigSchema = z
    * }
    * ```
    */
-  .transform(derive_isSubgraphCompatible);
+  .transform(derive_isSubgraphCompatible)
+  .transform(derive_indexedChainIds)
+  // `invariant_globalBlockrange` has dependency on `derive_indexedChainIds`
+  .check(invariant_globalBlockrange);
 
 /**
  * Builds the ENSIndexer configuration object from an ENSIndexerEnvironment object
