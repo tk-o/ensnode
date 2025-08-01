@@ -1,10 +1,16 @@
+/**
+ * Zod schemas can never be included in the NPM package for ENSNode SDK.
+ *
+ * The only way to share Zod schemas is to re-export them from
+ * `./src/internal.ts` file.
+ */
 import z from "zod/v4";
 import { BlockRef, deserializeChainId } from "../../shared";
 import {
   type ZodCheckFnInput,
   makeBlockRefSchema,
   makeChainIdStringSchema,
-  makeNonNegativeIntegerSchema,
+  makeDurationSchema,
 } from "../../shared/zod-schemas";
 import { ChainIndexingStatusIds } from "./domain-types";
 import type {
@@ -138,7 +144,7 @@ export const makeChainIndexingFollowingStatusSchema = (valueLabel: string = "Val
       startBlock: makeBlockRefSchema(valueLabel),
       latestIndexedBlock: makeBlockRefSchema(valueLabel),
       latestKnownBlock: makeBlockRefSchema(valueLabel),
-      approximateRealtimeDistance: makeNonNegativeIntegerSchema(valueLabel),
+      approximateRealtimeDistance: makeDurationSchema(valueLabel),
     })
     .check(invariant_startBlockIsBeforeOrTheSameAsLatestIndexedBlock)
     .check(invariant_latestIndexedBlockIsBeforeOrTheSameAsLatestKnownBlock);

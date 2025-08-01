@@ -1,4 +1,4 @@
-import type { BlockRef, ChainId } from "../../shared";
+import type { BlockRef, ChainId, Duration } from "../../shared";
 
 export const ChainIndexingStatusIds = {
   NotStarted: "notStarted",
@@ -59,7 +59,7 @@ export interface ChainIndexingFollowingStatus<BlockRefType = BlockRef> {
   startBlock: BlockRefType;
   latestIndexedBlock: BlockRefType;
   latestKnownBlock: BlockRefType;
-  approximateRealtimeDistance: number;
+  approximateRealtimeDistance: Duration;
 }
 
 /**

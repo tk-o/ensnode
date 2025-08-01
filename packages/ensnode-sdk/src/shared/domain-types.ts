@@ -54,3 +54,12 @@ export interface Blockrange {
   /** End block number */
   endBlock?: BlockNumber;
 }
+
+/**
+ * Duration
+ *
+ * Representing a duration in seconds.
+ *
+ * Guaranteed to be a non-negative integer.
+ */
+export type Duration = number;
