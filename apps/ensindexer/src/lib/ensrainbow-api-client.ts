@@ -1,7 +1,8 @@
+import { UrlString } from "@ensnode/ensnode-sdk";
 import { EnsRainbowApiClient } from "@ensnode/ensrainbow-sdk";
 
 // Cache to store client instances by URL
-const clientCache = new Map<URL, EnsRainbowApiClient>();
+const clientCache = new Map<UrlString, EnsRainbowApiClient>();
 
 /**
  * Get a {@link EnsRainbowApiClient} instance for requested endpoint URL.
@@ -11,8 +12,8 @@ const clientCache = new Map<URL, EnsRainbowApiClient>();
  * order to leverage caching.
  */
 export function getENSRainbowApiCLient(ensRainbowEndpointUrl: URL) {
-  if (clientCache.has(ensRainbowEndpointUrl)) {
-    return clientCache.get(ensRainbowEndpointUrl)!;
+  if (clientCache.has(ensRainbowEndpointUrl.href)) {
+    return clientCache.get(ensRainbowEndpointUrl.href)!;
   }
 
   const ensRainbowApiClient = new EnsRainbowApiClient({
@@ -25,21 +26,21 @@ export function getENSRainbowApiCLient(ensRainbowEndpointUrl: URL) {
   ) {
     console.warn(
       `Using default public ENSRainbow server which may cause increased network latency.
-    For production, use your own ENSRainbow server that runs on the same network
-    as the ENSIndexer server.`,
-    );
-  }
-
-  if (clientCache.size !== 0) {
-    console.warn(
-      `More than one EnsRainbowApiClient instance is in use.
-    For production, make sure to only use a single instance in order to use
-    client caching effectively.`,
+For production, use your own ENSRainbow server that runs on the same network
+as the ENSIndexer server.`,
     );
   }
 
   // Cache the client before returning
-  clientCache.set(ensRainbowEndpointUrl, ensRainbowApiClient);
+  clientCache.set(ensRainbowEndpointUrl.href, ensRainbowApiClient);
+
+  if (clientCache.size !== 1) {
+    console.warn(
+      `More than one EnsRainbowApiClient instance is in use.
+For production, make sure to only use a single instance in order to use
+client caching effectively.`,
+    );
+  }
 
   return ensRainbowApiClient;
 }
