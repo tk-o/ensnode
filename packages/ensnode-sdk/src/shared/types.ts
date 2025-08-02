@@ -47,12 +47,12 @@ export interface BlockRef<DatetimeType = Datetime> {
  *
  * Represents a range of blocks
  */
-export interface Blockrange {
+export interface Blockrange<BlockType = BlockNumber> {
   /** Start block number */
-  startBlock?: BlockNumber;
+  startBlock?: BlockType;
 
   /** End block number */
-  endBlock?: BlockNumber;
+  endBlock?: BlockType;
 }
 
 /**
