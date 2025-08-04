@@ -115,9 +115,6 @@ export interface PonderChainStatusFromResponse {
 }
 
 export interface PonderChainMetricsFromResponse {
-  ordering: string | undefined;
-  command: string | undefined;
-
   historicalCompletedBlocks: number | undefined;
   historicalCachedBlocks: number | undefined;
   historicalTotalBlocks: number | undefined;

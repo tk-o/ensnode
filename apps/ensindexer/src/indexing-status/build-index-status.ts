@@ -43,10 +43,13 @@ export async function buildIndexingStatus({
   const command = ponderMetrics.getLabel("ponder_settings_info", "command");
   const ordering = ponderMetrics.getLabel("ponder_settings_info", "ordering");
 
+  const ponderAppSettings = {
+    command,
+    ordering,
+  };
+
   for (const chainName of indexedChainNames) {
     ponderChainsMetrics[chainName] = {
-      command,
-      ordering,
       historicalCompletedBlocks: ponderMetrics.getValue("ponder_historical_completed_blocks", {
         chain: chainName,
       }),
@@ -60,8 +63,7 @@ export async function buildIndexingStatus({
       isSyncRealtime: ponderMetrics.getValue("ponder_sync_is_realtime", { chain: chainName }),
       syncBlock: {
         number: ponderMetrics.getValue("ponder_sync_block", { chain: chainName }),
-        // TODO: drop default value after upgrading to ponder 0.10.40
-        timestamp: ponderMetrics.getValue("ponder_sync_block_timestamp", { chain: chainName }) ?? 0,
+        timestamp: ponderMetrics.getValue("ponder_sync_block_timestamp", { chain: chainName }),
       },
     } satisfies PonderChainMetricsFromResponse;
 
@@ -74,6 +76,7 @@ export async function buildIndexingStatus({
   }
 
   const parsed = makePonderIndexingStatusSchema(indexedChainNames).safeParse({
+    ponderAppSettings,
     ponderChainsStatus,
     ponderChainsMetrics,
     ponderChainsBlockRefs,

@@ -39,14 +39,16 @@ const PonderCommandSchema = z.enum(["dev", "start"]);
 
 const PonderOrderingSchema = z.literal("omnichain");
 
+const PonderAppSettingsSchema = z.strictObject({
+  command: PonderCommandSchema,
+  ordering: PonderOrderingSchema,
+});
+
 const PonderMetricBooleanSchema = z.coerce.string().transform((v) => v === "1");
 
 const PonderMetricIntegerSchema = z.coerce.number().pipe(makeNonNegativeIntegerSchema());
 
 const PonderMetricSchema = z.object({
-  command: PonderCommandSchema,
-  ordering: PonderOrderingSchema,
-
   isSyncComplete: PonderMetricBooleanSchema,
   isSyncRealtime: PonderMetricBooleanSchema,
   syncBlock: PonderBlockRefSchema,
@@ -69,6 +71,8 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
 
   return z
     .object({
+      ponderAppSettings: PonderAppSettingsSchema,
+
       ponderChainsStatus: z
         .record(ChainNameSchema, PonderChainStatus)
         .refine((v) => indexedChainNames.every((chainName) => Object.keys(v).includes(chainName)), {
@@ -111,7 +115,6 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
         // In omnichain ordering, if the startBlock is the same as the
         // status block, the chain has not started yet.
         if (chainBlocksConfig.startBlock.number === chainStatusBlock.number) {
-          console.log("notStarted 1");
           serializedChainIndexingStatuses[`${chainId}`] = {
             status: "notStarted",
             config: {
