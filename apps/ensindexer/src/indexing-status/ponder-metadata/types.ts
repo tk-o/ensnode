@@ -1,4 +1,5 @@
 import type { BlockNumber, BlockRef, Blockrange, ChainId } from "@ensnode/ensnode-sdk";
+import type { PonderStatus, PrometheusMetrics } from "@ensnode/ponder-metadata";
 import type { AddressConfig, ChainConfig, CreateConfigReturnType } from "ponder";
 import type { PublicClient } from "viem";
 
@@ -109,12 +110,12 @@ export type PonderChainBlockRefs = {
   backfillEndBlock: PonderBlockRef;
 };
 
-export interface PonderChainStatusFromResponse {
+export interface PartialPonderChainStatus {
   chainId: number | undefined;
   block: Partial<PonderBlockRef>;
 }
 
-export interface PonderChainMetricsFromResponse {
+export interface PartialPonderChainMetrics {
   historicalCompletedBlocks: number | undefined;
   historicalCachedBlocks: number | undefined;
   historicalTotalBlocks: number | undefined;
@@ -132,4 +133,24 @@ export interface PonderChainMetrics {
   isSyncComplete: boolean;
   isSyncRealtime: boolean;
   syncBlock: BlockRef;
+}
+
+/**
+ * Ponder Metadata
+ */
+export interface PonderMetadata {
+  /**
+   * Block references per chain
+   */
+  chainsBlockRefs: Record<ChainName, PonderChainBlockRefs>;
+
+  /**
+   * Ponder app metrics
+   */
+  metrics: PrometheusMetrics;
+
+  /**
+   * Ponder app status
+   */
+  status: PonderStatus;
 }

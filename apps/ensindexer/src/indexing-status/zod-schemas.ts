@@ -71,35 +71,35 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
 
   return z
     .object({
-      ponderAppSettings: PonderAppSettingsSchema,
+      appSettings: PonderAppSettingsSchema,
 
-      ponderChainsStatus: z
-        .record(ChainNameSchema, PonderChainStatus)
-        .refine((v) => indexedChainNames.every((chainName) => Object.keys(v).includes(chainName)), {
-          error: "All `indexedChainNames` must be represented by Ponder Status object.",
-        }),
-
-      ponderChainsMetrics: z
-        .record(ChainNameSchema, PonderMetricSchema)
-        .refine((v) => indexedChainNames.every((chainName) => Object.keys(v).includes(chainName)), {
-          error: "All `indexedChainNames` must be represented by Ponder Metrics object.",
-        }),
-
-      ponderChainsBlockRefs: z
+      chainsBlockRefs: z
         .record(ChainNameSchema, PonderChainBlockRefsSchema)
         .refine((v) => indexedChainNames.every((chainName) => Object.keys(v).includes(chainName)), {
           error: "All `indexedChainNames` must be represented by Ponder Chains Block Refs object.",
+        }),
+
+      chainsMetrics: z
+        .record(ChainNameSchema, PonderMetricSchema)
+        .refine((v) => indexedChainNames.every((chainName) => Object.keys(v).includes(chainName)), {
+          error: "All `indexedChainNames` must be represented by Ponder Chains Metrics object.",
+        }),
+
+      chainsStatuses: z
+        .record(ChainNameSchema, PonderChainStatus)
+        .refine((v) => indexedChainNames.every((chainName) => Object.keys(v).includes(chainName)), {
+          error: "All `indexedChainNames` must be represented by Ponder Chains Status object.",
         }),
     })
     .transform((v) => {
       const serializedChainIndexingStatuses = {} as SerializedChainIndexingStatuses;
 
       for (const chainName of indexedChainNames) {
-        const { ponderChainsBlockRefs, ponderChainsMetrics, ponderChainsStatus } = v;
+        const { chainsBlockRefs, chainsMetrics, chainsStatuses } = v;
 
-        const ponderChainStatus = ponderChainsStatus[chainName]!;
-        const ponderChainMetrics = ponderChainsMetrics[chainName]!;
-        const ponderChainBlockRefs = ponderChainsBlockRefs[chainName]!;
+        const ponderChainBlockRefs = chainsBlockRefs[chainName]!;
+        const ponderChainMetrics = chainsMetrics[chainName]!;
+        const ponderChainStatus = chainsStatuses[chainName]!;
 
         const { chainId, block: chainStatusBlock } = ponderChainStatus;
         const {

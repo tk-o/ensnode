@@ -39,16 +39,18 @@ app.use("*", otel());
 app.get("/config", (c) => c.json(serializeENSIndexerPublicConfig(config)));
 
 app.get("/indexing-status", async (c) => {
-  const [ponderMetrics, ponderStatus, ponderChainsBlockRefs] = await Promise.all([
+  // Get current Ponder metadata
+  const [metrics, status, chainsBlockRefs] = await Promise.all([
     fetchPonderMetrics(config.ensIndexerPrivateUrl),
     fetchPonderStatus(config.ensIndexerPrivateUrl),
     indexedChainsBlockRefs,
   ]);
 
+  // Validate Ponder metadata and enforce invariants, then build IndexingStatus object.q
   const indexingStatus = await buildIndexingStatus({
-    ponderMetrics,
-    ponderStatus,
-    ponderChainsBlockRefs,
+    metrics,
+    status,
+    chainsBlockRefs,
   });
 
   return c.json(serializeENSIndexerIndexingStatus(indexingStatus));

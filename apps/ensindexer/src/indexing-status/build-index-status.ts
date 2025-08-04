@@ -2,14 +2,14 @@ import ponderConfig from "@/ponder/config";
 
 import {
   type ChainName,
-  type PonderChainBlockRefs,
-  type PonderChainMetricsFromResponse,
-  type PonderChainStatusFromResponse,
+  type PartialPonderChainMetrics,
+  type PartialPonderChainStatus,
+  PonderMetadata,
   getChainsBlockrange,
 } from "@/indexing-status/ponder-metadata";
 
 import { makePonderIndexingStatusSchema } from "@/indexing-status/zod-schemas";
-import { PonderStatus, PrometheusMetrics } from "@ensnode/ponder-metadata";
+import { ENSIndexerIndexingStatus } from "@ensnode/ensnode-sdk";
 import { prettifyError } from "zod/v4";
 
 export const indexedChainNames = Object.keys(ponderConfig.chains) as [string, ...string[]];
@@ -24,67 +24,61 @@ export const indexedChainNames = Object.keys(ponderConfig.chains) as [string, ..
  */
 export const indexedChainsBlockrange = getChainsBlockrange(ponderConfig);
 
-interface BuildIndexingStatusFromPonderResponse {
-  ponderChainsBlockRefs: Record<ChainName, PonderChainBlockRefs>;
+type BuildIndexingStatusFromPonderMetadata = PonderMetadata;
 
-  ponderMetrics: PrometheusMetrics;
+/**
+ * Build {@link ENSIndexerIndexingStatus} object from Ponder metadata
+ */
+export async function buildIndexingStatus(
+  ponderMetadata: BuildIndexingStatusFromPonderMetadata,
+): Promise<ENSIndexerIndexingStatus> {
+  const { chainsBlockRefs, metrics, status } = ponderMetadata;
 
-  ponderStatus: PonderStatus;
-}
-
-export async function buildIndexingStatus({
-  ponderChainsBlockRefs,
-  ponderMetrics,
-  ponderStatus,
-}: BuildIndexingStatusFromPonderResponse) {
-  const ponderChainsMetrics: Record<ChainName, PonderChainMetricsFromResponse> = {};
-  const ponderChainsStatus: Record<ChainName, PonderChainStatusFromResponse> = {};
-
-  const command = ponderMetrics.getLabel("ponder_settings_info", "command");
-  const ordering = ponderMetrics.getLabel("ponder_settings_info", "ordering");
-
-  const ponderAppSettings = {
-    command,
-    ordering,
+  const appSettings = {
+    command: metrics.getLabel("ponder_settings_info", "command"),
+    ordering: metrics.getLabel("ponder_settings_info", "ordering"),
   };
 
+  const chainsMetrics: Record<ChainName, PartialPonderChainMetrics> = {};
+  const chainsStatuses: Record<ChainName, PartialPonderChainStatus> = {};
+
   for (const chainName of indexedChainNames) {
-    ponderChainsMetrics[chainName] = {
-      historicalCompletedBlocks: ponderMetrics.getValue("ponder_historical_completed_blocks", {
+    chainsMetrics[chainName] = {
+      historicalCompletedBlocks: metrics.getValue("ponder_historical_completed_blocks", {
         chain: chainName,
       }),
-      historicalCachedBlocks: ponderMetrics.getValue("ponder_historical_cached_blocks", {
+      historicalCachedBlocks: metrics.getValue("ponder_historical_cached_blocks", {
         chain: chainName,
       }),
-      historicalTotalBlocks: ponderMetrics.getValue("ponder_historical_total_blocks", {
+      historicalTotalBlocks: metrics.getValue("ponder_historical_total_blocks", {
         chain: chainName,
       }),
-      isSyncComplete: ponderMetrics.getValue("ponder_sync_is_complete", { chain: chainName }),
-      isSyncRealtime: ponderMetrics.getValue("ponder_sync_is_realtime", { chain: chainName }),
+      isSyncComplete: metrics.getValue("ponder_sync_is_complete", { chain: chainName }),
+      isSyncRealtime: metrics.getValue("ponder_sync_is_realtime", { chain: chainName }),
       syncBlock: {
-        number: ponderMetrics.getValue("ponder_sync_block", { chain: chainName }),
-        timestamp: ponderMetrics.getValue("ponder_sync_block_timestamp", { chain: chainName }),
+        number: metrics.getValue("ponder_sync_block", { chain: chainName }),
+        timestamp: metrics.getValue("ponder_sync_block_timestamp", { chain: chainName }),
       },
-    } satisfies PonderChainMetricsFromResponse;
+    } satisfies PartialPonderChainMetrics;
 
-    const { id: chainId, block } = ponderStatus[chainName]!;
+    const { id: chainId, block } = status[chainName]!;
 
-    ponderChainsStatus[chainName] = {
+    chainsStatuses[chainName] = {
       chainId,
       block,
-    } satisfies PonderChainStatusFromResponse;
+    } satisfies PartialPonderChainStatus;
   }
 
   const parsed = makePonderIndexingStatusSchema(indexedChainNames).safeParse({
-    ponderAppSettings,
-    ponderChainsStatus,
-    ponderChainsMetrics,
-    ponderChainsBlockRefs,
+    appSettings,
+    chainsStatuses,
+    chainsMetrics,
+    chainsBlockRefs,
   });
 
   if (!parsed.success) {
     throw new Error(
-      "Failed to parse Ponder indexing status data: \n" + prettifyError(parsed.error) + "\n",
+      "Failed to build IndexingStatus object: \n" + prettifyError(parsed.error) + "\n",
     );
   }
 
