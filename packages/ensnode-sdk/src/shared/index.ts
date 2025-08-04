@@ -1,8 +1,9 @@
 export * from "./cache";
 export * from "./collections";
-export * from "./domain-types";
+export * from "./types";
 export * from "./serialized-types";
 export {
+  deserializeBlockNumber,
   deserializeBlockRef,
   deserializeChainId,
   deserializeDatetime,

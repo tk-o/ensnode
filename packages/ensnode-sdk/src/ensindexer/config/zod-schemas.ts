@@ -1,6 +1,13 @@
+/**
+ * Zod schemas can never be included in the NPM package for ENSNode SDK.
+ *
+ * The only way to share Zod schemas is to re-export them from
+ * `./src/internal.ts` file.
+ */
 import z from "zod/v4";
 import { uniq } from "../../shared";
 import {
+  ZodCheckFnInput,
   makeBooleanSchema,
   makeChainIdSchema,
   makeENSNamespaceIdSchema,
@@ -9,9 +16,9 @@ import {
   makePositiveIntegerSchema,
   makeUrlSchema,
 } from "../../shared/zod-schemas";
-import { PluginName } from "./domain-types";
-import type { ENSIndexerPublicConfig, IndexedChainIds } from "./domain-types";
 import { isSubgraphCompatible } from "./helpers";
+import { PluginName } from "./types";
+import type { ENSIndexerPublicConfig, IndexedChainIds } from "./types";
 
 /**
  * Makes a schema for parsing {@link IndexedChainIds}.
@@ -72,9 +79,6 @@ export const makeVersionInfoSchema = (valueLabel: string = "Value") =>
       error: `${valueLabel} must be a valid VersionInfo object.`,
     },
   );
-
-// type alias to highlight the input param of Zod's check() method
-type ZodCheckFnInput<T> = z.core.ParsePayload<T>;
 
 // Invariant: ReverseResolvers plugin requires indexAdditionalResolverRecords
 export function invariant_reverseResolversPluginNeedsResolverRecords(

@@ -5,63 +5,6 @@ import type { Hex } from "viem";
 export type { CoinType, EvmCoinType } from "@ensdomains/address-encoder";
 
 /**
- * Chain ID
- *
- * Represents a unique identifier for a chain.
- * Guaranteed to be a non-negative integer.
- **/
-export type ChainId = number;
-
-/**
- * Block Number
- *
- * Guaranteed to be a non-negative integer.
- */
-export type BlockNumber = number;
-
-/**
- * Datetime value
- */
-export type Datetime = Date;
-
-/**
- * Represents a URL that is used for RPC endpoints.
- *
- * Invariants:
- * - The URL must be a valid URL (localhost urls are allowed)
- */
-export type RpcUrl = URL;
-
-/**
- * BlockRef
- *
- * Describes a block.
- *
- * We use parameter types to maintain fields layout and documentation across
- * the domain model and its serialized counterpart.
- */
-export interface BlockRef<DatetimeType = Datetime> {
-  /** Block number (height) */
-  number: BlockNumber;
-
-  /** Block creation datetime */
-  createdAt: DatetimeType;
-}
-
-/**
- * Block range
- *
- * Represents a range of blocks
- */
-export interface Blockrange {
-  /** Start block number */
-  startBlock?: BlockNumber;
-
-  /** End block number */
-  endBlock?: BlockNumber;
-}
-
-/**
  * ENSNamespaceIds encodes the set of identifiers for well-known ENS namespaces.
  *
  * Each ENS namespace is a single, unified set of ENS names with a distinct onchain root
@@ -112,6 +55,13 @@ export type ENSNamespaceId = (typeof ENSNamespaceIds)[keyof typeof ENSNamespaceI
 export type Node = Hex;
 
 /**
+ * A Name represents a human-readable ENS name.
+ *
+ * ex: vitalik.eth
+ */
+export type Name = string;
+
+/**
  * A LabelHash is the result of the labelhash function (which is just keccak256) on a Label.
  *
  * @link https://docs.ens.domains/terminology#labelhash
@@ -133,10 +83,3 @@ export type Label = string;
  * @example [abcd].example.eth
  */
 export type EncodedLabelHash = `[${string}]`;
-
-/**
- * A Name represents a human-readable ENS name.
- *
- * ex: vitalik.eth
- */
-export type Name = string;

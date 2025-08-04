@@ -4,9 +4,14 @@
  * The only way to share Zod schemas is to re-export them from
  * `./src/internal.ts` file.
  */
-import { z } from "zod/v4";
-import { ENSNamespaceIds } from "./domain-types";
-import type { BlockRef, ChainId, Datetime } from "./domain-types";
+import z from "zod/v4";
+import { ENSNamespaceIds } from "../ens";
+import type { BlockRef, ChainId, Datetime, Duration } from "./types";
+
+/**
+ * Zod `.check()` function input.
+ */
+export type ZodCheckFnInput<T> = z.core.ParsePayload<T>;
 
 /**
  * Parses value as a boolean.
@@ -52,6 +57,12 @@ export const makeNonNegativeIntegerSchema = (valueLabel: string = "Value") =>
   makeIntegerSchema(valueLabel).nonnegative({
     error: `${valueLabel} must be a non-negative integer (>=0).`,
   });
+
+/**
+ * Parses a numeric value as {@link Duration}
+ */
+export const makeDurationSchema = (valueLabel: string = "Value") =>
+  makeNonNegativeIntegerSchema(valueLabel);
 
 /**
  * Parses value as a string.

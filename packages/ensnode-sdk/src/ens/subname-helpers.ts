@@ -1,8 +1,8 @@
 import { Address, concat, isAddress, isHash, keccak256, toHex } from "viem";
 
 import { labelhash } from "viem/ens";
-import type { Label, LabelHash, Node } from "../shared";
 import { addrReverseLabel } from "./reverse-name";
+import type { Label, LabelHash, Node } from "./types";
 
 /**
  * Implements one step of the namehash algorithm, combining `labelHash` with `node` to produce

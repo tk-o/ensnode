@@ -1,4 +1,4 @@
-import type { BlockRef, ChainId } from "./domain-types";
+import type { BlockRef, ChainId } from "./types";
 
 /**
  * A string representation of {@link ChainId}.

@@ -8,4 +8,5 @@
  * app/package in the monorepo which requires `@ensnode/ensnode-sdk` dependency.
  */
 export * from "./ensindexer/config/zod-schemas";
+export * from "./ensindexer/indexing-status/zod-schemas";
 export * from "./shared/zod-schemas";

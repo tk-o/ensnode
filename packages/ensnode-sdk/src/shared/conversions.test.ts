@@ -5,9 +5,9 @@ import {
   deserializeDatetime,
   deserializeUrl,
 } from "./deserialize";
-import type { BlockRef } from "./domain-types";
 import { serializeBlockRef, serializeChainId, serializeDatetime, serializeUrl } from "./serialize";
 import type { SerializedBlockRef } from "./serialized-types";
+import type { BlockRef } from "./types";
 
 describe("ENSIndexer: Shared", () => {
   describe("serialization", () => {

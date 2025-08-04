@@ -1,6 +1,6 @@
 import { Address } from "viem";
-import { CoinType, Label, Name } from "../shared";
 import { DEFAULT_EVM_COIN_TYPE, ETH_COIN_TYPE } from "./constants";
+import { CoinType, type Label, type Name } from "./types";
 
 /**
  * Gets the Label used for the reverse names of subnames as per ENSIP-11 & ENSIP-19.
