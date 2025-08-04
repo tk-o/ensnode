@@ -11,6 +11,7 @@ const VALID_RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/1234";
 
 const BASE_ENV = {
   ENSNODE_PUBLIC_URL: "http://localhost:42069",
+  ENSINDEXER_PRIVATE_URL: "http://localhost:42069",
   ENSADMIN_URL: "https://admin.ensnode.io",
   DATABASE_SCHEMA: "ensnode",
   PLUGINS: "subgraph",
@@ -42,13 +43,13 @@ describe("config", () => {
       const config = await getConfig();
       expect(config.namespace).toBe("mainnet");
       expect(config.globalBlockrange).toEqual({ startBlock: undefined, endBlock: undefined });
-      expect(config.ensNodePublicUrl).toBe("http://localhost:42069");
-      expect(config.ensAdminUrl).toBe("https://admin.ensnode.io");
-      expect(config.ponderDatabaseSchema).toBe("ensnode");
+      expect(config.ensNodePublicUrl).toStrictEqual(new URL("http://localhost:42069"));
+      expect(config.ensAdminUrl).toStrictEqual(new URL("https://admin.ensnode.io"));
+      expect(config.databaseSchemaName).toBe("ensnode");
       expect(config.plugins).toEqual(["subgraph"]);
       expect(config.healReverseAddresses).toBe(true);
       expect(config.port).toBe(3000);
-      expect(config.ensRainbowEndpointUrl).toBe("https://api.ensrainbow.io");
+      expect(config.ensRainbowEndpointUrl).toStrictEqual(new URL("https://api.ensrainbow.io"));
     });
 
     it("refreshes config when module is re-imported with new environment variables", async () => {
@@ -98,22 +99,22 @@ describe("config", () => {
 
     it("throws if START_BLOCK is negative", async () => {
       vi.stubEnv("START_BLOCK", "-1");
-      await expect(getConfig()).rejects.toThrow(/START_BLOCK must be a positive integer/i);
+      await expect(getConfig()).rejects.toThrow(/START_BLOCK must be a non-negative integer/i);
     });
 
     it("throws if END_BLOCK is negative", async () => {
       vi.stubEnv("END_BLOCK", "-5");
-      await expect(getConfig()).rejects.toThrow(/END_BLOCK must be a positive integer/i);
+      await expect(getConfig()).rejects.toThrow(/END_BLOCK must be a non-negative integer/i);
     });
 
     it("throws if START_BLOCK is not a number", async () => {
       vi.stubEnv("START_BLOCK", "foo");
-      await expect(getConfig()).rejects.toThrow(/START_BLOCK must be a positive integer/i);
+      await expect(getConfig()).rejects.toThrow(/START_BLOCK must be a non-negative integer/i);
     });
 
     it("throws if END_BLOCK is not a number", async () => {
       vi.stubEnv("END_BLOCK", "bar");
-      await expect(getConfig()).rejects.toThrow(/END_BLOCK must be a positive integer/i);
+      await expect(getConfig()).rejects.toThrow(/END_BLOCK must be a non-negative integer/i);
     });
 
     it("throws if START_BLOCK > END_BLOCK", async () => {
@@ -147,13 +148,47 @@ describe("config", () => {
 
     it("returns the ENSNODE_PUBLIC_URL if it is a valid URL", async () => {
       const config = await getConfig();
-      expect(config.ensNodePublicUrl).toBe("http://localhost:42069");
+      expect(config.ensNodePublicUrl).toStrictEqual(new URL("http://localhost:42069"));
     });
 
     it("returns a different valid ENSNODE_PUBLIC_URL if set", async () => {
       vi.stubEnv("ENSNODE_PUBLIC_URL", "https://someotherurl.com");
       const config = await getConfig();
-      expect(config.ensNodePublicUrl).toBe("https://someotherurl.com");
+      expect(config.ensNodePublicUrl).toStrictEqual(new URL("https://someotherurl.com"));
+    });
+  });
+
+  describe(".ensIndexerPrivateUrl", () => {
+    it("throws an error if ENSINDEXER_PRIVATE_URL is not a valid URL", async () => {
+      vi.stubEnv("ENSINDEXER_PRIVATE_URL", "invalid url");
+      await expect(getConfig()).rejects.toThrow(
+        /ENSINDEXER_PRIVATE_URL must be a valid URL string/i,
+      );
+    });
+
+    it("throws an error if ENSINDEXER_PRIVATE_URL is empty", async () => {
+      vi.stubEnv("ENSINDEXER_PRIVATE_URL", "");
+      await expect(getConfig()).rejects.toThrow(
+        /ENSINDEXER_PRIVATE_URL must be a valid URL string/i,
+      );
+    });
+
+    it("throws an error if ENSINDEXER_PRIVATE_URL is undefined (explicitly testing the refine)", async () => {
+      vi.stubEnv("ENSINDEXER_PRIVATE_URL", undefined);
+      await expect(getConfig()).rejects.toThrow(
+        /ENSINDEXER_PRIVATE_URL must be a valid URL string/i,
+      );
+    });
+
+    it("returns the ENSINDEXER_PRIVATE_URL if it is a valid URL", async () => {
+      const config = await getConfig();
+      expect(config.ensIndexerPrivateUrl).toStrictEqual(new URL("http://localhost:42069"));
+    });
+
+    it("returns a different valid ENSINDEXER_PRIVATE_URL if set", async () => {
+      vi.stubEnv("ENSINDEXER_PRIVATE_URL", "https://someotherurl.com");
+      const config = await getConfig();
+      expect(config.ensIndexerPrivateUrl).toStrictEqual(new URL("https://someotherurl.com"));
     });
   });
 
@@ -166,13 +201,13 @@ describe("config", () => {
     it("returns the provided ENSADMIN_URL if it is a valid URL", async () => {
       vi.stubEnv("ENSADMIN_URL", "https://customadmin.com");
       const config = await getConfig();
-      expect(config.ensAdminUrl).toBe("https://customadmin.com");
+      expect(config.ensAdminUrl).toStrictEqual(new URL("https://customadmin.com"));
     });
 
     it("returns the default ENSADMIN_URL if it is not set", async () => {
       vi.stubEnv("ENSADMIN_URL", undefined);
       const config = await getConfig();
-      expect(config.ensAdminUrl).toBe(DEFAULT_ENSADMIN_URL);
+      expect(config.ensAdminUrl).toStrictEqual(DEFAULT_ENSADMIN_URL);
     });
   });
 
@@ -185,7 +220,7 @@ describe("config", () => {
     it("returns the ENSRAINBOW_URL if it is a valid URL", async () => {
       vi.stubEnv("ENSRAINBOW_URL", "https://customrainbow.com");
       const config = await getConfig();
-      expect(config.ensRainbowEndpointUrl).toBe("https://customrainbow.com");
+      expect(config.ensRainbowEndpointUrl).toStrictEqual(new URL("https://customrainbow.com"));
     });
 
     it("throws an error if ENSRAINBOW_URL is not set", async () => {
@@ -194,29 +229,29 @@ describe("config", () => {
     });
   });
 
-  describe(".ponderDatabaseSchema", () => {
+  describe(".databaseSchemaName", () => {
     it("returns the DATABASE_SCHEMA if set", async () => {
       vi.stubEnv("DATABASE_SCHEMA", "someschema");
       const config = await getConfig();
-      expect(config.ponderDatabaseSchema).toBe("someschema");
+      expect(config.databaseSchemaName).toBe("someschema");
     });
 
     it("throws an error when DATABASE_SCHEMA is not set", async () => {
       vi.stubEnv("DATABASE_SCHEMA", undefined);
-      await expect(getConfig()).rejects.toThrow(/DATABASE_SCHEMA is required/);
+      await expect(getConfig()).rejects.toThrow(/DATABASE_SCHEMA must be a string/);
     });
 
     it("throws an error when DATABASE_SCHEMA is empty", async () => {
       vi.stubEnv("DATABASE_SCHEMA", "");
       await expect(getConfig()).rejects.toThrow(
-        /DATABASE_SCHEMA is required and cannot be an empty string/,
+        /DATABASE_SCHEMA is required and must be a non-empty string/,
       );
     });
 
     it("throws an error when DATABASE_SCHEMA is only whitespace", async () => {
       vi.stubEnv("DATABASE_SCHEMA", "   ");
       await expect(getConfig()).rejects.toThrow(
-        /DATABASE_SCHEMA is required and cannot be an empty string/,
+        /DATABASE_SCHEMA is required and must be a non-empty string/,
       );
     });
   });
@@ -246,12 +281,12 @@ describe("config", () => {
 
     it("throws if PORT is less than 1", async () => {
       vi.stubEnv("PORT", "0");
-      await expect(getConfig()).rejects.toThrow(/PORT must be an integer between 1 and 65535/i);
+      await expect(getConfig()).rejects.toThrow(/PORT must be a positive integer/i);
     });
 
     it("throws if PORT is a negative number", async () => {
       vi.stubEnv("PORT", "-100");
-      await expect(getConfig()).rejects.toThrow(/PORT must be an integer between 1 and 65535/i);
+      await expect(getConfig()).rejects.toThrow(/PORT must be a positive integer/i);
     });
 
     it("throws if PORT is greater than 65535", async () => {
@@ -345,9 +380,7 @@ describe("config", () => {
 
     it("throws if PLUGINS is not set (undefined)", async () => {
       vi.stubEnv("PLUGINS", undefined);
-      await expect(getConfig()).rejects.toThrow(
-        /PLUGINS must be a comma separated list with at least one valid plugin name/i,
-      );
+      await expect(getConfig()).rejects.toThrow(/PLUGINS must be a comma separated list/i);
     });
 
     it("throws if PLUGINS contains duplicate values", async () => {
@@ -362,7 +395,7 @@ describe("config", () => {
       const config = await getConfig();
       expect(config.rpcConfigs).toEqual({
         1: {
-          url: VALID_RPC_URL,
+          url: new URL(VALID_RPC_URL),
           maxRequestsPerSecond: DEFAULT_RPC_RATE_LIMIT,
         },
       });
@@ -496,7 +529,7 @@ describe("config", () => {
       await expect(getConfig()).rejects.toThrow(/RPC_URL_\d+ is not specified/i);
     });
 
-    it("cannot constrain blockrange with multiple chains", async () => {
+    it("cannot constrain blockrange with multiple indexed chains", async () => {
       vi.stubEnv("PLUGINS", "subgraph,basenames");
       vi.stubEnv("RPC_URL_8453", VALID_RPC_URL);
       vi.stubEnv("END_BLOCK", "1");

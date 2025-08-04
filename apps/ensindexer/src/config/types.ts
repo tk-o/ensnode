@@ -1,6 +1,5 @@
 import { Blockrange } from "@/lib/types";
-import type { ENSNamespaceId, ENSNamespaceIds } from "@ensnode/datasources";
-import type { PluginName } from "@ensnode/ensnode-sdk";
+import type { ENSIndexerPublicConfig } from "@ensnode/ensnode-sdk";
 
 /**
  * Configuration for a single RPC used by ENSIndexer.
@@ -13,7 +12,7 @@ export interface RpcConfig {
    * Invariants:
    * - The URL must be a valid URL (localhost urls are allowed)
    */
-  url: string;
+  url: URL;
 
   /**
    * The maximum number of RPC requests per second allowed for this chain, defaulting to
@@ -28,13 +27,13 @@ export interface RpcConfig {
 /**
  * The complete runtime configuration for an ENSIndexer instance.
  */
-export interface ENSIndexerConfig {
+export interface ENSIndexerConfig extends ENSIndexerPublicConfig {
   /**
    * The ENS namespace that ENSNode operates in the context of, defaulting to 'mainnet' (DEFAULT_NAMESPACE).
    *
    * See {@link ENSNamespaceIds} for available namespace identifiers.
    */
-  namespace: ENSNamespaceId;
+  namespace: ENSIndexerPublicConfig["namespace"];
 
   /**
    * An ENSAdmin url, defaulting to the public instance https://admin.ensnode.io (DEFAULT_ENSADMIN_URL).
@@ -46,7 +45,7 @@ export interface ENSIndexerConfig {
    * Invariants:
    * - The URL must be a valid URL (localhost urls are allowed)
    */
-  ensAdminUrl: string;
+  ensAdminUrl: ENSIndexerPublicConfig["ensAdminUrl"];
 
   /**
    * The publicly accessible endpoint of the ENSNode api (ex: http://localhost:42069).
@@ -56,7 +55,7 @@ export interface ENSIndexerConfig {
    * Invariants:
    * - The URL must be a valid URL (localhost urls are allowed)
    */
-  ensNodePublicUrl: string;
+  ensNodePublicUrl: ENSIndexerPublicConfig["ensNodePublicUrl"];
 
   /**
    * An ENSRainbow API Endpoint (ex: http://localhost:3223). ENSIndexer uses ENSRainbow to 'heal'
@@ -69,18 +68,18 @@ export interface ENSIndexerConfig {
    * Invariant:
    * - The URL must be a valid URL. localhost urls are allowed (and expected).
    */
-  ensRainbowEndpointUrl: string;
+  ensRainbowEndpointUrl: ENSIndexerPublicConfig["ensRainbowEndpointUrl"];
 
   /**
    * A Postgres database schema name. This instance of ENSIndexer will write indexed data to the
    * tables in this schema.
    *
-   * The {@link ponderDatabaseSchema} must be unique per running instance of ENSIndexer (ponder will
+   * The {@link databaseSchemaName} must be unique per running instance of ENSIndexer (ponder will
    * enforce this with database locks). If multiple instances of ENSIndexer with the same
-   * {@link ponderDatabaseSchema} are running, only the first will successfully acquire the lock and begin
+   * {@link databaseSchemaName} are running, only the first will successfully acquire the lock and begin
    * indexing: the rest will crash.
    *
-   * If an ENSIndexer instance with the same configuration (including `ponderDatabaseSchema`) is
+   * If an ENSIndexer instance with the same configuration (including `databaseSchemaName`) is
    * started, and it successfully acquires the lock on this schema, it will continue indexing from
    * the current state.
    *
@@ -92,7 +91,7 @@ export interface ENSIndexerConfig {
    * Invariants:
    * - Must be a non-empty string that is a valid Postgres database schema identifier.
    */
-  ponderDatabaseSchema: string;
+  databaseSchemaName: ENSIndexerPublicConfig["databaseSchemaName"];
 
   /**
    * A set of {@link PluginName}s indicating which plugins to activate.
@@ -103,7 +102,7 @@ export interface ENSIndexerConfig {
    * - For each plugin specified, a valid {@link rpcConfigs} entry is required for
    *   each chain the plugin indexes
    */
-  plugins: PluginName[];
+  plugins: ENSIndexerPublicConfig["plugins"];
 
   /**
    * Enable or disable healing of addr.reverse subnames, defaulting to true (DEFAULT_HEAL_REVERSE_ADDRESSES).
@@ -113,7 +112,7 @@ export interface ENSIndexerConfig {
    * compatible with the ENS Subgraph. For full data-level backwards compatibility with the ENS
    * Subgraph, {@link healReverseAddresses} should be `false`.
    */
-  healReverseAddresses: boolean;
+  healReverseAddresses: ENSIndexerPublicConfig["healReverseAddresses"];
 
   /**
    * Enable or disable the indexing of Resolver record values, defaulting to true (DEFAULT_INDEX_ADDITIONAL_RESOLVER_RECORDS).
@@ -132,12 +131,12 @@ export interface ENSIndexerConfig {
    * the Subgraph. For exact data-level backwards compatibility with the ENS Subgraph,
    * {@link indexAdditionalResolverRecords} should be `false`.
    */
-  indexAdditionalResolverRecords: boolean;
+  indexAdditionalResolverRecords: ENSIndexerPublicConfig["indexAdditionalResolverRecords"];
 
   /**
    * Experiment to enable forward/reverse resolution APIs.
    */
-  experimentalResolution: boolean;
+  experimentalResolution: ENSIndexerPublicConfig["experimentalResolution"];
 
   /**
    * The network port ENSIndexer listens for http requests on, defaulting to 42069 (DEFAULT_PORT).
@@ -145,8 +144,7 @@ export interface ENSIndexerConfig {
    * Invariants:
    * - The port must be an integer between 1 and 65535
    */
-  port: number;
-
+  port: ENSIndexerPublicConfig["port"];
   /**
    * Configuration for each indexable RPC, keyed by chain id.
    *
@@ -163,6 +161,18 @@ export interface ENSIndexerConfig {
    * - If defined, the URL must be a valid PostgreSQL connection string
    */
   databaseUrl: string | undefined;
+
+  /**
+   * The privately accessible endpoint of the ENSIndexer instance (ex: http://localhost:42069).
+   *
+   * This URL is to fetch the status and metrics from the ENSIndexer. For ENSIndexer instances,
+   * this will typically be set to http://localhost:{port}. For ENSApi instances, this should
+   * be set to the private network URL of the corresponding ENSIndexer instance.
+   *
+   * Invariants:
+   * - The URL must be a valid URL (localhost urls are allowed)
+   */
+  ensIndexerPrivateUrl: URL;
 
   /**
    * Constrains the global blockrange for indexing, useful for testing purposes.
@@ -194,7 +204,7 @@ export interface ENSIndexerConfig {
    * 1) use subgraph-compatible IDs for entities and events
    * 2) limit indexing behavior to subgraph indexing semantics
    */
-  isSubgraphCompatible: boolean;
+  isSubgraphCompatible: ENSIndexerPublicConfig["isSubgraphCompatible"];
 }
 
 /**
@@ -215,12 +225,13 @@ export interface RpcConfigEnvironment {
  */
 export interface ENSIndexerEnvironment {
   port: string | undefined;
-  ponderDatabaseSchema: string | undefined;
+  databaseSchemaName: string | undefined;
   databaseUrl: string | undefined;
   namespace: string | undefined;
   plugins: string | undefined;
   ensRainbowEndpointUrl: string | undefined;
   ensNodePublicUrl: string | undefined;
+  ensIndexerPrivateUrl: string | undefined;
   ensAdminUrl: string | undefined;
   healReverseAddresses: string | undefined;
   indexAdditionalResolverRecords: string | undefined;
@@ -230,4 +241,10 @@ export interface ENSIndexerEnvironment {
     endBlock: string | undefined;
   };
   rpcConfigs: Record<number, RpcConfigEnvironment>;
+  versionInfo: {
+    nodejs: string | undefined;
+    ponder: string | undefined;
+    ensRainbow: string | undefined;
+    ensRainbowSchema: number | undefined;
+  };
 }
