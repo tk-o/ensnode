@@ -45,13 +45,10 @@ const PonderMetricIntegerSchema = z.coerce.number().pipe(makeNonNegativeIntegerS
 
 const PonderMetricSchema = z.object({
   command: PonderCommandSchema,
-
   ordering: PonderOrderingSchema,
 
   isSyncComplete: PonderMetricBooleanSchema,
-
   isSyncRealtime: PonderMetricBooleanSchema,
-
   syncBlock: PonderBlockRefSchema,
 
   historicalTotalBlocks: PonderMetricIntegerSchema,
@@ -91,7 +88,7 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
         }),
     })
     .transform((v) => {
-      const indexingStatuses = {} as SerializedChainIndexingStatuses;
+      const serializedChainIndexingStatuses = {} as SerializedChainIndexingStatuses;
 
       for (const chainName of indexedChainNames) {
         const { ponderChainsBlockRefs, ponderChainsMetrics, ponderChainsStatus } = v;
@@ -115,7 +112,7 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
         // status block, the chain has not started yet.
         if (chainBlocksConfig.startBlock.number === chainStatusBlock.number) {
           console.log("notStarted 1");
-          indexingStatuses[`${chainId}`] = {
+          serializedChainIndexingStatuses[`${chainId}`] = {
             status: "notStarted",
             config: {
               startBlock: chainBlocksConfig.startBlock,
@@ -128,7 +125,7 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
         }
 
         if (isSyncComplete) {
-          indexingStatuses[`${chainId}`] = {
+          serializedChainIndexingStatuses[`${chainId}`] = {
             status: "completed",
             config: {
               startBlock: chainBlocksConfig.startBlock,
@@ -146,7 +143,7 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
           const approximateRealtimeDistance: Duration =
             (Date.now() - Date.parse(chainStatusBlock.createdAt)) / 1000;
 
-          indexingStatuses[`${chainId}`] = {
+          serializedChainIndexingStatuses[`${chainId}`] = {
             status: "following",
             config: {
               startBlock: chainBlocksConfig.startBlock,
@@ -164,7 +161,7 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
           const approximateRealtimeDistance: Duration =
             (Date.now() - Date.parse(chainStatusBlock.createdAt)) / 1000;
 
-          indexingStatuses[`${chainId}`] = {
+          serializedChainIndexingStatuses[`${chainId}`] = {
             status: "following",
             config: {
               startBlock: chainBlocksConfig.startBlock,
@@ -182,8 +179,7 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
         // If the chain has a backfill but hasn't completed any blocks,
         // the chain has not started yet.
         if (hasSyncBackfill && historicalCompletedBlocks === 0) {
-          console.log("notStarted 1");
-          indexingStatuses[`${chainId}`] = {
+          serializedChainIndexingStatuses[`${chainId}`] = {
             status: "notStarted",
             config: {
               startBlock: chainBlocksConfig.startBlock,
@@ -195,7 +191,7 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
           continue;
         }
 
-        indexingStatuses[`${chainId}`] = {
+        serializedChainIndexingStatuses[`${chainId}`] = {
           status: "backfill",
           config: {
             startBlock: chainBlocksConfig.startBlock,
@@ -208,11 +204,8 @@ export const makePonderIndexingStatusSchema = (indexedChainNames: string[]) => {
         } satisfies ChainIndexingBackfillStatus<SerializedBlockRef>;
       }
 
-      return indexingStatuses;
-    })
-    .transform((chains) =>
-      deserializeENSIndexerIndexingStatus({
-        chains,
-      }),
-    );
+      return deserializeENSIndexerIndexingStatus({
+        chains: serializedChainIndexingStatuses,
+      });
+    });
 };

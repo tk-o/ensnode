@@ -1,12 +1,11 @@
-import { BlockRef, Blockrange, ChainId } from "@ensnode/ensnode-sdk";
+import type { BlockNumber, BlockRef, Blockrange, ChainId } from "@ensnode/ensnode-sdk";
 import type { AddressConfig, ChainConfig, CreateConfigReturnType } from "ponder";
 import type { PublicClient } from "viem";
 
+// re-export ENSNode SDK types
+export type { Blockrange, BlockNumber };
+
 export type ChainName = string;
-
-export type PonderBlockNumber = number | "latest";
-
-export type PonderBlockrange = Blockrange<PonderBlockNumber>;
 
 export type PonderBlockRef = {
   number: number;
@@ -25,17 +24,8 @@ export type PonderConfigDatasourceFlat = {
  * Ponder config datasource with a nested `chain` value.
  */
 export type PonderConfigDatasourceNested = {
-  chain: Record<ChainName, AddressConfig & PonderBlockrange>;
+  chain: Record<ChainName, AddressConfig & Blockrange>;
 };
-
-/**
- * Ponder Config Datasource ID
- *
- * @see https://ponder.sh/docs/api-reference/ponder/config#accounts
- * @see https://ponder.sh/docs/api-reference/ponder/config#blocks
- * @see https://ponder.sh/docs/api-reference/ponder/config#contracts
- */
-type PonderConfigDatasourceId = "accounts" | "blocks" | "contracts";
 
 /**
  * Ponder config datasource

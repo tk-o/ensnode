@@ -1,12 +1,12 @@
 import ponderConfig from "@/ponder/config";
 
-import { getChainsBlockrange } from "@/indexing-status/ponder-helpers";
 import {
-  ChainName,
-  PonderChainBlockRefs,
-  PonderChainMetricsFromResponse,
-  PonderChainStatusFromResponse,
-} from "@/indexing-status/ponder-types";
+  type ChainName,
+  type PonderChainBlockRefs,
+  type PonderChainMetricsFromResponse,
+  type PonderChainStatusFromResponse,
+  getChainsBlockrange,
+} from "@/indexing-status/ponder-metadata";
 
 import { makePonderIndexingStatusSchema } from "@/indexing-status/zod-schemas";
 import { PonderStatus, PrometheusMetrics } from "@ensnode/ponder-metadata";
@@ -14,6 +14,14 @@ import { prettifyError } from "zod/v4";
 
 export const indexedChainNames = Object.keys(ponderConfig.chains) as [string, ...string[]];
 
+/**
+ * A {@link Blockrange} for each indexed chain.
+ *
+ * Invariants:
+ * - every chain include a startBlock,
+ * - some chains may include an endBlock,
+ * - all present startBlock and endBlock values are valid {@link BlockNumber} values.
+ */
 export const indexedChainsBlockrange = getChainsBlockrange(ponderConfig);
 
 interface BuildIndexingStatusFromPonderResponse {

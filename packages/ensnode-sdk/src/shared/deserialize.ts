@@ -5,15 +5,19 @@ import type {
   SerializedBlockRef,
   UrlString,
 } from "./serialized-types";
-import type { BlockRef, ChainId, Datetime } from "./types";
+import type { BlockNumber, BlockRef, ChainId, Datetime } from "./types";
 import {
+  makeBlockNumberSchema,
   makeBlockRefSchema,
   makeChainIdStringSchema,
   makeDatetimeSchema,
   makeUrlSchema,
 } from "./zod-schemas";
 
-export function deserializeChainId(maybeChainId: ChainIdString, valueLabel?: string): ChainId {
+export function deserializeChainId(
+  maybeChainId: ChainIdString | undefined,
+  valueLabel?: string,
+): ChainId {
   const schema = makeChainIdStringSchema(valueLabel);
   const parsed = schema.safeParse(maybeChainId);
 
@@ -24,7 +28,10 @@ export function deserializeChainId(maybeChainId: ChainIdString, valueLabel?: str
   return parsed.data;
 }
 
-export function deserializeDatetime(maybeDatetime: DatetimeIso8601, valueLabel?: string): Datetime {
+export function deserializeDatetime(
+  maybeDatetime: string | undefined,
+  valueLabel?: string,
+): Datetime {
   const schema = makeDatetimeSchema(valueLabel);
   const parsed = schema.safeParse(maybeDatetime);
 
@@ -35,12 +42,26 @@ export function deserializeDatetime(maybeDatetime: DatetimeIso8601, valueLabel?:
   return parsed.data;
 }
 
-export function deserializeUrl(maybeUrl: UrlString, valueLabel?: string): URL {
+export function deserializeUrl(maybeUrl: UrlString | undefined, valueLabel?: string): URL {
   const schema = makeUrlSchema(valueLabel);
   const parsed = schema.safeParse(maybeUrl);
 
   if (parsed.error) {
     throw new Error(`Cannot deserialize URL:\n${prettifyError(parsed.error)}\n`);
+  }
+
+  return parsed.data;
+}
+
+export function deserializeBlockNumber(
+  maybeBlockNumber: number | undefined,
+  valueLabel?: string,
+): BlockNumber {
+  const schema = makeBlockNumberSchema(valueLabel);
+  const parsed = schema.safeParse(maybeBlockNumber);
+
+  if (parsed.error) {
+    throw new Error(`Cannot deserialize BlockNumber:\n${prettifyError(parsed.error)}\n`);
   }
 
   return parsed.data;
