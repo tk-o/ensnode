@@ -7,6 +7,7 @@ import {
   ResolvePrimaryNamesResponse,
 } from "./api";
 import { DEFAULT_ENSNODE_API_URL, ENSNodeClient } from "./client";
+import { ClientError } from "./client-error";
 import { Name } from "./ens";
 import {
   ChainIndexingStatusIds,
@@ -239,8 +240,8 @@ describe("ENSNodeClient", () => {
       mockFetch.mockResolvedValueOnce({ ok: false, json: async () => EXAMPLE_ERROR_RESPONSE });
 
       const client = new ENSNodeClient();
-      await expect(client.resolveRecords(EXAMPLE_NAME, EXAMPLE_SELECTION)).rejects.toThrow(
-        /Records Resolution Failed/i,
+      await expect(client.resolveRecords(EXAMPLE_NAME, EXAMPLE_SELECTION)).rejects.toThrowError(
+        ClientError,
       );
     });
   });
@@ -303,9 +304,7 @@ describe("ENSNodeClient", () => {
       mockFetch.mockResolvedValueOnce({ ok: false, json: async () => EXAMPLE_ERROR_RESPONSE });
 
       const client = new ENSNodeClient();
-      await expect(client.resolvePrimaryName(EXAMPLE_ADDRESS, 1)).rejects.toThrow(
-        /Primary Name Resolution Failed/i,
-      );
+      await expect(client.resolvePrimaryName(EXAMPLE_ADDRESS, 1)).rejects.toThrowError(ClientError);
     });
   });
 
@@ -385,9 +384,7 @@ describe("ENSNodeClient", () => {
       mockFetch.mockResolvedValueOnce({ ok: false, json: async () => EXAMPLE_ERROR_RESPONSE });
 
       const client = new ENSNodeClient();
-      await expect(client.resolvePrimaryNames(EXAMPLE_ADDRESS)).rejects.toThrow(
-        /Primary Names Resolution Failed/i,
-      );
+      await expect(client.resolvePrimaryNames(EXAMPLE_ADDRESS)).rejects.toThrowError(ClientError);
     });
   });
 

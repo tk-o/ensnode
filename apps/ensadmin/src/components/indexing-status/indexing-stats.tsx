@@ -18,8 +18,8 @@ import {
 } from "@ensnode/ensnode-sdk";
 import { PropsWithChildren } from "react";
 
-import { ChainIcon } from "@/components/ui/ChainIcon";
-import { ChainName } from "@/components/ui/ChainName";
+import { ChainIcon } from "@/components/chains/ChainIcon";
+import { ChainName } from "@/components/chains/ChainName";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
