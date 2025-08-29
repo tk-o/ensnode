@@ -140,6 +140,31 @@ export interface ENSIndexerConfig {
   indexAdditionalResolverRecords: boolean;
 
   /**
+   * Controls ENSIndexer's handling of Literal Labels and Literal Names
+   * This configuration only applies to the Subgraph datamodel and Subgraph Compatible GraphQL API responses.
+   *
+   * Optional. If this is not set, the default value is set to `DEFAULT_REPLACE_UNNORMALIZED` (true).
+   *
+   * When set to true, all Literal Labels and Literal Names encountered by ENSIndexer will be Interpreted.
+   * - https://ensnode.io/docs/reference/terminology#interpreted-label
+   * - https://ensnode.io/docs/reference/terminology#interpreted-name
+   *
+   * That is,
+   * 1) all Labels stored and returned by ENSIndexer will either be normalized or represented as an Encoded
+   *    LabelHash, and
+   * 2) all Names stored and returned by ENSIndexer will either be normalized or consist of Labels that
+   *    may be represented as an Encoded LabelHash of the Literal Label value found onchain.
+   *
+   * When set to false, ENSIndexer will store and return Literal Labels and Literal Names without further
+   * interpretation.
+   * - https://ensnode.io/docs/reference/terminology#literal-label
+   * - https://ensnode.io/docs/reference/terminology#literal-name
+   *
+   * NOTE: {@link replaceUnnormalized} must be `false` for subgraph compatible indexing behavior.
+   */
+  replaceUnnormalized: boolean;
+
+  /**
    * The network port ENSIndexer listens for http requests on, defaulting to 42069 (DEFAULT_PORT).
    *
    * Invariants:
@@ -256,6 +281,7 @@ export interface ENSIndexerEnvironment {
   ensAdminUrl: string | undefined;
   healReverseAddresses: string | undefined;
   indexAdditionalResolverRecords: string | undefined;
+  replaceUnnormalized: string | undefined;
   globalBlockrange: {
     startBlock: string | undefined;
     endBlock: string | undefined;
