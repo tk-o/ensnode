@@ -261,9 +261,9 @@ export function checkChainIndexingStatusesForFollowingOverallStatus(
  * Sort a list of [{@link ChainId}, {@link ChainIndexingStatus}] tuples
  * by the omnichain start block timestamp in ascending order.
  */
-export function sortAscChainStatusesByStartBlock<ChainStatusType extends ChainIndexingStatus>(
-  chains: [ChainId, ChainStatusType][],
-): [ChainId, ChainStatusType][] {
+export function sortEarliestOmnichainStartBlock<
+  ChainIndexingStatusType extends ChainIndexingStatus,
+>(chains: [ChainId, ChainIndexingStatusType][]): [ChainId, ChainIndexingStatusType][] {
   // Sort the chain statuses by the omnichain first block to index timestamp
   chains.sort(
     ([, chainA], [, chainB]) =>
