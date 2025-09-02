@@ -125,6 +125,18 @@ export function getOmnichainIndexingCursor(chains: ChainIndexingActiveStatus[]):
 }
 
 /**
+ * Get Omnichain Indexing Cursor across all chains which status is
+ * {@link ChainIndexingCompletedStatus}.
+ *
+ * Note how this function as a different goal to {@link getOmnichainIndexingCursor} one.
+ */
+export function getOmnichainIndexingCursorForCompletedOverallStatus(
+  chains: ChainIndexingCompletedStatus[],
+): UnixTimestamp {
+  return Math.max(...chains.map((chain) => chain.latestIndexedBlock.timestamp));
+}
+
+/**
  * Get all chains which status is {@link ChainIndexingActiveStatus}.
  */
 export function getActiveChains(chains: ChainIndexingStatus[]): ChainIndexingActiveStatus[] {
