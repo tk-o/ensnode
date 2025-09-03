@@ -6,10 +6,9 @@ import {
   type ENSIndexerOverallIndexingFollowingStatus,
   type ENSIndexerPublicConfig,
 } from "@ensnode/ensnode-sdk";
-import { fromUnixTime, intlFormat } from "date-fns";
 import { useEffect, useState } from "react";
 
-import { Duration, RelativeTime, datetimeFormat } from "@/components/datetime-utils";
+import { Duration, RelativeTime } from "@/components/datetime-utils";
 import { NameDisplay } from "@/components/identity/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock } from "lucide-react";
+
 import { Identity } from "../identity";
 import { useRecentRegistrations } from "./hooks";
 import type { Registration } from "./types";
@@ -57,18 +56,11 @@ export function RecentRegistrations({
 
   const { ensNodePublicUrl: ensNodeUrl, namespace: namespaceId } = ensIndexerConfig;
 
-  const omnichainIndexingCursor = fromUnixTime(indexingStatus.omnichainIndexingCursor);
-
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           <span>Latest indexed registrations</span>
-
-          <div className="flex items-center gap-1.5">
-            <Clock size={16} className="text-blue-600" />
-            <span className="text-sm font-medium">{datetimeFormat(omnichainIndexingCursor)}</span>
-          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -108,7 +100,7 @@ function RecentRegistrationsList({
   });
 
   if (recentRegistrationsQuery.isLoading) {
-    return <RegistrationsListLoading rowCount={maxRecords} />;
+    return <RecentRegistrationsListLoading rowCount={maxRecords} />;
   }
 
   if (recentRegistrationsQuery.isError) {
@@ -162,7 +154,7 @@ function RegistrationRow({ registration, namespaceId }: RegistrationRowProps) {
         />
       </TableCell>
       <TableCell>
-        <RelativeTime date={registration.registeredAt} />
+        <RelativeTime timestamp={registration.registeredAt} />
       </TableCell>
       <TableCell>
         <Duration beginsAt={registration.registeredAt} endsAt={registration.expiresAt} />
@@ -174,10 +166,11 @@ function RegistrationRow({ registration, namespaceId }: RegistrationRowProps) {
   );
 }
 
-interface RegistrationsListLoadingProps {
+interface RecentRegistrationsListLoadingProps {
   rowCount: number;
 }
-function RegistrationsListLoading({ rowCount }: RegistrationsListLoadingProps) {
+
+function RecentRegistrationsListLoading({ rowCount }: RecentRegistrationsListLoadingProps) {
   return (
     <div className="animate-pulse space-y-4">
       {[...Array(rowCount)].map((_, idx) => (

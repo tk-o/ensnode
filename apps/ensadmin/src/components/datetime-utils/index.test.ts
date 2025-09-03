@@ -1,24 +1,30 @@
-import { unixTimestampToDate } from "@/components/datetime-utils/index";
 import { describe, expect, it } from "vitest";
+import { formatDate, formatDatetime } from ".";
 
-describe("unixTimestampToDate", () => {
-  it("should throw an exception for a non numerical input", () => {
-    const invalidTimestamp = "A1781826068";
-
-    expect(() => unixTimestampToDate(invalidTimestamp)).toThrowError(/Error parsing timestamp/);
+describe("formatDatetime", () => {
+  it("formats datetime correctly with default options", () => {
+    const timestamp = 1672531199;
+    const result = formatDatetime(timestamp);
+    expect(result).toBe("Jan 1, 2023, 12:59:59 AM");
   });
 
-  it("should throw an exception for an empty string as input", () => {
-    const invalidTimestamp = "";
+  it("formats datetime correctly with custom options", () => {
+    const timestamp = 1672531199;
+    const result = formatDatetime(timestamp, { hour12: false });
+    expect(result).toBe("Jan 1, 2023, 00:59:59");
+  });
+});
 
-    expect(() => unixTimestampToDate(invalidTimestamp)).toThrowError(/Error parsing timestamp/);
+describe("formatDate", () => {
+  it("formats date correctly with default options", () => {
+    const timestamp = 1672531199;
+    const result = formatDate(timestamp);
+    expect(result).toBe("Jan 1, 2023");
   });
 
-  it("should parse correct timestamp to a date object", () => {
-    const validTimestamp = "1781826068";
-    const expectedDate = new Date("2026-06-18T23:41:08.000Z");
-    const result = unixTimestampToDate(validTimestamp);
-
-    expect(result).toStrictEqual(expectedDate);
+  it("formats date correctly with custom options", () => {
+    const timestamp = 1672531199;
+    const result = formatDate(timestamp, { year: "2-digit" });
+    expect(result).toBe("Jan 1, 23");
   });
 });

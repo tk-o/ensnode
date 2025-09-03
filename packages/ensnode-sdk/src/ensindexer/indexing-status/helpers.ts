@@ -117,7 +117,7 @@ export function getTimestampForHighestOmnichainKnownBlock(
 }
 
 /**
- * Get Omnichain Indexing Cursor across all chains which status is
+ * Get Omnichain Indexing Cursor across all chains with indexing status
  * {@link ChainIndexingActiveStatus}.
  */
 export function getOmnichainIndexingCursor(chains: ChainIndexingActiveStatus[]): UnixTimestamp {
@@ -125,10 +125,12 @@ export function getOmnichainIndexingCursor(chains: ChainIndexingActiveStatus[]):
 }
 
 /**
- * Get Omnichain Indexing Cursor across all chains which status is
+ * Get Omnichain Indexing Cursor across all chains with indexing status
  * {@link ChainIndexingCompletedStatus}.
  *
  * Note how this function as a different goal to {@link getOmnichainIndexingCursor} one.
+ * The "completed" overall status is not part of {@link ChainIndexingActiveStatus},
+ * and requires a different approach to calculating the cursor value.
  */
 export function getOmnichainIndexingCursorForCompletedOverallStatus(
   chains: ChainIndexingCompletedStatus[],

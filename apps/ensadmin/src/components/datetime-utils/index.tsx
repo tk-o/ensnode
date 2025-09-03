@@ -2,15 +2,28 @@ import {
   IntlFormatFormatOptions,
   formatDistance,
   formatDistanceStrict,
+  fromUnixTime,
+  getUnixTime,
   intlFormat,
 } from "date-fns";
-import { millisecondsInSecond } from "date-fns/constants";
 import { useEffect, useState } from "react";
 
+import type { UnixTimestamp } from "@ensnode/ensnode-sdk";
+
 /**
- * Format date as a datetime string.
+ * Format unix timestamp as a datetime string.
+ *
+ * Examples:
+ * ```ts
+ * formatDatetime(1672531199); // "Jan 1, 2023, 12:59:59 AM"
+ * formatDatetime(1672531199, { hour12: false }); // "Jan 1, 2023, 00:59:59"
+ * formatDatetime(1672531199, { month: "long" }); // "January 1, 2023, 12:59:59 AM"
+ * ```
  */
-export function datetimeFormat(date: Date, args: Partial<IntlFormatFormatOptions> = {}): string {
+export function formatDatetime(
+  timestamp: UnixTimestamp,
+  args: Partial<IntlFormatFormatOptions> = {},
+): string {
   const {
     year = "numeric",
     month = "short",
@@ -20,6 +33,8 @@ export function datetimeFormat(date: Date, args: Partial<IntlFormatFormatOptions
     second = "numeric",
     hour12 = true,
   } = args;
+
+  const date = fromUnixTime(timestamp);
 
   return intlFormat(date, {
     year,
@@ -33,13 +48,22 @@ export function datetimeFormat(date: Date, args: Partial<IntlFormatFormatOptions
 }
 
 /**
- * Format date as a date string.
+ * Format unix timestamp as a date string.
+ *
+ * Examples:
+ * ```ts
+ * formatDate(1672531199); // "Jan 1, 2023"
+ * formatDate(1672531199, { year: "2-digit" }); // "Jan 1, 22"
+ * formatDate(1672531199, { month: "long" }); // "January 1, 2023"
+ * ```
  */
-export function dateFormat(
-  date: Date,
+export function formatDate(
+  timestamp: UnixTimestamp,
   args: Partial<Pick<IntlFormatFormatOptions, "dateStyle" | "year" | "month" | "day">> = {},
 ): string {
   const { year = "numeric", month = "short", day = "numeric" } = args;
+
+  const date = fromUnixTime(timestamp);
 
   return intlFormat(date, {
     year,
@@ -49,30 +73,33 @@ export function dateFormat(
 }
 
 /**
- * Formats a Date as its relative distance with now
+ * Formats a timestamp as its relative distance with now
  *
+ * @param timestamp - the timestamp to format
  * @param enforcePast - iif true, enforces that the return value won't relate to the future.
  * Helpful for UI contexts where its nonsensical for a value to relate to the future. Ex: how long ago an event happened.
  * @param includeSeconds - if true includes seconds in the result
  * @param conciseFormatting - if true removes special prefixes
+ *
+ * @returns formatted relative time string
  */
 export function formatRelativeTime(
-  date: Date,
+  timestamp: UnixTimestamp,
   enforcePast = false,
   includeSeconds = false,
   conciseFormatting = false,
 ): string {
-  const now = Date.now();
+  const now = getUnixTime(new Date());
 
-  if (enforcePast && date.getTime() >= now) {
+  if (enforcePast && timestamp >= now) {
     return "just now";
   }
 
   if (conciseFormatting) {
-    return formatDistanceStrict(date, now, { addSuffix: true });
+    return formatDistanceStrict(timestamp, now, { addSuffix: true });
   }
 
-  return formatDistance(date, now, {
+  return formatDistance(timestamp, now, {
     addSuffix: true,
     includeSeconds,
   });
@@ -82,13 +109,13 @@ export function formatRelativeTime(
  * Client-only relative time component
  */
 export function RelativeTime({
-  date,
+  timestamp,
   enforcePast = false,
   includeSeconds = false,
   conciseFormatting = false,
   prefix,
 }: {
-  date: Date;
+  timestamp: UnixTimestamp;
   enforcePast?: boolean;
   includeSeconds?: boolean;
   conciseFormatting?: boolean;
@@ -97,8 +124,8 @@ export function RelativeTime({
   const [relativeTime, setRelativeTime] = useState<string>("");
 
   useEffect(() => {
-    setRelativeTime(formatRelativeTime(date, enforcePast, includeSeconds, conciseFormatting));
-  }, [date]);
+    setRelativeTime(formatRelativeTime(timestamp, enforcePast, includeSeconds, conciseFormatting));
+  }, [timestamp]);
 
   return (
     <>
@@ -115,8 +142,8 @@ export function Duration({
   beginsAt,
   endsAt,
 }: {
-  beginsAt: Date;
-  endsAt: Date;
+  beginsAt: UnixTimestamp;
+  endsAt: UnixTimestamp;
 }) {
   const [duration, setDuration] = useState<string>("");
 
@@ -125,22 +152,4 @@ export function Duration({
   }, [beginsAt, endsAt]);
 
   return <>{duration}</>;
-}
-
-/**
- * An integer value (representing a Unix timestamp in seconds) formatted as a string.
- */
-export type UnixTimestampInSeconds = string;
-
-/**
- * Transforms a UnixTimestampInSeconds to a Date object.
- */
-export function unixTimestampToDate(timestamp: UnixTimestampInSeconds): Date {
-  const date = new Date(parseInt(timestamp) * millisecondsInSecond);
-
-  if (isNaN(date.getTime())) {
-    throw new Error(`Error parsing timestamp (${timestamp}) to date`);
-  }
-
-  return date;
 }

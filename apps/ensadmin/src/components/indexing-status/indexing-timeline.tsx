@@ -4,23 +4,23 @@
 
 import { ChainName } from "@/components/chains/ChainName";
 import { cn } from "@/lib/utils";
-import { ChainId, ChainIndexingStatusIds } from "@ensnode/ensnode-sdk";
+import { BlockRef, ChainId, ChainIndexingStatusIds, UnixTimestamp } from "@ensnode/ensnode-sdk";
 
-import { dateFormat } from "@/components/datetime-utils";
-import { BlockRefViewModel } from "@/components/indexing-status/block-refs";
+import { formatDate } from "@/components/datetime-utils";
+
 import { getTimelinePosition } from "./indexing-timeline-utils";
 
 interface ChainIndexingTimelinePhaseViewModel {
   status: typeof ChainIndexingStatusIds.Unstarted | typeof ChainIndexingStatusIds.Backfill;
-  startDate: Date;
-  endDate: Date;
+  start: UnixTimestamp;
+  end: UnixTimestamp;
 }
 
 interface ChainIndexingTimelinePhaseProps {
   phase: ChainIndexingTimelinePhaseViewModel;
   isActive: boolean;
-  timelineStart: Date;
-  timelineEnd: Date;
+  timelineStart: UnixTimestamp;
+  timelineEnd: UnixTimestamp;
 }
 
 /**
@@ -34,10 +34,8 @@ function ChainIndexingTimelinePhase({
   timelineStart,
   timelineEnd,
 }: ChainIndexingTimelinePhaseProps) {
-  const startPos = getTimelinePosition(phase.startDate, timelineStart, timelineEnd);
-  const endPos = phase.endDate
-    ? getTimelinePosition(phase.endDate, timelineStart, timelineEnd)
-    : 100;
+  const startPos = getTimelinePosition(phase.start, timelineStart, timelineEnd);
+  const endPos = phase.end ? getTimelinePosition(phase.end, timelineStart, timelineEnd) : 100;
 
   const width = endPos - startPos;
 
@@ -74,13 +72,13 @@ function ChainIndexingTimelinePhase({
  * @param chainStatus view model
  */
 function currentPhase(
-  date: Date,
+  timestamp: UnixTimestamp,
   chainStatus: {
     phases: ChainIndexingTimelinePhaseViewModel[];
   },
 ): ChainIndexingTimelinePhaseViewModel {
   for (let i = chainStatus.phases.length - 1; i >= 0; i--) {
-    if (date >= chainStatus.phases[i].startDate) {
+    if (timestamp >= chainStatus.phases[i].start && timestamp <= chainStatus.phases[i].end) {
       return chainStatus.phases[i];
     }
   }
@@ -89,14 +87,14 @@ function currentPhase(
 }
 
 interface ChainIndexingTimelineProps {
-  currentIndexingDate: Date;
-  timelineStart: Date;
-  timelineEnd: Date;
+  currentTimestamp: UnixTimestamp;
+  timelineStart: UnixTimestamp;
+  timelineEnd: UnixTimestamp;
   chainStatus: {
     chainId: ChainId;
     chainName: string;
-    firstBlockToIndex: BlockRefViewModel;
-    lastIndexedBlock: BlockRefViewModel | null;
+    firstBlockToIndex: BlockRef;
+    lastIndexedBlock: BlockRef | null;
     phases: ChainIndexingTimelinePhaseViewModel[];
   };
 }
@@ -106,8 +104,8 @@ interface ChainIndexingTimelineProps {
  * Includes a timeline bar for each indexing phase.
  */
 export function ChainIndexingTimeline(props: ChainIndexingTimelineProps) {
-  const { currentIndexingDate, chainStatus, timelineStart, timelineEnd } = props;
-  const currentIndexingPhase = currentPhase(currentIndexingDate, chainStatus);
+  const { currentTimestamp, chainStatus, timelineStart, timelineEnd } = props;
+  const currentIndexingPhase = currentPhase(currentTimestamp, chainStatus);
 
   return (
     <div key={chainStatus.chainId} className="flex items-center">
@@ -133,7 +131,7 @@ export function ChainIndexingTimeline(props: ChainIndexingTimelineProps) {
           className="absolute w-0.5 h-5 bg-gray-800 z-10"
           style={{
             left: `${getTimelinePosition(
-              chainStatus.firstBlockToIndex.date,
+              chainStatus.firstBlockToIndex.timestamp,
               timelineStart,
               timelineEnd,
             )}%`,
@@ -141,7 +139,7 @@ export function ChainIndexingTimeline(props: ChainIndexingTimelineProps) {
         >
           <div className="absolute top-4 -translate-x-1/2 whitespace-nowrap">
             <span className="text-xs text-gray-600">
-              {dateFormat(chainStatus.firstBlockToIndex.date)}
+              {formatDate(chainStatus.firstBlockToIndex.timestamp)}
             </span>
           </div>
         </div>

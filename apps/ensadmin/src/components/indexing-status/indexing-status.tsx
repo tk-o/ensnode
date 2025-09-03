@@ -4,7 +4,7 @@
  */
 "use client";
 
-import { OverallIndexingStatusIds } from "@ensnode/ensnode-sdk";
+import { OverallIndexingStatusIds, type UnixTimestamp } from "@ensnode/ensnode-sdk";
 import { type ReactElement, Suspense } from "react";
 
 import { RecentRegistrations } from "@/components/recent-registrations";
@@ -43,6 +43,7 @@ export function IndexingStatus() {
   let indexingStats: ReactElement;
   let maybeRecentRegistrations: ReactElement | undefined;
   let maybeIndexingTimeline: ReactElement | undefined;
+  let omnichainIndexingCursor: UnixTimestamp | undefined;
 
   switch (indexingStatus.overallStatus) {
     case OverallIndexingStatusIds.IndexerError:
@@ -57,6 +58,8 @@ export function IndexingStatus() {
       indexingStats = <IndexingStatsForBackfillStatus indexingStatus={indexingStatus} />;
 
       maybeIndexingTimeline = <BackfillStatus indexingStatus={indexingStatus} />;
+
+      omnichainIndexingCursor = indexingStatus.omnichainIndexingCursor;
       break;
 
     case OverallIndexingStatusIds.Completed:
@@ -70,6 +73,8 @@ export function IndexingStatus() {
           />
         </Suspense>
       );
+
+      omnichainIndexingCursor = indexingStatus.omnichainIndexingCursor;
       break;
 
     case OverallIndexingStatusIds.Following:
@@ -83,6 +88,8 @@ export function IndexingStatus() {
           />
         </Suspense>
       );
+
+      omnichainIndexingCursor = indexingStatus.omnichainIndexingCursor;
       break;
 
     case OverallIndexingStatusIds.IndexerError:
@@ -95,7 +102,10 @@ export function IndexingStatus() {
 
       {maybeIndexingTimeline}
 
-      <IndexingStatsShell overallStatus={indexingStatus.overallStatus}>
+      <IndexingStatsShell
+        overallStatus={indexingStatus.overallStatus}
+        omnichainIndexingCursor={omnichainIndexingCursor}
+      >
         {indexingStats}
       </IndexingStatsShell>
 

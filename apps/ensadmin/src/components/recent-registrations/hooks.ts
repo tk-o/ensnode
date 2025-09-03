@@ -1,7 +1,7 @@
-import { UnixTimestampInSeconds, unixTimestampToDate } from "@/components/datetime-utils";
 import { ensAdminVersion } from "@/lib/env";
 import { getNameWrapperAddress } from "@/lib/namespace-utils";
-import { ENSNamespace, ENSNamespaceId } from "@ensnode/datasources";
+import { ENSNamespaceId } from "@ensnode/datasources";
+import { UnixTimestamp, deserializeUnixTimestamp } from "@ensnode/ensnode-sdk";
 import { useQuery } from "@tanstack/react-query";
 import { Address, getAddress, isAddressEqual } from "viem";
 import { Registration } from "./types";
@@ -10,12 +10,12 @@ import { Registration } from "./types";
  * The data model returned by a GraphQL query for registrations.
  */
 interface RegistrationResult {
-  registrationDate: UnixTimestampInSeconds;
-  expiryDate: UnixTimestampInSeconds;
+  registrationDate: UnixTimestamp;
+  expiryDate: UnixTimestamp;
   domain: {
     name: string;
-    createdAt: UnixTimestampInSeconds;
-    expiryDate: UnixTimestampInSeconds;
+    createdAt: UnixTimestamp;
+    expiryDate: UnixTimestamp;
     owner: {
       id: Address;
     };
@@ -57,8 +57,8 @@ function toRegistration(
   namespaceId: ENSNamespaceId,
 ): Registration {
   return {
-    registeredAt: unixTimestampToDate(registrationResult.registrationDate),
-    expiresAt: unixTimestampToDate(registrationResult.expiryDate),
+    registeredAt: deserializeUnixTimestamp(registrationResult.registrationDate),
+    expiresAt: deserializeUnixTimestamp(registrationResult.expiryDate),
     name: registrationResult.domain.name,
     ownerInRegistry: getAddress(registrationResult.domain.owner.id),
     ownerInNameWrapper: registrationResult.domain.wrappedOwner

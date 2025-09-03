@@ -5,26 +5,11 @@
 import { RelativeTime } from "@/components/datetime-utils";
 import { getBlockExplorerUrlForBlock } from "@/lib/namespace-utils";
 import { BlockRef, ChainId } from "@ensnode/ensnode-sdk";
-import { fromUnixTime } from "date-fns";
 import { ExternalLink } from "lucide-react";
-
-export interface BlockRefViewModel extends BlockRef {
-  get date(): Date;
-}
 
 interface BlockNumberProps {
   chainId: ChainId;
-  block: BlockRefViewModel;
-}
-
-export function blockViewModel(blockRef: BlockRef): BlockRefViewModel {
-  return {
-    ...blockRef,
-
-    get date(): Date {
-      return fromUnixTime(blockRef.timestamp);
-    },
-  };
+  block: BlockRef;
 }
 
 /**
@@ -55,7 +40,7 @@ function BlockNumber({ chainId, block }: BlockNumberProps) {
 interface BlockStatsProps {
   chainId: ChainId;
   label: string;
-  block: BlockRefViewModel | null;
+  block: BlockRef | null;
 }
 
 /**
@@ -79,7 +64,7 @@ export function BlockStats({ chainId, label, block }: BlockStatsProps) {
       <BlockNumber block={block} chainId={chainId} />
       <div className="text-xs text-muted-foreground">
         <RelativeTime
-          date={block.date}
+          timestamp={block.timestamp}
           enforcePast={true}
           conciseFormatting={true}
           includeSeconds={true}

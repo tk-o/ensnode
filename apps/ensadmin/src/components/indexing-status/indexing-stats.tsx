@@ -17,12 +17,15 @@ import {
   ENSIndexerOverallIndexingUnstartedStatus,
   OverallIndexingStatusId,
   OverallIndexingStatusIds,
+  UnixTimestamp,
   sortEarliestOmnichainStartBlock,
 } from "@ensnode/ensnode-sdk";
 import { PropsWithChildren } from "react";
 
+import { formatDatetime } from "@/components/datetime-utils";
 import { cn } from "@/lib/utils";
-import { BlockStats, blockViewModel } from "./block-refs";
+import { Clock } from "lucide-react";
+import { BlockStats } from "./block-refs";
 
 interface IndexingStatusProps<IndexingStatusType extends ENSIndexerOverallIndexingStatus> {
   indexingStatus: IndexingStatusType;
@@ -50,7 +53,7 @@ export function IndexingStatsForUnstartedStatus({
   const chainEntries = sortEarliestOmnichainStartBlock([...indexingStatus.chains.entries()]);
 
   return chainEntries.map(([chainId, chain]) => {
-    const endBlock = chain.config.endBlock ? blockViewModel(chain.config.endBlock) : null;
+    const endBlock = chain.config.endBlock ?? null;
 
     return (
       <Card key={`Chain#${chainId}`}>
@@ -77,7 +80,7 @@ export function IndexingStatsForUnstartedStatus({
             <BlockStats
               chainId={chainId}
               label="Indexing start block"
-              block={blockViewModel(chain.config.startBlock)}
+              block={chain.config.startBlock}
             />
 
             <BlockStats chainId={chainId} label="Indexing end block" block={endBlock} />
@@ -97,7 +100,7 @@ export function IndexingStatsForBackfillStatus({
   const chainEntries = sortEarliestOmnichainStartBlock([...indexingStatus.chains.entries()]);
 
   return chainEntries.map(([chainId, chain]) => {
-    const endBlock = chain.config.endBlock ? blockViewModel(chain.config.endBlock) : null;
+    const endBlock = chain.config.endBlock ?? null;
 
     return (
       <Card key={`Chain#${chainId}`}>
@@ -124,7 +127,7 @@ export function IndexingStatsForBackfillStatus({
             <BlockStats
               chainId={chainId}
               label="Indexing start block"
-              block={blockViewModel(chain.config.startBlock)}
+              block={chain.config.startBlock}
             />
 
             <BlockStats chainId={chainId} label="Indexing end block" block={endBlock} />
@@ -134,13 +137,13 @@ export function IndexingStatsForBackfillStatus({
                 <BlockStats
                   chainId={chainId}
                   label="Latest indexed block"
-                  block={blockViewModel(chain.latestIndexedBlock)}
+                  block={chain.latestIndexedBlock}
                 />
 
                 <BlockStats
                   chainId={chainId}
                   label="Backfill end block"
-                  block={blockViewModel(chain.backfillEndBlock)}
+                  block={chain.backfillEndBlock}
                 />
               </>
             )}
@@ -160,7 +163,7 @@ export function IndexingStatsForCompletedStatus({
   const chainEntries = sortEarliestOmnichainStartBlock([...indexingStatus.chains.entries()]);
 
   return chainEntries.map(([chainId, chain]) => {
-    const endBlock = chain.config.endBlock ? blockViewModel(chain.config.endBlock) : null;
+    const endBlock = chain.config.endBlock ?? null;
 
     return (
       <Card key={`Chain#${chainId}`}>
@@ -187,7 +190,7 @@ export function IndexingStatsForCompletedStatus({
             <BlockStats
               chainId={chainId}
               label="Indexing start block"
-              block={blockViewModel(chain.config.startBlock)}
+              block={chain.config.startBlock}
             />
 
             <BlockStats chainId={chainId} label="Indexing end block" block={endBlock} />
@@ -195,7 +198,7 @@ export function IndexingStatsForCompletedStatus({
             <BlockStats
               chainId={chainId}
               label="Latest indexed block"
-              block={blockViewModel(chain.latestIndexedBlock)}
+              block={chain.latestIndexedBlock}
             />
           </div>
         </CardContent>
@@ -213,7 +216,7 @@ export function IndexingStatsForFollowingStatus({
   const chainEntries = sortEarliestOmnichainStartBlock([...indexingStatus.chains.entries()]);
 
   return chainEntries.map(([chainId, chain]) => {
-    const endBlock = chain.config.endBlock ? blockViewModel(chain.config.endBlock) : null;
+    const endBlock = chain.config.endBlock ?? null;
 
     return (
       <Card key={`Chain#${chainId}`}>
@@ -240,7 +243,7 @@ export function IndexingStatsForFollowingStatus({
             <BlockStats
               chainId={chainId}
               label="Indexing start block"
-              block={blockViewModel(chain.config.startBlock)}
+              block={chain.config.startBlock}
             />
 
             <BlockStats chainId={chainId} label="Indexing end block" block={endBlock} />
@@ -250,13 +253,13 @@ export function IndexingStatsForFollowingStatus({
                 <BlockStats
                   chainId={chainId}
                   label="Latest indexed block"
-                  block={blockViewModel(chain.latestIndexedBlock)}
+                  block={chain.latestIndexedBlock}
                 />
 
                 <BlockStats
                   chainId={chainId}
                   label="Backfill end block"
-                  block={blockViewModel(chain.backfillEndBlock)}
+                  block={chain.backfillEndBlock}
                 />
               </>
             )}
@@ -266,13 +269,13 @@ export function IndexingStatsForFollowingStatus({
                 <BlockStats
                   chainId={chainId}
                   label="Latest indexed block"
-                  block={blockViewModel(chain.latestIndexedBlock)}
+                  block={chain.latestIndexedBlock}
                 />
 
                 <BlockStats
                   chainId={chainId}
                   label="Latest known block"
-                  block={blockViewModel(chain.latestKnownBlock)}
+                  block={chain.latestKnownBlock}
                 />
               </>
             )}
@@ -283,6 +286,11 @@ export function IndexingStatsForFollowingStatus({
   });
 }
 
+interface IndexingStatusShellProps {
+  overallStatus: OverallIndexingStatusId;
+  omnichainIndexingCursor: UnixTimestamp | undefined;
+}
+
 /**
  * Indexing Stats Shell
  *
@@ -290,25 +298,37 @@ export function IndexingStatsForFollowingStatus({
  */
 export function IndexingStatsShell({
   overallStatus,
+  omnichainIndexingCursor,
   children,
-}: PropsWithChildren<{ overallStatus: OverallIndexingStatusId }>) {
+}: PropsWithChildren<IndexingStatusShellProps>) {
   return (
     <Card className="w-full flex flex-col gap-2">
       <CardHeader>
-        <CardTitle className="flex gap-2 items-center">
-          <span>Indexing Status</span>
+        <CardTitle className="font-semibold leading-none tracking-tight flex justify-between items-center gap-2">
+          <header className="flex gap-2">
+            <span>Indexing Status</span>
 
-          <Badge
-            className={cn(
-              "uppercase text-xs leading-none",
-              overallStatus === OverallIndexingStatusIds.IndexerError && "bg-red-600 text-white",
-            )}
-            title={`Overall indexing status: ${overallStatus}`}
-          >
-            {overallStatus === OverallIndexingStatusIds.IndexerError
-              ? "Indexer Error"
-              : overallStatus}
-          </Badge>
+            <Badge
+              className={cn(
+                "uppercase text-xs leading-none",
+                overallStatus === OverallIndexingStatusIds.IndexerError && "bg-red-600 text-white",
+              )}
+              title={`Overall indexing status: ${overallStatus}`}
+            >
+              {overallStatus === OverallIndexingStatusIds.IndexerError
+                ? "Indexer Error"
+                : overallStatus}
+            </Badge>
+          </header>
+
+          {omnichainIndexingCursor && (
+            <div className="flex items-center gap-1.5 self-end">
+              <Clock size={16} className="text-blue-600" />
+              <span className="text-sm font-medium">
+                Indexed through {formatDatetime(omnichainIndexingCursor)}
+              </span>
+            </div>
+          )}
         </CardTitle>
       </CardHeader>
 

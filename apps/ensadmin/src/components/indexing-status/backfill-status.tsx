@@ -6,28 +6,32 @@
 import {
   ChainIndexingStatusIds,
   ENSIndexerOverallIndexingBackfillStatus,
+  UnixTimestamp,
   getTimestampForHighestOmnichainKnownBlock,
   getTimestampForLowestOmnichainStartBlock,
   sortEarliestOmnichainStartBlock,
 } from "@ensnode/ensnode-sdk";
-import { fromUnixTime, intlFormat } from "date-fns";
 import { Clock } from "lucide-react";
 
+import { formatDatetime } from "@/components/datetime-utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getChainName } from "@/lib/namespace-utils";
 
-import {
-  generateYearMarkers,
-  getTimelinePosition,
-} from "@/components/indexing-status/indexing-timeline-utils";
-import { blockViewModel } from "./block-refs";
 import { ChainIndexingTimeline } from "./indexing-timeline";
+import { generateYearMarkers, getTimelinePosition } from "./indexing-timeline-utils";
 
 interface ChainIndexingPhaseViewModel {
   status: typeof ChainIndexingStatusIds.Unstarted | typeof ChainIndexingStatusIds.Backfill;
-  startDate: Date;
-  endDate: Date;
+  /**
+   * Start timestamp of the indexing phase.
+   */
+  start: UnixTimestamp;
+
+  /**
+   * End timestamp of the indexing phase.
+   */
+  end: UnixTimestamp;
 }
 
 interface BackfillStatusProps {
@@ -41,16 +45,12 @@ export function BackfillStatus({ indexingStatus }: BackfillStatusProps) {
   const chainEntries = sortEarliestOmnichainStartBlock([...indexingStatus.chains.entries()]);
   const chains = chainEntries.map(([, chain]) => chain);
 
-  const timelineStartUnixTimestamp = getTimestampForLowestOmnichainStartBlock(chains);
-  const timelineEndUnixTimestamp = getTimestampForHighestOmnichainKnownBlock(chains);
-
-  const timelineStart = fromUnixTime(timelineStartUnixTimestamp);
-  const timelineEnd = fromUnixTime(timelineEndUnixTimestamp);
-  const omnichainIndexingCursorDate = fromUnixTime(indexingStatus.omnichainIndexingCursor);
+  const timelineStart = getTimestampForLowestOmnichainStartBlock(chains);
+  const timelineEnd = getTimestampForHighestOmnichainKnownBlock(chains);
 
   const yearMarkers = generateYearMarkers(timelineStart, timelineEnd);
   const timelinePositionValue = getTimelinePosition(
-    omnichainIndexingCursorDate,
+    indexingStatus.omnichainIndexingCursor,
     timelineStart,
     timelineEnd,
   );
@@ -70,12 +70,7 @@ export function BackfillStatus({ indexingStatus }: BackfillStatusProps) {
             <div className="flex items-center gap-1.5">
               <Clock size={16} className="text-blue-600" />
               <span className="text-sm font-medium">
-                Indexed through{" "}
-                {intlFormat(omnichainIndexingCursorDate, {
-                  dateStyle: "medium",
-                  timeStyle: "medium",
-                  hour12: true,
-                })}
+                Indexed through {formatDatetime(indexingStatus.omnichainIndexingCursor)}
               </span>
             </div>
           </CardTitle>
@@ -126,33 +121,31 @@ export function BackfillStatus({ indexingStatus }: BackfillStatusProps) {
             {chainEntries.map(([chainId, chain]) => {
               const phases: ChainIndexingPhaseViewModel[] = [];
 
-              if (timelineStartUnixTimestamp < chain.config.startBlock.timestamp) {
+              if (timelineStart < chain.config.startBlock.timestamp) {
                 phases.push({
-                  startDate: timelineStart,
-                  endDate: fromUnixTime(chain.config.startBlock.timestamp - 1),
+                  start: timelineStart,
+                  end: chain.config.startBlock.timestamp - 1,
                   status: ChainIndexingStatusIds.Unstarted,
                 });
               }
 
               phases.push({
-                startDate: fromUnixTime(chain.config.startBlock.timestamp),
-                endDate: timelineEnd,
+                start: chain.config.startBlock.timestamp,
+                end: timelineEnd,
                 status: ChainIndexingStatusIds.Backfill,
               });
 
               const lastIndexedBlock =
-                chain.status === ChainIndexingStatusIds.Backfill
-                  ? blockViewModel(chain.latestIndexedBlock)
-                  : null;
+                chain.status === ChainIndexingStatusIds.Backfill ? chain.latestIndexedBlock : null;
 
               return (
                 <ChainIndexingTimeline
                   key={chainId}
-                  currentIndexingDate={omnichainIndexingCursorDate}
+                  currentTimestamp={indexingStatus.omnichainIndexingCursor}
                   chainStatus={{
                     chainId,
                     chainName: getChainName(chainId),
-                    firstBlockToIndex: blockViewModel(chain.config.startBlock),
+                    firstBlockToIndex: chain.config.startBlock,
                     lastIndexedBlock,
                     phases,
                   }}

@@ -1,7 +1,11 @@
 // Temporary mock page until indexing-status is detached from data loading
 "use client";
 
-import { ENSIndexerOverallIndexingStatus, OverallIndexingStatusIds } from "@ensnode/ensnode-sdk";
+import {
+  type ENSIndexerOverallIndexingStatus,
+  OverallIndexingStatusIds,
+  type UnixTimestamp,
+} from "@ensnode/ensnode-sdk";
 import { type ReactElement } from "react";
 
 import { BackfillStatus } from "@/components/indexing-status/backfill-status";
@@ -22,6 +26,7 @@ interface MockIndexingStatusDisplayPropsProps {
 export function MockIndexingStatusDisplay({ indexingStatus }: MockIndexingStatusDisplayPropsProps) {
   let indexingStats: ReactElement;
   let maybeIndexingTimeline: ReactElement | undefined;
+  let omnichainIndexingCursor: UnixTimestamp | undefined;
 
   switch (indexingStatus.overallStatus) {
     case OverallIndexingStatusIds.IndexerError:
@@ -36,14 +41,20 @@ export function MockIndexingStatusDisplay({ indexingStatus }: MockIndexingStatus
       indexingStats = <IndexingStatsForBackfillStatus indexingStatus={indexingStatus} />;
 
       maybeIndexingTimeline = <BackfillStatus indexingStatus={indexingStatus} />;
+
+      omnichainIndexingCursor = indexingStatus.omnichainIndexingCursor;
       break;
 
     case OverallIndexingStatusIds.Completed:
       indexingStats = <IndexingStatsForCompletedStatus indexingStatus={indexingStatus} />;
+
+      omnichainIndexingCursor = indexingStatus.omnichainIndexingCursor;
       break;
 
     case OverallIndexingStatusIds.Following:
       indexingStats = <IndexingStatsForFollowingStatus indexingStatus={indexingStatus} />;
+
+      omnichainIndexingCursor = indexingStatus.omnichainIndexingCursor;
       break;
 
     default:
@@ -55,7 +66,10 @@ export function MockIndexingStatusDisplay({ indexingStatus }: MockIndexingStatus
     <>
       {maybeIndexingTimeline}
 
-      <IndexingStatsShell overallStatus={indexingStatus.overallStatus}>
+      <IndexingStatsShell
+        overallStatus={indexingStatus.overallStatus}
+        omnichainIndexingCursor={omnichainIndexingCursor}
+      >
         {indexingStats}
       </IndexingStatsShell>
     </>
