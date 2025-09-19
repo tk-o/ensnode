@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { getNameAvatarUrl } from "@/lib/namespace-utils";
 import { ENSNamespaceIds } from "@ensnode/datasources";
 import { useRecords } from "@ensnode/ensnode-react";
 import { ResolverRecordsSelection, getCommonCoinTypes } from "@ensnode/ensnode-sdk";
@@ -65,15 +64,13 @@ export default function NameDetailPage() {
     selection,
   });
 
-  const avatarUrl = getNameAvatarUrl(name, namespaceId);
-
   if (status === "pending") return <NameDetailPageSkeleton />;
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <ProfileHeader
         name={name}
-        avatarUrl={avatarUrl}
+        namespaceId={namespaceId}
         headerImage={data?.records?.texts?.header}
         websiteUrl={data?.records?.texts?.url}
       />
