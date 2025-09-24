@@ -5,7 +5,7 @@ import { ChevronsUpDown, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { ENSAdminIcon } from "@/components/ensadmin-icon";
+import { ENSAdminIcon } from "@/components/icons/ensnode-apps/ensadmin-icon";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,7 +35,7 @@ import {
 import { useActiveENSNodeUrl } from "@/hooks/active/use-active-ensnode-url";
 import { useENSNodeConnections } from "@/hooks/ensnode-connections";
 import { useMutation } from "@tanstack/react-query";
-import { CopyButton } from "../ui/copy-button";
+import { CopyButton } from "../copy-button";
 
 export function ConnectionSelector() {
   const { isMobile } = useSidebar();
