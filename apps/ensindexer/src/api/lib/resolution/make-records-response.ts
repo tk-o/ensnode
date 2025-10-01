@@ -1,4 +1,4 @@
-import { ResolveCallsAndResults } from "@/api/lib/resolve-calls-and-results";
+import { ResolveCallsAndResults } from "@/api/lib/resolution/resolve-calls-and-results";
 import {
   ResolverRecordsResponse,
   ResolverRecordsResponseBase,
@@ -6,7 +6,6 @@ import {
   bigintToCoinType,
 } from "@ensnode/ensnode-sdk";
 
-// TODO: replace with some sort of inferred typing from dizzle
 export interface IndexedResolverRecords {
   name: string | null;
   addressRecords: { coinType: bigint; address: string }[];
