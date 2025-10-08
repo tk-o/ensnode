@@ -1,29 +1,23 @@
 import { buildConfigFromEnvironment } from "@/config/config.schema";
+import { DEFAULT_PORT } from "@/config/defaults";
 import { ENSIndexerConfig } from "@/config/types";
-import { DEFAULT_PORT } from "@/lib/lib-config";
 import { deepClone } from "@/lib/lib-helpers";
 import { vi } from "vitest";
 
 // default, non-exported mock configuration template
 const _defaultMockConfig = buildConfigFromEnvironment({
-  databaseUrl: "postgresql://postgres:postgres@localhost:5432/postgres",
-  namespace: "mainnet",
-  ensNodePublicUrl: "http://localhost:42069",
-  ensIndexerUrl: "http://localhost:42069",
-  ensAdminUrl: "http://localhost:3000",
-  databaseSchemaName: "test_schema",
-  plugins: "subgraph",
-  ensRainbowUrl: "https://api.ensrainbow.io",
-  labelSet: {
-    labelSetId: "ens-test-env",
-    labelSetVersion: "0",
-  },
-  port: DEFAULT_PORT.toString(),
-  rpcConfigs: {
-    1: "https://eth-mainnet.g.alchemy.com/v2/1234",
-  },
-  globalBlockrange: { startBlock: undefined, endBlock: undefined },
-  isSubgraphCompatible: undefined,
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres",
+  DATABASE_SCHEMA: "test_schema",
+  NAMESPACE: "mainnet",
+  PLUGINS: "subgraph",
+  ENSNODE_PUBLIC_URL: "http://localhost:42069",
+  ENSINDEXER_URL: "http://localhost:42069",
+  ENSADMIN_URL: "http://localhost:3000",
+  ENSRAINBOW_URL: "https://api.ensrainbow.io",
+  LABEL_SET_ID: "ens-test-env",
+  LABEL_SET_VERSION: "0",
+  PORT: DEFAULT_PORT.toString(),
+  RPC_URL_1: "https://eth-mainnet.g.alchemy.com/v2/1234",
 });
 
 // the current, mutable ENSIndexerConfig for tests
