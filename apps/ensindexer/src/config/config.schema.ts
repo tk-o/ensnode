@@ -18,10 +18,9 @@ import {
 
 import { buildRpcConfigsFromEnv } from "./rpc-configs-from-env";
 
-import { DEFAULT_ENSADMIN_URL, DEFAULT_PORT, DEFAULT_SUBGRAPH_COMPAT } from "@/config/defaults";
-
 import { EnvironmentDefaults, applyDefaults } from "@/config/environment-defaults";
 
+import { DEFAULT_SUBGRAPH_COMPAT } from "@/config/defaults";
 import { derive_indexedChainIds } from "./derived-params";
 import type { ENSIndexerConfig, ENSIndexerEnvironment, RpcConfig } from "./types";
 import {
@@ -78,8 +77,6 @@ const BlockrangeSchema = z
     { error: "END_BLOCK must be greater than START_BLOCK." },
   );
 
-const EnsNodePublicUrlSchema = makeUrlSchema("ENSNODE_PUBLIC_URL");
-const EnsAdminUrlSchema = makeUrlSchema("ENSADMIN_URL").default(DEFAULT_ENSADMIN_URL);
 const EnsIndexerUrlSchema = makeUrlSchema("ENSINDEXER_URL");
 
 const PonderDatabaseSchemaSchema = z
@@ -112,13 +109,6 @@ const PluginsSchema = z.coerce
   .refine((arr) => arr.length === uniq(arr).length, {
     error: "PLUGINS cannot contain duplicate values",
   });
-
-const PortSchema = z.coerce
-  .number({ error: "PORT must be an integer." })
-  .int({ error: "PORT must be an integer." })
-  .min(1, { error: "PORT must be an integer between 1 and 65535." })
-  .max(65535, { error: "PORT must be an integer between 1 and 65535." })
-  .default(DEFAULT_PORT);
 
 const EnsRainbowUrlSchema = makeUrlSchema("ENSRAINBOW_URL");
 
@@ -172,12 +162,9 @@ const ENSIndexerConfigSchema = z
   .object({
     namespace: ENSNamespaceSchema,
     globalBlockrange: BlockrangeSchema,
-    ensNodePublicUrl: EnsNodePublicUrlSchema,
     ensIndexerUrl: EnsIndexerUrlSchema,
-    ensAdminUrl: EnsAdminUrlSchema,
     databaseSchemaName: PonderDatabaseSchemaSchema,
     plugins: PluginsSchema,
-    port: PortSchema,
     ensRainbowUrl: EnsRainbowUrlSchema,
     labelSet: LabelSetSchema,
     rpcConfigs: RpcConfigsSchema,
@@ -254,7 +241,6 @@ export function buildConfigFromEnvironment(_env: ENSIndexerEnvironment): ENSInde
 
     // parse/validate with ENSIndexerConfigSchema
     return ENSIndexerConfigSchema.parse({
-      port: env.PORT,
       databaseSchemaName: env.DATABASE_SCHEMA,
       databaseUrl: env.DATABASE_URL,
       isSubgraphCompatible: env.SUBGRAPH_COMPAT,
@@ -265,9 +251,7 @@ export function buildConfigFromEnvironment(_env: ENSIndexerEnvironment): ENSInde
         labelSetId: env.LABEL_SET_ID,
         labelSetVersion: env.LABEL_SET_VERSION,
       },
-      ensNodePublicUrl: env.ENSNODE_PUBLIC_URL,
       ensIndexerUrl: env.ENSINDEXER_URL,
-      ensAdminUrl: env.ENSADMIN_URL,
       globalBlockrange: {
         startBlock: env.START_BLOCK,
         endBlock: env.END_BLOCK,
