@@ -9,6 +9,7 @@ import { ChainIcon } from "@/components/chains/ChainIcon";
 import { ConfigInfoAppCard } from "@/components/connection/config-info/app-card";
 import { CopyButton } from "@/components/copy-button";
 import { ErrorInfo, ErrorInfoProps } from "@/components/error-info";
+import { ExternalLinkWithIcon } from "@/components/external-link-with-icon";
 import { HealIcon } from "@/components/icons/HealIcon";
 import { IndexAdditionalRecordsIcon } from "@/components/icons/IndexAdditionalRecordsIcon";
 import { IconENS } from "@/components/icons/ens";
@@ -23,7 +24,7 @@ import { useSelectedConnection } from "@/hooks/active/use-selected-connection";
 import { getChainName } from "@/lib/namespace-utils";
 import { cn } from "@/lib/utils";
 import { ENSIndexerPublicConfig } from "@ensnode/ensnode-sdk";
-import { ExternalLink, PlugZap, Replace } from "lucide-react";
+import { PlugZap, Replace } from "lucide-react";
 
 /**
  * ENSNodeConfigInfo display variations:
@@ -107,6 +108,10 @@ export function ENSNodeConfigInfo({
               icon={<ENSDbIcon width={24} height={24} />}
               items={[
                 {
+                  label: "Database",
+                  value: <p className={cardItemValueStyles}>Postgres</p>,
+                },
+                {
                   label: "Database Schema",
                   value: (
                     <p className={cardItemValueStyles}>{ensIndexerConfig.databaseSchemaName}</p>
@@ -118,31 +123,91 @@ export function ENSNodeConfigInfo({
                     </p>
                   ),
                 },
-                {
-                  label: "Database",
-                  value: <p className={cardItemValueStyles}>Postgres</p>,
-                },
               ]}
-              version={ensIndexerConfig.dependencyInfo.ensRainbow}
+              version={ensIndexerConfig.versionInfo.ensDb}
               docsLink={new URL("https://ensnode.io/ensdb/")}
             />
-            {/*It's safe to assume that the version number of ENSDb is always equal to the version number of ENSIndexer.
-             Until changes to ENSIndexerPublicConfig are made this logic is correct (see a comment about ENSIndexer version)*/}
+
             {/*ENSIndexer*/}
             <ConfigInfoAppCard
               name="ENSIndexer"
               icon={<ENSIndexerIcon width={24} height={24} />}
               items={[
                 {
-                  label: "Ponder",
+                  label: "Node.js",
                   value: (
-                    <p className={cardItemValueStyles}>{ensIndexerConfig.dependencyInfo.ponder}</p>
+                    <p className={cardItemValueStyles}>{ensIndexerConfig.versionInfo.nodejs}</p>
+                  ),
+                  additionalInfo: (
+                    <p>
+                      Version of the{" "}
+                      <ExternalLinkWithIcon
+                        href={`https://nodejs.org/en/download/archive/v${ensIndexerConfig.versionInfo.nodejs}`}
+                      >
+                        Node.js
+                      </ExternalLinkWithIcon>{" "}
+                      runtime.
+                    </p>
                   ),
                 },
                 {
-                  label: "Node.js",
+                  label: "Ponder",
                   value: (
-                    <p className={cardItemValueStyles}>{ensIndexerConfig.dependencyInfo.nodejs}</p>
+                    <p className={cardItemValueStyles}>{ensIndexerConfig.versionInfo.ponder}</p>
+                  ),
+                  additionalInfo: (
+                    <p>
+                      Version of the{" "}
+                      <ExternalLinkWithIcon
+                        href={`https://www.npmjs.com/package/ponder/v/${ensIndexerConfig.versionInfo.ponder}`}
+                      >
+                        ponder
+                      </ExternalLinkWithIcon>{" "}
+                      package used for indexing onchain data.
+                    </p>
+                  ),
+                },
+                {
+                  label: "ens-normalize.js",
+                  value: (
+                    <p className={cardItemValueStyles}>
+                      {ensIndexerConfig.versionInfo.ensNormalize}
+                    </p>
+                  ),
+                  additionalInfo: (
+                    <p>
+                      Version of the{" "}
+                      <ExternalLinkWithIcon
+                        href={`https://www.npmjs.com/package/@adraffy/ens-normalize/v/${ensIndexerConfig.versionInfo.ensNormalize}`}
+                      >
+                        @adraffy/ens-normalize
+                      </ExternalLinkWithIcon>{" "}
+                      package used for ENS name normalization.
+                    </p>
+                  ),
+                },
+                {
+                  label: "Label Set",
+                  value: (
+                    <ul className={cardItemValueStyles}>
+                      <li>
+                        {ensIndexerConfig.labelSet.labelSetId}:{" "}
+                        {ensIndexerConfig.labelSet.labelSetVersion}
+                      </li>
+                    </ul>
+                  ),
+                  additionalInfo: (
+                    <p>
+                      Versioning preferences of the ENSRainbow client.{" "}
+                      <ExternalLinkWithIcon
+                        href={`https://ensnode.io/ensrainbow/concepts/label-sets-and-versioning/#client-behavior`}
+                      >
+                        Learn
+                      </ExternalLinkWithIcon>{" "}
+                      how applications can choose between <strong>staying current</strong> with the
+                      latest data or <strong>maintaining consistency</strong> for reproducible
+                      results.
+                    </p>
                   ),
                 },
                 {
@@ -231,11 +296,10 @@ export function ENSNodeConfigInfo({
                   icon: <IconENS width={18} height={18} className="text-[#3F3F46] flex-shrink-0" />,
                 },
               ]}
-              version={ensIndexerConfig.dependencyInfo.ensRainbow}
+              version={ensIndexerConfig.versionInfo.ensIndexer}
               docsLink={new URL("https://ensnode.io/ensindexer/")}
             />
-            {/*TODO: The current approach to displaying the version of ENSIndexer is a stretch.
-           We need to make another update that improves the data model of ENSIndexerPublicConfig and related */}
+
             {/*ENSRainbow*/}
             <ConfigInfoAppCard
               name="ENSRainbow"
@@ -245,7 +309,7 @@ export function ENSNodeConfigInfo({
                   label: "Schema Version",
                   value: (
                     <p className={cardItemValueStyles}>
-                      {ensIndexerConfig.dependencyInfo.ensRainbowSchema}
+                      {ensIndexerConfig.versionInfo.ensRainbowSchema}
                     </p>
                   ),
                 },
@@ -280,7 +344,7 @@ export function ENSNodeConfigInfo({
                   ),
                 },
               ]}
-              version={ensIndexerConfig.dependencyInfo.ensRainbow}
+              version={ensIndexerConfig.versionInfo.ensRainbow}
               docsLink={new URL("https://ensnode.io/ensrainbow/")}
             />
           </div>
