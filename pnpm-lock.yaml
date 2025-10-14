@@ -679,6 +679,9 @@ importers:
 
   packages/ensnode-sdk:
     dependencies:
+      '@adraffy/ens-normalize':
+        specifier: 1.11.1
+        version: 1.11.1
       '@ensdomains/address-encoder':
         specifier: ^1.1.2
         version: 1.1.3
