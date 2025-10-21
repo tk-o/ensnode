@@ -1,5 +1,5 @@
 import { type CoinType } from "@ensdomains/address-encoder";
-import { type Address, isAddress } from "viem";
+import { type Address, type Hex, hexToBytes, isAddress } from "viem";
 /**
  * All zod schemas we define must remain internal implementation details.
  * We want the freedom to move away from zod in the future without impacting
@@ -14,6 +14,7 @@ import { asLowerCaseAddress } from "./address";
 import type {
   BlockRef,
   ChainId,
+  Cost,
   Datetime,
   DefaultableChainId,
   Duration,
@@ -241,3 +242,29 @@ export const makePortSchema = (valueLabel: string = "Port") =>
   makePositiveIntegerSchema(valueLabel).max(65535, {
     error: `${valueLabel} must be an integer between 1 and 65535.`,
   });
+
+export const makeBytesSchema = (valueLabel: string = "String representation of bytes") =>
+  z.coerce
+    .string()
+    .check(function invariant_stringStartsWith0x(ctx) {
+      if (!ctx.value.startsWith("0x")) {
+        ctx.issues.push({
+          code: "custom",
+          input: ctx.value,
+          message: `${valueLabel} type must start with '0x'.`,
+        });
+      }
+    })
+    .transform((v) => hexToBytes(v as Hex));
+
+/**
+ * Schema for {@link Cost} type.
+ */
+export const makeCostSchema = (valueLabel: string = "Cost") =>
+  z.coerce
+    .bigint({
+      error: `${valueLabel} must represent a bigint.`,
+    })
+    .nonnegative({
+      error: `${valueLabel} must not be negative.`,
+    });

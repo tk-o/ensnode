@@ -1,7 +1,14 @@
+import type { ChainId, Cost } from "./types";
+
 /**
  * Serialized representation of {@link ChainId}.
  **/
 export type ChainIdString = string;
+
+/**
+ * Serialized representation of {@link Cost}.
+ */
+export type SerializedCost = string;
 
 /**
  * Datetime value following the ISO 8601 standard.

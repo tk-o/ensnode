@@ -89,6 +89,15 @@ export interface Blockrange<BlockType = BlockNumber> {
 }
 
 /**
+ * Cost
+ *
+ * Value represented in wei.
+ *
+ * @see https://ethereum.org/glossary/#wei
+ */
+export type Cost = bigint;
+
+/**
  * Duration
  *
  * Representing a duration in seconds.
