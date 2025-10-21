@@ -7,9 +7,10 @@ export function interpretRawReferrer(rawReferrer: RawReferrer): InterpretedRefer
   const areAllInitialBytesZeroes = initialBytes.every((byte) => byte === 0);
 
   if (areAllInitialBytesZeroes) {
-    const interpretedBytes = rawReferrer.slice(12, 20);
+    const remainingBytes = rawReferrer.slice(12, 32);
+    const interpretedReferrer = asLowerCaseAddress(bytesToHex(remainingBytes));
 
-    return asLowerCaseAddress(bytesToHex(interpretedBytes));
+    return interpretedReferrer;
   }
 
   return zeroAddress;
