@@ -12,7 +12,7 @@ import { DatasourceNames } from "@ensnode/datasources";
 import { PluginName } from "@ensnode/ensnode-sdk";
 import * as ponder from "ponder";
 
-const pluginName = PluginName.SubRegistry;
+const pluginName = PluginName.Subregistry;
 
 export default createPlugin({
   name: pluginName,

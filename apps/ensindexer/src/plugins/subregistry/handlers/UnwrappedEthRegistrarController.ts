@@ -8,7 +8,7 @@ import { ETH_NODE, PluginName, RegistrarActionType, makeSubdomainNode } from "@e
  * Registers event handlers with Ponder.
  */
 export default function () {
-  const pluginName = PluginName.SubRegistry;
+  const pluginName = PluginName.Subregistry;
 
   ponder.on(
     namespaceContract(pluginName, "UnwrappedEthRegistrarController:NameRegistered"),
@@ -18,6 +18,7 @@ export default function () {
 
         // NOTE: UnwrappedEthRegistrarController emits the labelHash of the name under '.eth'
         node: makeSubdomainNode(event.args.labelhash, ETH_NODE),
+        parentNode: ETH_NODE,
 
         expiresAt: event.args.expires,
 
@@ -41,6 +42,7 @@ export default function () {
 
         // NOTE: UnwrappedEthRegistrarController emits the labelHash of the name under '.eth'
         node: makeSubdomainNode(event.args.labelhash, ETH_NODE),
+        parentNode: ETH_NODE,
 
         expiresAt: event.args.expires,
 

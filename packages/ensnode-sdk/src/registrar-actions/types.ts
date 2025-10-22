@@ -1,6 +1,6 @@
-import { Address, ByteArray, Hash, Hex } from "viem";
-import { Node } from "../ens";
-import { ChainId, Cost, UnixTimestamp } from "../shared";
+import type { Address, Hash, Hex } from "viem";
+import type { Node } from "../ens";
+import type { ChainId, Cost, UnixTimestamp } from "../shared";
 
 export const RegistrarActionType = {
   Registration: "registration",
@@ -15,13 +15,6 @@ export type RegistrarActionTypes = (typeof RegistrarActionType)[keyof typeof Reg
  * Guaranteed to be a string representation of 32-bytes.
  */
 export type RawReferrer = Hex;
-
-/**
- * Interpreted Referred
- *
- * Value interpreted from {@link RawReferrer}.
- */
-export type InterpretedReferrer = Address;
 
 /**
  * Registrar Action
@@ -85,7 +78,7 @@ export interface RegistrarAction {
    *   then “interpretedReferrer” is the last `20`-bytes of “rawReferrer”,
    *   else: “interpretedReferrer” is the zero address.
    */
-  interpretedReferrer: InterpretedReferrer;
+  interpretedReferrer: Address;
 
   /**
    * Block timestamp

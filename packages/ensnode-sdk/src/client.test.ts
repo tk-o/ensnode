@@ -70,7 +70,7 @@ const EXAMPLE_CONFIG_RESPONSE = {
     PluginName.Lineanames,
     PluginName.ThreeDNS,
     PluginName.ProtocolAcceleration,
-    PluginName.SubRegistry,
+    PluginName.Subregistry,
   ],
   versionInfo: {
     nodejs: "22.18.0",

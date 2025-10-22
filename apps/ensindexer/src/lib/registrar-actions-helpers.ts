@@ -21,6 +21,28 @@ import {
  * Definition of "incremental duration" is
  * the incremental increase in the lifespan of the current registration.
  *
+ * Please consider the following situation:
+ *
+ * A registration of direct subname of .eth is scheduled to expire on
+ * Jan 1, midnight UTC. It is currently 30 days after this expiration time.
+ * Therefore, there are currently another 60 days of grace period remaining
+ * for this name. Anyone can now make a renewal of this name.
+ *
+ * There are two possible scenarios when a renewal is made:
+ *
+ * 1) If a renewal is made for 10 days incremental duration,
+ *    this name remains in an "expired" state, but it now
+ *    has another 70 days of grace period remaining.
+ *
+ * 2) If a renewal is made for 50 days incremental duration,
+ *    this name is no longer "expired" and is active, but it now
+ *    expires in 20 days.
+ *
+ * After the latest registration of a direct subname becomes expired by
+ * more than the grace period, it can no longer be renewed by anyone.
+ * It must first be registered again, starting a new registration lifecycle of
+ * expiry / grace period / etc.
+ *
  * @returns incremental duration in seconds.
  * @throws if Registrar Action is Renewal and no related
  *         Registration was indexed before.
@@ -44,20 +66,18 @@ export async function getIncrementalDurationForRegistrarAction(
 
     case RegistrarActionType.Renewal:
       {
-        const latestRegistrarActionForCurrentRegistration =
-          await context.db.sql.query.subregistry_registrarAction.findFirst({
-            where: (fields, { and, eq }) => and(eq(fields.node, registrarAction.node)),
-            orderBy: (fields, { desc }) => [desc(fields.blockTimestamp)],
-          });
+        const currentRegistration = await context.db.find(schema.subregistry_registration, {
+          node: registrarAction.node,
+        });
 
-        // Invariant: there must be some registrar action indexed before the renewal can take place.
-        if (!latestRegistrarActionForCurrentRegistration) {
+        // Invariant: the current registration must exists for the renewal to take place.
+        if (!currentRegistration) {
           throw new Error(
-            `At least one prior registrar action for "${registrarAction.node}" node must exist for the renewal to take place.`,
+            `The current registration for "${registrarAction.node}" node must exist for the renewal to take place.`,
           );
         }
 
-        incrementalDurationStartsAt = latestRegistrarActionForCurrentRegistration.expiresAt;
+        incrementalDurationStartsAt = currentRegistration.expiresAt;
       }
       break;
 
@@ -65,15 +85,12 @@ export async function getIncrementalDurationForRegistrarAction(
       throw new Error(`Unhandled Registrar Action type: "${registrarAction.type}"`);
   }
 
+  // Invariant: the end of the incremental duration must be after its start.
   if (incrementalDurationEndsAt > incrementalDurationStartsAt) {
     throw new Error(`Incremental Duration end timestamp must be before its start timestamp.`);
   }
 
-  // We need to calculate the “incrementalDuration” with special care.
-  // For example: when a renewal happens, the duration of the renewal is
-  // a distinct idea from when the name expires.
-  // Therefore our definition of “incrementalDuration” in this field is
-  // the incremental increase in the lifespan of the current registration.
+  // Calculate and return the incremental duration
   return incrementalDurationEndsAt - incrementalDurationStartsAt;
 }
 
@@ -87,6 +104,7 @@ export async function handleRegistrarAction(
   {
     type,
     node,
+    parentNode,
     expiresAt,
     baseCost,
     premium,
@@ -95,6 +113,7 @@ export async function handleRegistrarAction(
   }: {
     type: RegistrarActionTypes;
     node: Node;
+    parentNode: Node;
     expiresAt: bigint;
     baseCost: bigint;
     premium: bigint;
@@ -102,17 +121,36 @@ export async function handleRegistrarAction(
     rawReferrer: RawReferrer;
   },
 ) {
+  // 0. Calculate total cost
   const total = baseCost + premium;
 
+  // 1. Interpret the raw referrer
   const interpretedReferrer = interpretRawReferrer(rawReferrer);
 
+  // 2. Get incremental duration for handled registrar action
   const incrementalDuration = await getIncrementalDurationForRegistrarAction(context, event, {
     type,
     node,
     expiresAt,
   });
 
-  // create the Registrar Action event
+  // 3. Upsert the Subregistry Registration record
+  // This record represents the current registration state for the `node`.
+  await context.db
+    .insert(schema.subregistry_registration)
+    .values({
+      node,
+      parentNode,
+      expiresAt,
+    })
+    // If Subregistry Registration record already exists for the `node`,
+    // set the current registration `expiresAt` timestamp to
+    // the `expiresAt` value from the Registrar Action event.
+    .onConflictDoUpdate({
+      expiresAt,
+    });
+
+  // 4. Insert the Registrar Action record
   await context.db.insert(schema.subregistry_registrarAction).values({
     id: event.id,
     type,
