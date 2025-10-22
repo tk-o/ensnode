@@ -87,8 +87,8 @@ export async function getIncrementalDurationForRegistrarAction(
   }
 
   // Invariant: the end of the incremental duration must be after its start.
-  if (incrementalDurationEndsAt > incrementalDurationStartsAt) {
-    throw new Error(`Incremental Duration end timestamp must be before its start timestamp.`);
+  if (incrementalDurationEndsAt < incrementalDurationStartsAt) {
+    throw new Error(`Incremental Duration end timestamp must be after its start timestamp.`);
   }
 
   // Calculate and return the incremental duration
