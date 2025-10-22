@@ -1,86 +1,18 @@
-import { bytesToHex } from "viem";
 import z from "zod/v4";
 import { ParsePayload } from "zod/v4/core";
 import {
-  makeBytesSchema,
   makeChainIdSchema,
   makeCostSchema,
+  makeHexStringSchema,
   makeLowercaseAddressSchema,
   makeUnixTimestampSchema,
 } from "../internal";
+import { interpretRawReferrer } from "./helpers";
 import { type RegistrarAction, RegistrarActionType } from "./types";
 
-export const makeRawReferrerSchema = (valueLabel: string = "Raw Referrer") =>
-  makeBytesSchema(valueLabel).check(function invariant_rawReferrerIs32Bytes(ctx) {
-    if (ctx.value.length !== 32) {
-      console.log(ctx.value);
-      ctx.issues.push({
-        code: "custom",
-        input: ctx.value,
-        message: `${valueLabel} must be represented by exactly 32 bytes. Provided bytes count: ${ctx.value.length}.`,
-      });
-    }
-  });
-
-export const makeHashSchema = (valueLabel: string = "Hash") =>
-  makeBytesSchema(valueLabel)
-    .check(function invariant_hashIs32Bytes(ctx) {
-      if (ctx.value.length !== 32) {
-        ctx.issues.push({
-          code: "custom",
-          input: ctx.value,
-          message: `${valueLabel} must be represented by exactly 32 bytes. Provided bytes count: ${ctx.value.length}`,
-        });
-      }
-    })
-    .transform((v) => bytesToHex(v));
-
-const baseRegistrarAction = {
-  node: makeHashSchema("Node"),
-
-  baseCost: makeCostSchema(),
-
-  premium: makeCostSchema(),
-
-  total: makeCostSchema(),
-
-  registrant: makeLowercaseAddressSchema(),
-
-  /**
-   * Raw Referrer
-   *
-   * A 32-bytes value.
-   */
-  rawReferrer: makeRawReferrerSchema(),
-
-  /**
-   * Interpreted Referrer
-   *
-   * Invariants:
-   * - If the first `12`-bytes of “rawReferrer” are all `0`,
-   *   then “interpretedReferrer” is the last `20`-bytes of “rawReferrer”,
-   *   else: “interpretedReferrer” is the zero address.
-   */
-  interpretedReferrer: makeLowercaseAddressSchema(),
-
-  /**
-   * Block timestamp
-   */
-  blockTimestamp: makeUnixTimestampSchema(),
-
-  /**
-   * Chain ID
-   */
-  chainId: makeChainIdSchema(),
-
-  /**
-   * Transaction Hash
-   */
-  transactionHash: makeHashSchema("Transaction Hash"),
-};
-
+/** Invariant: total is sum of baseCost and premium */
 function invariant_registrarActionTotalIsSumOfBaseCostAndPremium(
-  ctx: ParsePayload<RegistrarAction>,
+  ctx: ParsePayload<Pick<RegistrarAction, "baseCost" | "premium" | "total">>,
 ) {
   const registrarAction = ctx.value;
 
@@ -88,35 +20,74 @@ function invariant_registrarActionTotalIsSumOfBaseCostAndPremium(
     ctx.issues.push({
       code: "custom",
       input: registrarAction,
-      message: `"total" must be equal to the sum of "baseCost" and "premium"`,
+      message: `'total' must be equal to the sum of 'baseCost' and 'premium'`,
     });
   }
 }
 
-export const RegistrarActionRegistrationSchema = z
-  .strictObject({
-    type: z.literal(RegistrarActionType.Registration),
+/** Invariant: interpretedReferrer is based on rawReferrer */
+function invariant_registrarActionInterpretedReferrerBasedOnRawReferrer(
+  ctx: ParsePayload<Pick<RegistrarAction, "rawReferrer" | "interpretedReferrer">>,
+) {
+  const registrarAction = ctx.value;
+  const expectedInterpretedReferrer = interpretRawReferrer(registrarAction.rawReferrer);
 
-    ...baseRegistrarAction,
-  })
-  .check(invariant_registrarActionTotalIsSumOfBaseCostAndPremium);
+  console.log({
+    actual: registrarAction.interpretedReferrer,
+    expectedInterpretedReferrer,
+  });
 
-export const RegistrarActionRenewalSchema = z
-  .strictObject({
-    type: z.literal(RegistrarActionType.Renewal),
+  if (registrarAction.interpretedReferrer !== expectedInterpretedReferrer) {
+    ctx.issues.push({
+      code: "custom",
+      input: ctx.value,
+      message: `'interpretedReferrer' must be based on 'rawReferrer'`,
+    });
+  }
+}
 
-    ...baseRegistrarAction,
+const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Action") =>
+  z.object({
+    node: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Node`),
 
-    premium: baseRegistrarAction.premium.max(0n, {
-      error: "Premium must always be `0` for renewals",
-    }),
-  })
-  .check(invariant_registrarActionTotalIsSumOfBaseCostAndPremium);
+    baseCost: makeCostSchema(`${valueLabel} Base Cost`),
+    premium: makeCostSchema(`${valueLabel} Premium`),
+    total: makeCostSchema(`${valueLabel} Total`),
+
+    registrant: makeLowercaseAddressSchema(`${valueLabel} Registrant`),
+    rawReferrer: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Raw Referrer`),
+    interpretedReferrer: makeLowercaseAddressSchema(`${valueLabel} Interpreted Referrer`),
+
+    blockTimestamp: makeUnixTimestampSchema(`${valueLabel} Block Timestamp`),
+    chainId: makeChainIdSchema(`${valueLabel} Chain ID`),
+    transactionHash: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Transaction Hash`),
+  });
+
+export const makeRegistrarActionRegistrationSchema = (valueLabel: string = "Registration ") =>
+  makeBaseRegistrarActionSchema(valueLabel)
+    .extend({
+      type: z.literal(RegistrarActionType.Registration),
+    })
+    .check(invariant_registrarActionTotalIsSumOfBaseCostAndPremium)
+    .check(invariant_registrarActionInterpretedReferrerBasedOnRawReferrer);
+
+export const makeRegistrarActionRenewalSchema = (valueLabel: string = "Renewal") =>
+  makeBaseRegistrarActionSchema(valueLabel)
+    .extend({
+      type: z.literal(RegistrarActionType.Renewal),
+
+      premium: makeCostSchema(`${valueLabel} Premium`).max(0n, {
+        error: `${valueLabel} Premium must always be '0'`,
+      }),
+    })
+    .check(invariant_registrarActionTotalIsSumOfBaseCostAndPremium)
+    .check(invariant_registrarActionInterpretedReferrerBasedOnRawReferrer);
 
 /**
  * Schema for {@link RegistrarAction}.
  */
-export const RegistrarActionSchema = z.discriminatedUnion("type", [
-  RegistrarActionRegistrationSchema,
-  RegistrarActionRenewalSchema,
-]);
+export const makeRegistrarActionSchema = (valueLabel: string = "Registrar Action") =>
+  z.discriminatedUnion("type", [
+    makeRegistrarActionRegistrationSchema(`${valueLabel}.Registration`),
+    makeRegistrarActionRenewalSchema(`${valueLabel}.Renewal`),
+  ]);

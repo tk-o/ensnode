@@ -1,16 +1,23 @@
-import { bytesToHex, zeroAddress } from "viem";
+import { bytesToHex, hexToBytes, zeroAddress } from "viem";
 import { asLowerCaseAddress } from "../shared";
-import { InterpretedReferrer, RawReferrer } from "./types";
+import type { InterpretedReferrer, RawReferrer } from "./types";
 
+/**
+ * Interprets a raw referrer value into an {@link InterpretedReferrer}.
+ *
+ * @param rawReferrer - The raw referrer value to interpret.
+ * @returns The interpreted referrer.
+ */
 export function interpretRawReferrer(rawReferrer: RawReferrer): InterpretedReferrer {
-  const initialBytes = rawReferrer.slice(0, 12);
-  const areAllInitialBytesZeroes = initialBytes.every((byte) => byte === 0);
+  const rawReferrerBytes = hexToBytes(rawReferrer);
 
-  if (areAllInitialBytesZeroes) {
-    const remainingBytes = rawReferrer.slice(12, 32);
-    const interpretedReferrer = asLowerCaseAddress(bytesToHex(remainingBytes));
+  const initialBytes = rawReferrerBytes.slice(0, 12);
+  const areAllInitialBytesZero = initialBytes.every((byte) => byte === 0);
 
-    return interpretedReferrer;
+  if (areAllInitialBytesZero) {
+    const remainingBytes = rawReferrerBytes.slice(12, 32);
+
+    return asLowerCaseAddress(bytesToHex(remainingBytes));
   }
 
   return zeroAddress;

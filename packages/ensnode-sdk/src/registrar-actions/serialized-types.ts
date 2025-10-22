@@ -1,17 +1,11 @@
-import { Hex } from "viem";
-import { SerializedCost } from "../shared";
-import type { RawReferrer, RegistrarAction } from "./types";
-
-/**
- * Serialized representation of {@link RawReferrer}
- */
-export type SerializedRawReferrer = Hex;
+import type { SerializedCost } from "../shared";
+import type { RegistrarAction } from "./types";
 
 /**
  * Serialized representation of {@link RegistrarAction}.
  */
 export interface SerializedRegistrarAction
-  extends Omit<RegistrarAction, "baseCost" | "premium" | "total" | "rawReferrer"> {
+  extends Omit<RegistrarAction, "baseCost" | "premium" | "total"> {
   /**
    * Base cost
    *
@@ -34,11 +28,4 @@ export interface SerializedRegistrarAction
    * Represents a non-negative bigint.
    */
   total: SerializedCost;
-
-  /**
-   * Raw Referrer
-   *
-   * Represents a 32-bytes value.
-   */
-  rawReferrer: SerializedRawReferrer;
 }

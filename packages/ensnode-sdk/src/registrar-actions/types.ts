@@ -1,4 +1,4 @@
-import { Address, ByteArray, Hash } from "viem";
+import { Address, ByteArray, Hash, Hex } from "viem";
 import { Node } from "../ens";
 import { ChainId, Cost, UnixTimestamp } from "../shared";
 
@@ -12,9 +12,9 @@ export type RegistrarActionTypes = (typeof RegistrarActionType)[keyof typeof Reg
 /**
  * Raw Referrer
  *
- * Guaranteed to be 32-bytes.
+ * Guaranteed to be a string representation of 32-bytes.
  */
-export type RawReferrer = ByteArray;
+export type RawReferrer = Hex;
 
 /**
  * Interpreted Referred

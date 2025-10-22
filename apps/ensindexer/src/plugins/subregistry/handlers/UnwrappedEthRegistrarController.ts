@@ -3,7 +3,6 @@ import { ponder } from "ponder:registry";
 import { namespaceContract } from "@/lib/plugin-helpers";
 import { handleRegistrarAction } from "@/lib/registrar-actions-helpers";
 import { ETH_NODE, PluginName, RegistrarActionType, makeSubdomainNode } from "@ensnode/ensnode-sdk";
-import { hexToBytes, zeroHash } from "viem";
 
 /**
  * Registers event handlers with Ponder.
@@ -29,7 +28,7 @@ export default function () {
         // so we treat the transaction sender address as a registrant
         registrant: event.transaction.from,
 
-        rawReferrer: hexToBytes(event.args.referrer),
+        rawReferrer: event.args.referrer,
       });
     },
   );
@@ -52,7 +51,7 @@ export default function () {
         // so we treat the transaction sender address as a registrant
         registrant: event.transaction.from,
 
-        rawReferrer: hexToBytes(event.args.referrer),
+        rawReferrer: event.args.referrer,
       });
     },
   );

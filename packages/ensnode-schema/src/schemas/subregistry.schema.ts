@@ -27,9 +27,14 @@ export const subregistry_registrarAction = onchainTable(
 
     registrant: t.hex().notNull(),
 
-    rawReferrer: t.bytes().notNull(),
+    rawReferrer: t.hex().notNull(),
 
     interpretedReferrer: t.hex().notNull(),
+
+    /**
+     * The timestamp of registration expiry.
+     */
+    expiresAt: t.bigint().notNull(),
 
     /**
      * The incremental increase in the lifespan of the current registration.

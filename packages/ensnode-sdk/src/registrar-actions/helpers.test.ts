@@ -1,4 +1,4 @@
-import { Address, zeroAddress } from "viem";
+import { Address, bytesToHex, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import { interpretRawReferrer } from "./helpers";
 
@@ -15,7 +15,7 @@ describe("raw referrer", () => {
         69,
       ]);
 
-      const input = new Uint8Array([...initialBytes, ...remainingBytes]);
+      const input = bytesToHex(new Uint8Array([...initialBytes, ...remainingBytes]));
 
       // act
       const result = interpretRawReferrer(input);
@@ -33,7 +33,7 @@ describe("raw referrer", () => {
         69,
       ]);
 
-      const input = new Uint8Array([...initialBytes, ...remainingBytes]);
+      const input = bytesToHex(new Uint8Array([...initialBytes, ...remainingBytes]));
 
       // act
       const result = interpretRawReferrer(input);
