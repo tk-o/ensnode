@@ -2,9 +2,9 @@ import z from "zod/v4";
 import { ParsePayload } from "zod/v4/core";
 import {
   makeChainIdSchema,
-  makeCostSchema,
   makeHexStringSchema,
   makeLowercaseAddressSchema,
+  makePriceSchema,
   makeUnixTimestampSchema,
 } from "../internal";
 import { interpretRawReferrer } from "./helpers";
@@ -16,11 +16,30 @@ function invariant_registrarActionTotalIsSumOfBaseCostAndPremium(
 ) {
   const registrarAction = ctx.value;
 
-  if (registrarAction.total !== registrarAction.baseCost + registrarAction.premium) {
+  if (
+    registrarAction.total.amount !==
+    registrarAction.baseCost.amount + registrarAction.premium.amount
+  ) {
     ctx.issues.push({
       code: "custom",
       input: registrarAction,
       message: `'total' must be equal to the sum of 'baseCost' and 'premium'`,
+    });
+  }
+
+  if (registrarAction.total.currency !== registrarAction.baseCost.currency) {
+    ctx.issues.push({
+      code: "custom",
+      input: registrarAction,
+      message: `'total.currency' must be equal to 'baseCost.currency'`,
+    });
+  }
+
+  if (registrarAction.total.currency !== registrarAction.premium.currency) {
+    ctx.issues.push({
+      code: "custom",
+      input: registrarAction,
+      message: `'total.currency' must be equal to 'premium.currency'`,
     });
   }
 }
@@ -50,9 +69,9 @@ const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Acti
   z.object({
     node: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Node`),
 
-    baseCost: makeCostSchema(`${valueLabel} Base Cost`),
-    premium: makeCostSchema(`${valueLabel} Premium`),
-    total: makeCostSchema(`${valueLabel} Total`),
+    baseCost: makePriceSchema(`${valueLabel} Base Cost`),
+    premium: makePriceSchema(`${valueLabel} Premium`),
+    total: makePriceSchema(`${valueLabel} Total`),
 
     registrant: makeLowercaseAddressSchema(`${valueLabel} Registrant`),
     rawReferrer: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Raw Referrer`),
@@ -76,8 +95,8 @@ export const makeRegistrarActionRenewalSchema = (valueLabel: string = "Renewal")
     .extend({
       type: z.literal(RegistrarActionType.Renewal),
 
-      premium: makeCostSchema(`${valueLabel} Premium`).max(0n, {
-        error: `${valueLabel} Premium must always be '0'`,
+      premium: makePriceSchema(`${valueLabel} Premium`).refine((v) => v.amount === 0n, {
+        error: `Renewal Premium must always be '0'`,
       }),
     })
     .check(invariant_registrarActionTotalIsSumOfBaseCostAndPremium)

@@ -1,3 +1,4 @@
+import { serializePrice } from "../shared";
 import type { SerializedRegistrarAction } from "./serialized-types";
 import type { RegistrarAction } from "./types";
 
@@ -7,9 +8,9 @@ export function serializeRegistrarAction(
   return {
     type: registrarAction.type,
     node: registrarAction.node,
-    baseCost: registrarAction.baseCost.toString(),
-    premium: registrarAction.premium.toString(),
-    total: registrarAction.total.toString(),
+    baseCost: serializePrice(registrarAction.baseCost),
+    premium: serializePrice(registrarAction.premium),
+    total: serializePrice(registrarAction.total),
     rawReferrer: registrarAction.rawReferrer,
     interpretedReferrer: registrarAction.interpretedReferrer,
     registrant: registrarAction.registrant,

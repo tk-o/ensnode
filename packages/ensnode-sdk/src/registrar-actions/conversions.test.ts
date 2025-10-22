@@ -1,5 +1,6 @@
 import { type Address, namehash, parseEther } from "viem";
 import { describe, expect, it } from "vitest";
+import { CurrencyIds } from "../shared";
 import { deserializeRegistrarAction } from "./deserialize";
 import { serializeRegistrarAction } from "./serialize";
 import { SerializedRegistrarAction } from "./serialized-types";
@@ -15,9 +16,18 @@ describe("Registrar Actions", () => {
       type: RegistrarActionType.Registration,
       node: namehash("vitalik.eth"),
 
-      baseCost: parseEther("1").toString(),
-      premium: parseEther("0.7").toString(),
-      total: parseEther("1.7").toString(),
+      baseCost: {
+        currency: CurrencyIds.ETH,
+        amount: parseEther("1").toString(),
+      },
+      premium: {
+        currency: CurrencyIds.ETH,
+        amount: parseEther("0.7").toString(),
+      },
+      total: {
+        currency: CurrencyIds.ETH,
+        amount: parseEther("1.7").toString(),
+      },
 
       registrant: vb3Address,
       rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
@@ -35,9 +45,18 @@ describe("Registrar Actions", () => {
 
       node: namehash("vitalik.eth"),
 
-      baseCost: parseEther("1"),
-      premium: parseEther("0.7"),
-      total: parseEther("1.7"),
+      baseCost: {
+        currency: CurrencyIds.ETH,
+        amount: parseEther("1"),
+      },
+      premium: {
+        currency: CurrencyIds.ETH,
+        amount: parseEther("0.7"),
+      },
+      total: {
+        currency: CurrencyIds.ETH,
+        amount: parseEther("1.7"),
+      },
 
       registrant: vb3Address,
       rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,

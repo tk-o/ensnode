@@ -2,7 +2,13 @@ import { ponder } from "ponder:registry";
 
 import { namespaceContract } from "@/lib/plugin-helpers";
 import { handleRegistrarAction } from "@/lib/registrar-actions-helpers";
-import { ETH_NODE, PluginName, RegistrarActionType, makeSubdomainNode } from "@ensnode/ensnode-sdk";
+import {
+  CurrencyIds,
+  ETH_NODE,
+  PluginName,
+  RegistrarActionType,
+  makeSubdomainNode,
+} from "@ensnode/ensnode-sdk";
 
 /**
  * Registers event handlers with Ponder.
@@ -22,8 +28,14 @@ export default function () {
 
         expiresAt: event.args.expires,
 
-        baseCost: event.args.baseCost,
-        premium: event.args.premium,
+        baseCost: {
+          currency: CurrencyIds.ETH,
+          amount: event.args.baseCost,
+        },
+        premium: {
+          currency: CurrencyIds.ETH,
+          amount: event.args.premium,
+        },
 
         // NOTE: transaction sender pays for the name registration,
         // so we treat the transaction sender address as a registrant
@@ -46,8 +58,14 @@ export default function () {
 
         expiresAt: event.args.expires,
 
-        baseCost: event.args.cost,
-        premium: 0n,
+        baseCost: {
+          currency: CurrencyIds.ETH,
+          amount: event.args.cost,
+        },
+        premium: {
+          currency: CurrencyIds.ETH,
+          amount: 0n,
+        },
 
         // NOTE: transaction sender pays for the name renewal,
         // so we treat the transaction sender address as a registrant

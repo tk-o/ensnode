@@ -1,6 +1,6 @@
 import type { Address, Hash, Hex } from "viem";
 import type { Node } from "../ens";
-import type { ChainId, Cost, UnixTimestamp } from "../shared";
+import type { ChainId, Price, UnixTimestamp } from "../shared";
 
 export const RegistrarActionType = {
   Registration: "registration",
@@ -34,26 +34,20 @@ export interface RegistrarAction {
 
   /**
    * Base cost
-   *
-   * Guaranteed to be a non-negative value.
    */
-  baseCost: Cost;
+  baseCost: Price;
 
   /**
    * Premium
-   *
-   * Guaranteed to be a non-negative value.
    */
-  premium: Cost;
+  premium: Price;
 
   /**
    * Total cost of preforming the registrar action.
    *
    * Sum of `baseCost` and `premium`.
-   *
-   * Guaranteed to be a non-negative value.
    */
-  total: Cost;
+  total: Price;
 
   /**
    * Registrant

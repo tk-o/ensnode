@@ -1,6 +1,7 @@
 import { Address, namehash } from "viem";
 import { describe, expect, it } from "vitest";
 import { type ZodSafeParseResult, prettifyError } from "zod/v4";
+import { CurrencyIds } from "../shared";
 import type { SerializedRegistrarAction } from "./serialized-types";
 import { RegistrarActionType } from "./types";
 import { makeRegistrarActionSchema } from "./zod-schemas";
@@ -22,9 +23,18 @@ describe("ENSIndexer: Registrar Actions", () => {
               type: RegistrarActionType.Renewal,
               node: namehash("vitalik.eth"),
 
-              baseCost: "1",
-              premium: "1",
-              total: "2",
+              baseCost: {
+                currency: CurrencyIds.ETH,
+                amount: "1",
+              },
+              premium: {
+                currency: CurrencyIds.ETH,
+                amount: "1",
+              },
+              total: {
+                currency: CurrencyIds.ETH,
+                amount: "2",
+              },
 
               registrant: vb3Address,
               rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
@@ -45,9 +55,18 @@ describe("ENSIndexer: Registrar Actions", () => {
               type: RegistrarActionType.Registration,
               node: namehash("vitalik.eth"),
 
-              baseCost: "3",
-              premium: "1",
-              total: "5",
+              baseCost: {
+                currency: CurrencyIds.ETH,
+                amount: "3",
+              },
+              premium: {
+                currency: CurrencyIds.ETH,
+                amount: "1",
+              },
+              total: {
+                currency: CurrencyIds.ETH,
+                amount: "5",
+              },
 
               registrant: vb3Address,
               rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
@@ -66,9 +85,18 @@ describe("ENSIndexer: Registrar Actions", () => {
               type: RegistrarActionType.Renewal,
               node: namehash("vitalik.eth"),
 
-              baseCost: "3",
-              premium: "0",
-              total: "4",
+              baseCost: {
+                currency: CurrencyIds.ETH,
+                amount: "3",
+              },
+              premium: {
+                currency: CurrencyIds.ETH,
+                amount: "0",
+              },
+              total: {
+                currency: CurrencyIds.ETH,
+                amount: "4",
+              },
 
               registrant: vb3Address,
               rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
@@ -87,9 +115,18 @@ describe("ENSIndexer: Registrar Actions", () => {
           type: RegistrarActionType.Registration,
           node: namehash("vitalik.eth"),
 
-          baseCost: "3",
-          premium: "1",
-          total: "4",
+          baseCost: {
+            currency: CurrencyIds.ETH,
+            amount: "3",
+          },
+          premium: {
+            currency: CurrencyIds.ETH,
+            amount: "1",
+          },
+          total: {
+            currency: CurrencyIds.ETH,
+            amount: "4",
+          },
 
           registrant: vb3Address,
           rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,

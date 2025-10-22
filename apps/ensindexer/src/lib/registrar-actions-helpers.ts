@@ -9,6 +9,7 @@ import type { Address } from "viem";
 
 import {
   type Node,
+  Price,
   type RawReferrer,
   RegistrarActionType,
   type RegistrarActionTypes,
@@ -115,14 +116,14 @@ export async function handleRegistrarAction(
     node: Node;
     parentNode: Node;
     expiresAt: bigint;
-    baseCost: bigint;
-    premium: bigint;
+    baseCost: Price;
+    premium: Price;
     registrant: Address;
     rawReferrer: RawReferrer;
   },
 ) {
   // 0. Calculate total cost
-  const total = baseCost + premium;
+  const total = baseCost.amount + premium.amount;
 
   // 1. Interpret the raw referrer
   const interpretedReferrer = interpretRawReferrer(rawReferrer);
@@ -156,8 +157,8 @@ export async function handleRegistrarAction(
     type,
     node,
     expiresAt,
-    baseCost,
-    premium,
+    baseCost: baseCost.amount,
+    premium: premium.amount,
     total,
     registrant,
     rawReferrer,

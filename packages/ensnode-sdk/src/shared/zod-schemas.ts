@@ -14,12 +14,13 @@ import { asLowerCaseAddress } from "./address";
 import type {
   BlockRef,
   ChainId,
-  Cost,
   Datetime,
   DefaultableChainId,
   Duration,
   UnixTimestamp,
 } from "./types";
+
+import { CurrencyIds, type Price } from "./currencies";
 
 /**
  * Zod `.check()` function input.
@@ -276,13 +277,19 @@ export const makeHexStringSchema = (
     .transform((v) => v as Hex);
 
 /**
- * Schema for {@link Cost} type.
+ * Schema for {@link Price} type.
  */
-export const makeCostSchema = (valueLabel: string = "Cost") =>
-  z.coerce
-    .bigint({
-      error: `${valueLabel} must represent a bigint.`,
-    })
-    .nonnegative({
-      error: `${valueLabel} must not be negative.`,
-    });
+export const makePriceSchema = (valueLabel: string = "Cost") =>
+  z.strictObject({
+    currency: z.enum(Object.values(CurrencyIds), {
+      error: `${valueLabel} currency must be a valid CurrencyId.`,
+    }),
+
+    amount: z.coerce
+      .bigint({
+        error: `${valueLabel} must represent a bigint.`,
+      })
+      .nonnegative({
+        error: `${valueLabel} must not be negative.`,
+      }),
+  });
