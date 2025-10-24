@@ -105,7 +105,6 @@ export async function handleRegistrarAction(
   {
     type,
     node,
-    parentNode,
     expiresAt,
     baseCost,
     premium,
@@ -114,7 +113,6 @@ export async function handleRegistrarAction(
   }: {
     type: RegistrarActionTypes;
     node: Node;
-    parentNode: Node;
     expiresAt: bigint;
     baseCost: Price;
     premium: Price;
@@ -135,19 +133,15 @@ export async function handleRegistrarAction(
     expiresAt,
   });
 
-  // 3. Upsert the Subregistry Registration record
+  // 3. Update the Subregistry Registration record
   // This record represents the current registration state for the `node`.
+  // The record must already exist, as it is created upon handling
+  // the Base Registrar:NameRegistered event.
   await context.db
-    .insert(schema.subregistry_registration)
-    .values({
+    .update(schema.subregistry_registration, {
       node,
-      parentNode,
-      expiresAt,
     })
-    // If Subregistry Registration record already exists for the `node`,
-    // set the current registration `expiresAt` timestamp to
-    // the `expiresAt` value from the Registrar Action event.
-    .onConflictDoUpdate({
+    .set({
       expiresAt,
     });
 
