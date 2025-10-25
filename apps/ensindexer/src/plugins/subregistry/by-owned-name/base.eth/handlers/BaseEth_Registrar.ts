@@ -14,6 +14,31 @@ export default function () {
   const pluginName = PluginName.Subregistry;
   const parentNode = namehash(getRegistrarManagedName(config.namespace));
 
+  // support NameRegisteredWithRecord for BaseRegistrar as it used by Base's RegistrarControllers
+  ponder.on(
+    namespaceContract(pluginName, "BaseEth_BaseRegistrar:NameRegisteredWithRecord"),
+    async ({ context, event }) => {
+      const labelHash = tokenIdToLabelHash(event.args.id);
+      const node = makeSubdomainNode(labelHash, parentNode);
+      const expiresAt = event.args.expires;
+
+      // Upsert the Subregistry Registration record
+      // This record represents the current registration state for the `node`.
+      await context.db
+        .insert(schema.subregistry_registration)
+        .values({
+          node,
+          parentNode,
+          expiresAt,
+        })
+        // in case the record already exists, it means the name was re-registered
+        // after expiry, so we update the expiresAt field
+        .onConflictDoUpdate({
+          expiresAt,
+        });
+    },
+  );
+
   ponder.on(
     namespaceContract(pluginName, "BaseEth_BaseRegistrar:NameRegistered"),
     async ({ context, event }) => {
