@@ -21,11 +21,10 @@ import { getRegistrarManagedName } from "../lib/registrar-helpers";
 export default function () {
   const pluginName = PluginName.Subregistry;
   const parentNode = namehash(getRegistrarManagedName(config.namespace));
-  const currency = CurrencyIds.ETH;
   /**
    * No Registrar Controller event includes a referrer.
    */
-  const rawReferrer = ZERO_RAW_REFERRER;
+  const encodedReferrer = ZERO_RAW_REFERRER;
   /**
    * No Registrar Controller event includes a base cost.
    */
@@ -57,15 +56,15 @@ export default function () {
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -96,15 +95,15 @@ export default function () {
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -131,15 +130,15 @@ export default function () {
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -166,15 +165,15 @@ export default function () {
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -201,15 +200,15 @@ export default function () {
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );

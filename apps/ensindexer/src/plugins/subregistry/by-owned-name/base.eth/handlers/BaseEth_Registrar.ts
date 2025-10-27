@@ -14,6 +14,30 @@ export default function () {
   const pluginName = PluginName.Subregistry;
   const parentNode = namehash(getRegistrarManagedName(config.namespace));
 
+  ponder.on(
+    namespaceContract(pluginName, "BaseEth_BaseRegistrar:ControllerAdded"),
+    async ({ context, event }) => {
+      await context.db.insert(schema.subregistry_registrar_controller).values({
+        address: event.args.controller,
+        baseRegistrarAddress: event.log.address,
+        addedAt: event.block.timestamp,
+        chainId: context.chain.id,
+        transactionHash: event.transaction.hash,
+      });
+    },
+  );
+
+  ponder.on(
+    namespaceContract(pluginName, "BaseEth_BaseRegistrar:ControllerRemoved"),
+    async ({ context, event }) => {
+      await context.db
+        .update(schema.subregistry_registrar_controller, { address: event.args.controller })
+        .set({
+          removedAt: event.block.timestamp,
+        });
+    },
+  );
+
   // support NameRegisteredWithRecord for BaseRegistrar as it used by Base's RegistrarControllers
   ponder.on(
     namespaceContract(pluginName, "BaseEth_BaseRegistrar:NameRegisteredWithRecord"),

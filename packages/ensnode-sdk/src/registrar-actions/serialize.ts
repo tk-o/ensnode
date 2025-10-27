@@ -11,10 +11,10 @@ export function serializeRegistrarAction(
     baseCost: serializePrice(registrarAction.baseCost),
     premium: serializePrice(registrarAction.premium),
     total: serializePrice(registrarAction.total),
-    rawReferrer: registrarAction.rawReferrer,
-    interpretedReferrer: registrarAction.interpretedReferrer,
+    encodedReferrer: registrarAction.encodedReferrer,
+    decodedReferrer: registrarAction.decodedReferrer,
     registrant: registrarAction.registrant,
-    blockTimestamp: registrarAction.blockTimestamp,
+    timestamp: registrarAction.timestamp,
     chainId: registrarAction.chainId,
     transactionHash: registrarAction.transactionHash,
   };

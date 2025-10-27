@@ -5,11 +5,66 @@
 import { index, onchainEnum, onchainTable, relations } from "ponder";
 
 /**
+ * Subregistry Registrar Controller Table
+ *
+ * Tracks known subregistry registrar controller contracts that manage registrations
+ * and renewals for known subregistry base registrars.
+ */
+export const subregistry_registrar_controller = onchainTable(
+  "subregistry_registrar_controllers",
+  (t) => ({
+    /**
+     * The contract address of the registrar controller instance.
+     */
+    address: t.hex().primaryKey(),
+
+    /**
+     * The base registrar contract address that this controller manages.
+     */
+    baseRegistrarAddress: t.hex().notNull(),
+
+    /**
+     * The timestamp when the registrar controller contract was added
+     * to the base registrar.
+     *
+     * Guaranteed to be a non-negative bigint value.
+     */
+    addedAt: t.bigint().notNull(),
+
+    /**
+     * The timestamp when the registrar controller contract was removed
+     * from the base registrar.
+     *
+     * Guaranteed to be:
+     * - null if still active,
+     * - otherwise, a non-negative bigint value.
+     */
+    removedAt: t.bigint(),
+
+    /**
+     * Chain ID that the transaction associated with the registrar action
+     * occurred on.
+     *
+     * Guaranteed to be a non-negative integer value.
+     */
+    chainId: t.integer().notNull(),
+
+    /**
+     * Transaction hash of the transaction on `chainId` associated with
+     * the registrar action.
+     *
+     * Guaranteed to be a string representation of 32-bytes.
+     */
+    transactionHash: t.hex().notNull(),
+  }),
+);
+
+/**
  * Subregistry Registration Table
  *
  * Tracks current registration state for nodes registered via subregistries.
  */
-export const subregistry_registration = onchainTable("subregistry_registration", (t) => ({
+export const subregistry_registration = onchainTable("subregistry_registrations", (t) => ({
   /**
    * The node for which the registration was executed.
    *
@@ -30,6 +85,15 @@ export const subregistry_registration = onchainTable("subregistry_registration",
    * Guaranteed to be a non-negative bigint value.
    */
   expiresAt: t.bigint().notNull(),
+
+  /**
+   * Indicates whether the registration is managed by a known registrar controller.
+   *
+   * If true, it means that the registration was performed via a known
+   * subregistry registrar controller contract.
+   * Otherwise, it the registration was performed via unknown registrar controller address.
+   */
+  isControllerManaged: t.boolean().notNull().default(false),
 }));
 
 /**
@@ -49,7 +113,7 @@ export const subregistry_registrarActionType = onchainEnum("registrar_action_typ
  * via subregistries.
  */
 export const subregistry_registrarAction = onchainTable(
-  "subregistry_registration_action",
+  "subregistry_registrar_actions",
   (t) => ({
     /**
      * Unique EVM event identifier for the registrar action.
@@ -97,19 +161,19 @@ export const subregistry_registrarAction = onchainTable(
     registrant: t.hex().notNull(),
 
     /**
-     * Raw referrer
+     * Encoded referrer
      *
      * Guaranteed to be a string representation of 32-bytes.
      */
-    rawReferrer: t.hex().notNull(),
+    encodedReferrer: t.hex().notNull(),
 
     /**
-     * Interpreted referrer
+     * Decoded referrer
      *
-     * Guaranteed to be a lowercase address, if `rawReferrer` value
-     * could be interpreted. Otherwise it's the zero address.
+     * Guaranteed to be a lowercase address, if `encodedReferrer` value
+     * could be decoded. Otherwise it's the zero address.
      */
-    interpretedReferrer: t.hex().notNull(),
+    decodedReferrer: t.hex().notNull(),
 
     /**
      * Incremental Duration
@@ -144,12 +208,12 @@ export const subregistry_registrarAction = onchainTable(
     incrementalDuration: t.bigint().notNull(),
 
     /**
-     * Block timestamp of the transaction on `chainId` associated with
+     * Timestamp of the transaction on `chainId` associated with
      * the registrar action.
      *
      * Guaranteed to be a non-negative bigint value.
      */
-    blockTimestamp: t.bigint().notNull(),
+    timestamp: t.bigint().notNull(),
 
     /**
      * Chain ID that the transaction associated with the registrar action
@@ -169,7 +233,7 @@ export const subregistry_registrarAction = onchainTable(
   }),
   (t) => ({
     byRegistrant: index().on(t.registrant),
-    byReferrer: index().on(t.interpretedReferrer),
+    byReferrer: index().on(t.decodedReferrer),
   }),
 );
 

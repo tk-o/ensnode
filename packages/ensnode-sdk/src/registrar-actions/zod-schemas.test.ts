@@ -37,10 +37,10 @@ describe("ENSIndexer: Registrar Actions", () => {
               },
 
               registrant: vb3Address,
-              rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
-              interpretedReferrer: vb2Address,
+              encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+              decodedReferrer: vb2Address,
 
-              blockTimestamp: 1761062418,
+              timestamp: 1761062418,
               chainId: 1,
               transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
             } satisfies SerializedRegistrarAction),
@@ -69,10 +69,10 @@ describe("ENSIndexer: Registrar Actions", () => {
               },
 
               registrant: vb3Address,
-              rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
-              interpretedReferrer: vb2Address,
+              encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+              decodedReferrer: vb2Address,
 
-              blockTimestamp: 1761062418,
+              timestamp: 1761062418,
               chainId: 1,
               transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
             } satisfies SerializedRegistrarAction),
@@ -99,10 +99,10 @@ describe("ENSIndexer: Registrar Actions", () => {
               },
 
               registrant: vb3Address,
-              rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
-              interpretedReferrer: vb2Address,
+              encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+              decodedReferrer: vb2Address,
 
-              blockTimestamp: 1761062418,
+              timestamp: 1761062418,
               chainId: 1,
               transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
             } satisfies SerializedRegistrarAction),
@@ -110,7 +110,7 @@ describe("ENSIndexer: Registrar Actions", () => {
         ).toMatch(/'total' must be equal to the sum of 'baseCost' and 'premium'/);
       });
 
-      it("refuses to parse Registrar Action when interpretedReferrer is not based on rawReferrer", () => {
+      it("refuses to parse Registrar Action when decodedReferrer is not based on encodedReferrer", () => {
         const parsed = makeRegistrarActionSchema().safeParse({
           type: RegistrarActionType.Registration,
           node: namehash("vitalik.eth"),
@@ -129,16 +129,16 @@ describe("ENSIndexer: Registrar Actions", () => {
           },
 
           registrant: vb3Address,
-          rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
-          interpretedReferrer: vitalikEthAddress,
+          encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+          decodedReferrer: vitalikEthAddress,
 
-          blockTimestamp: 1761062418,
+          timestamp: 1761062418,
           chainId: 1,
           transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
         } satisfies SerializedRegistrarAction);
 
         expect(formatParseError(parsed)).toMatch(
-          /'interpretedReferrer' must be based on 'rawReferrer'/,
+          /'decodedReferrer' must be based on 'encodedReferrer'/,
         );
       });
     });

@@ -7,7 +7,7 @@ import {
   makePriceSchema,
   makeUnixTimestampSchema,
 } from "../internal";
-import { interpretRawReferrer } from "./helpers";
+import { decodeReferrer } from "./helpers";
 import { type RegistrarAction, RegistrarActionType } from "./types";
 
 /** Invariant: total is sum of baseCost and premium */
@@ -44,23 +44,23 @@ function invariant_registrarActionTotalIsSumOfBaseCostAndPremium(
   }
 }
 
-/** Invariant: interpretedReferrer is based on rawReferrer */
-function invariant_registrarActionInterpretedReferrerBasedOnRawReferrer(
-  ctx: ParsePayload<Pick<RegistrarAction, "rawReferrer" | "interpretedReferrer">>,
+/** Invariant: decodedReferrer is based on encodedReferrer */
+function invariant_registrarActionDecodedReferrerBasedOnRawReferrer(
+  ctx: ParsePayload<Pick<RegistrarAction, "encodedReferrer" | "decodedReferrer">>,
 ) {
   const registrarAction = ctx.value;
-  const expectedInterpretedReferrer = interpretRawReferrer(registrarAction.rawReferrer);
+  const expectedDecodedReferrer = decodeReferrer(registrarAction.encodedReferrer);
 
   console.log({
-    actual: registrarAction.interpretedReferrer,
-    expectedInterpretedReferrer,
+    actual: registrarAction.decodedReferrer,
+    expectedDecodedReferrer,
   });
 
-  if (registrarAction.interpretedReferrer !== expectedInterpretedReferrer) {
+  if (registrarAction.decodedReferrer !== expectedDecodedReferrer) {
     ctx.issues.push({
       code: "custom",
       input: ctx.value,
-      message: `'interpretedReferrer' must be based on 'rawReferrer'`,
+      message: `'decodedReferrer' must be based on 'encodedReferrer'`,
     });
   }
 }
@@ -74,10 +74,10 @@ const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Acti
     total: makePriceSchema(`${valueLabel} Total`),
 
     registrant: makeLowercaseAddressSchema(`${valueLabel} Registrant`),
-    rawReferrer: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Raw Referrer`),
-    interpretedReferrer: makeLowercaseAddressSchema(`${valueLabel} Interpreted Referrer`),
+    encodedReferrer: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Encoded Referrer`),
+    decodedReferrer: makeLowercaseAddressSchema(`${valueLabel} Decoded Referrer`),
 
-    blockTimestamp: makeUnixTimestampSchema(`${valueLabel} Block Timestamp`),
+    timestamp: makeUnixTimestampSchema(`${valueLabel} Block Timestamp`),
     chainId: makeChainIdSchema(`${valueLabel} Chain ID`),
     transactionHash: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Transaction Hash`),
   });
@@ -88,7 +88,7 @@ export const makeRegistrarActionRegistrationSchema = (valueLabel: string = "Regi
       type: z.literal(RegistrarActionType.Registration),
     })
     .check(invariant_registrarActionTotalIsSumOfBaseCostAndPremium)
-    .check(invariant_registrarActionInterpretedReferrerBasedOnRawReferrer);
+    .check(invariant_registrarActionDecodedReferrerBasedOnRawReferrer);
 
 export const makeRegistrarActionRenewalSchema = (valueLabel: string = "Renewal") =>
   makeBaseRegistrarActionSchema(valueLabel)
@@ -100,7 +100,7 @@ export const makeRegistrarActionRenewalSchema = (valueLabel: string = "Renewal")
       }),
     })
     .check(invariant_registrarActionTotalIsSumOfBaseCostAndPremium)
-    .check(invariant_registrarActionInterpretedReferrerBasedOnRawReferrer);
+    .check(invariant_registrarActionDecodedReferrerBasedOnRawReferrer);
 
 /**
  * Schema for {@link RegistrarAction}.

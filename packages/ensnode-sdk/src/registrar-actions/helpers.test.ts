@@ -1,11 +1,11 @@
 import { Address, bytesToHex, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
-import { interpretRawReferrer } from "./helpers";
+import { decodeReferrer } from "./helpers";
 
 const vitalikEthAddress: Address = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
 
-describe("raw referrer", () => {
-  describe("interpreting a 32-byte value", () => {
+describe("encoded referrer", () => {
+  describe("decoding a 32-byte value", () => {
     it("returns the EVM address when initial bytes were all zeroes", () => {
       // arrange
       const initialBytes = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -18,7 +18,7 @@ describe("raw referrer", () => {
       const input = bytesToHex(new Uint8Array([...initialBytes, ...remainingBytes]));
 
       // act
-      const result = interpretRawReferrer(input);
+      const result = decodeReferrer(input);
 
       // assert
       expect(result).toEqual(vitalikEthAddress);
@@ -36,7 +36,7 @@ describe("raw referrer", () => {
       const input = bytesToHex(new Uint8Array([...initialBytes, ...remainingBytes]));
 
       // act
-      const result = interpretRawReferrer(input);
+      const result = decodeReferrer(input);
 
       // assert
       expect(result).toEqual(zeroAddress);

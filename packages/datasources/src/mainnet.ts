@@ -2,8 +2,9 @@ import { arbitrum, base, linea, mainnet, optimism, scroll } from "viem/chains";
 
 import { DatasourceNames, type ENSNamespace } from "./lib/types";
 
-// ABIs for ENSRoot Datasource
 import { BaseRegistrar as root_BaseRegistrar } from "./abis/root/BaseRegistrar";
+// ABIs for ENSRoot Datasource
+import { BaseRegistrarOld as root_BaseRegistrarOld } from "./abis/root/BaseRegistrarOld";
 import { LegacyEthRegistrarController as root_LegacyEthRegistrarController } from "./abis/root/LegacyEthRegistrarController";
 import { NameWrapper as root_NameWrapper } from "./abis/root/NameWrapper";
 import { Registry as root_Registry } from "./abis/root/Registry";
@@ -58,8 +59,13 @@ export default {
         filter: ResolverFilter,
         startBlock: 3327417, // ignores any Resolver events prior to `startBlock` of RegistryOld on Mainnet
       },
+      BaseRegistrarOld: {
+        abi: root_BaseRegistrarOld,
+        address: "0xfac7bea255a6990f749363002136af6556b31e04",
+        startBlock: 7666399,
+      },
       BaseRegistrar: {
-        abi: root_BaseRegistrar,
+        abi: root_BaseRegistrar, // BaseRegistrar was redeployed, new abi
         address: "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85",
         startBlock: 9380410,
       },

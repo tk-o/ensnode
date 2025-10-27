@@ -35,6 +35,14 @@ export default createPlugin({
 
     const registrarContracts = {
       ["eth"]: {
+        [namespaceContract(pluginName, "Eth_BaseRegistrarOld")]: {
+          chain: chainConfigForContract(
+            config.globalBlockrange,
+            rootChainDatasource.chain.id,
+            rootChainDatasource.contracts.BaseRegistrarOld,
+          ),
+          abi: rootChainDatasource.contracts.BaseRegistrarOld.abi,
+        },
         [namespaceContract(pluginName, "Eth_BaseRegistrar")]: {
           chain: chainConfigForContract(
             config.globalBlockrange,

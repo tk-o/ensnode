@@ -19,7 +19,6 @@ import { getRegistrarManagedName } from "../lib/registrar-helpers";
 export default function () {
   const pluginName = PluginName.Subregistry;
   const parentNode = namehash(getRegistrarManagedName(config.namespace));
-  const currency = CurrencyIds.ETH;
 
   /**
    * Eth_LegacyEthRegistrarController Event Handlers
@@ -47,22 +46,22 @@ export default function () {
        * Eth_LegacyEthRegistrarController does not emit a referrer in
        * the NameRegistered event.
        */
-      const rawReferrer = ZERO_RAW_REFERRER;
+      const encodedReferrer = ZERO_RAW_REFERRER;
 
       await handleRegistrarAction(context, event, {
         type,
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -88,22 +87,22 @@ export default function () {
        * Eth_LegacyEthRegistrarController does not emit a referrer in
        * the NameRenewed event.
        */
-      const rawReferrer = ZERO_RAW_REFERRER;
+      const encodedReferrer = ZERO_RAW_REFERRER;
 
       await handleRegistrarAction(context, event, {
         type,
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -130,22 +129,22 @@ export default function () {
        * Eth_WrappedEthRegistrarController does not emit a referrer in
        * the NameRegistered event.
        */
-      const rawReferrer = ZERO_RAW_REFERRER;
+      const encodedReferrer = ZERO_RAW_REFERRER;
 
       await handleRegistrarAction(context, event, {
         type,
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -171,22 +170,22 @@ export default function () {
        * Eth_WrappedEthRegistrarController does not emit a referrer in
        * the NameRenewed event.
        */
-      const rawReferrer = ZERO_RAW_REFERRER;
+      const encodedReferrer = ZERO_RAW_REFERRER;
 
       await handleRegistrarAction(context, event, {
         type,
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -209,22 +208,22 @@ export default function () {
        * so we treat the transaction sender address as a registrant
        */
       const registrant = event.transaction.from;
-      const rawReferrer = event.args.referrer;
+      const encodedReferrer = event.args.referrer;
 
       await handleRegistrarAction(context, event, {
         type,
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -246,22 +245,22 @@ export default function () {
        * so we treat the transaction sender address as a registrant
        */
       const registrant = event.transaction.from;
-      const rawReferrer = event.args.referrer;
+      const encodedReferrer = event.args.referrer;
 
       await handleRegistrarAction(context, event, {
         type,
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );

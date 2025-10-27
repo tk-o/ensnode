@@ -30,10 +30,10 @@ describe("Registrar Actions", () => {
       },
 
       registrant: vb3Address,
-      rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
-      interpretedReferrer: vb2Address,
+      encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+      decodedReferrer: vb2Address,
 
-      blockTimestamp: 1761062418,
+      timestamp: 1761062418,
       chainId: 1,
       transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
     } satisfies SerializedRegistrarAction;
@@ -59,10 +59,10 @@ describe("Registrar Actions", () => {
       },
 
       registrant: vb3Address,
-      rawReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
-      interpretedReferrer: vb2Address,
+      encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+      decodedReferrer: vb2Address,
 
-      blockTimestamp: 1761062418,
+      timestamp: 1761062418,
       chainId: 1,
       transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
     } satisfies RegistrarAction);

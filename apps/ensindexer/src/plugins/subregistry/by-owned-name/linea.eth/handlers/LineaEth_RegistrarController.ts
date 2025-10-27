@@ -17,12 +17,11 @@ import {
  */
 export default function () {
   const pluginName = PluginName.Subregistry;
-  const currency = CurrencyIds.ETH;
   const parentNode = LINEANAMES_NODE;
   /**
    * No Registrar Controller event includes a referrer.
    */
-  const rawReferrer = ZERO_RAW_REFERRER;
+  const encodedReferrer = ZERO_RAW_REFERRER;
 
   /**
    * LineaEth_EthRegistrarController Event Handlers
@@ -52,15 +51,15 @@ export default function () {
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );
@@ -88,15 +87,15 @@ export default function () {
         node,
         expiresAt,
         baseCost: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: baseCost,
         },
         premium: {
-          currency,
+          currency: CurrencyIds.ETH,
           amount: premium,
         },
         registrant,
-        rawReferrer,
+        encodedReferrer,
       });
     },
   );

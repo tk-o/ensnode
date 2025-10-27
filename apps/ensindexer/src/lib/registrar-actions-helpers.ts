@@ -1,6 +1,6 @@
 /**
- * Shared Helpers for managing Referral entities, usable by any contract that wishes to track
- * referral information.
+ * Shared Helpers for managing Registrar Action entities, usable by any contract that wishes to track
+ * registrations and renewals information.
  */
 
 import type { Context, Event } from "ponder:registry";
@@ -8,12 +8,12 @@ import schema from "ponder:schema";
 import type { Address } from "viem";
 
 import {
+  type EncodedReferrer,
   type Node,
   Price,
-  type RawReferrer,
   RegistrarActionType,
   type RegistrarActionTypes,
-  interpretRawReferrer,
+  decodeReferrer,
 } from "@ensnode/ensnode-sdk";
 
 /**
@@ -109,7 +109,7 @@ export async function handleRegistrarAction(
     baseCost,
     premium,
     registrant,
-    rawReferrer,
+    encodedReferrer,
   }: {
     type: RegistrarActionTypes;
     node: Node;
@@ -117,17 +117,17 @@ export async function handleRegistrarAction(
     baseCost: Price;
     premium: Price;
     registrant: Address;
-    rawReferrer: RawReferrer;
+    encodedReferrer: EncodedReferrer;
   },
 ) {
   // 0. Calculate total cost
   const total = baseCost.amount + premium.amount;
 
-  // 1. Interpret the raw referrer
-  const interpretedReferrer = interpretRawReferrer(rawReferrer);
+  // 1. Decode the encoded referrer
+  const decodedReferrer = decodeReferrer(encodedReferrer);
 
   // 2. Get incremental duration for handled registrar action
-  const incrementalDuration = await getIncrementalDurationForRegistrarAction(context, event, {
+  let incrementalDuration = await getIncrementalDurationForRegistrarAction(context, event, {
     type,
     node,
     expiresAt,
@@ -142,6 +142,7 @@ export async function handleRegistrarAction(
       node,
     })
     .set({
+      isControllerManaged: true,
       expiresAt,
     });
 
@@ -155,10 +156,10 @@ export async function handleRegistrarAction(
     premium: premium.amount,
     total,
     registrant,
-    rawReferrer,
-    interpretedReferrer,
+    encodedReferrer,
+    decodedReferrer,
     incrementalDuration,
-    blockTimestamp: event.block.timestamp,
+    timestamp: event.block.timestamp,
     chainId: context.chain.id,
     transactionHash: event.transaction.hash,
   });

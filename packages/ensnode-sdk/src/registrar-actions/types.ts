@@ -14,7 +14,7 @@ export type RegistrarActionTypes = (typeof RegistrarActionType)[keyof typeof Reg
  *
  * Guaranteed to be a string representation of 32-bytes.
  */
-export type RawReferrer = Hex;
+export type EncodedReferrer = Hex;
 
 /**
  * Registrar Action
@@ -58,26 +58,26 @@ export interface RegistrarAction {
   registrant: Address;
 
   /**
-   * Raw Referrer
+   * Encoded Referrer
    *
    * A 32-bytes value.
    */
-  rawReferrer: RawReferrer;
+  encodedReferrer: EncodedReferrer;
 
   /**
-   * Interpreted Referrer
+   * Decoded Referrer
    *
    * Invariants:
-   * - If the first `12`-bytes of “rawReferrer” are all `0`,
-   *   then “interpretedReferrer” is the last `20`-bytes of “rawReferrer”,
-   *   else: “interpretedReferrer” is the zero address.
+   * - If the first `12`-bytes of “encodedReferrer” are all `0`,
+   *   then “decodedReferrer” is the last `20`-bytes of “encodedReferrer”,
+   *   else: “decodedReferrer” is the zero address.
    */
-  interpretedReferrer: Address;
+  decodedReferrer: Address;
 
   /**
    * Block timestamp
    */
-  blockTimestamp: UnixTimestamp;
+  timestamp: UnixTimestamp;
 
   /**
    * Chain ID
