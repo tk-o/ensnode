@@ -1,16 +1,16 @@
 import { ponder } from "ponder:registry";
 
-import { namespaceContract } from "@/lib/plugin-helpers";
-import { handleRegistrarAction } from "@/lib/registrar-actions-helpers";
 import {
   CurrencyIds,
-  ETH_NODE,
   LINEANAMES_NODE,
+  makeSubdomainNode,
   PluginName,
   RegistrarActionType,
   ZERO_RAW_REFERRER,
-  makeSubdomainNode,
 } from "@ensnode/ensnode-sdk";
+
+import { namespaceContract } from "@/lib/plugin-helpers";
+import { handleRegistrarAction } from "@/lib/registrar-actions-helpers";
 
 /**
  * Registers event handlers with Ponder.

@@ -1,6 +1,7 @@
-import type { RegistrarManagedName } from "@/lib/types";
 import type { ENSNamespaceId } from "@ensnode/datasources";
 import { type LabelHash, uint256ToHex32 } from "@ensnode/ensnode-sdk";
+
+import type { RegistrarManagedName } from "@/lib/types";
 
 /**
  * When direct subnames of base.eth are registered through the base.eth RegistrarController contract

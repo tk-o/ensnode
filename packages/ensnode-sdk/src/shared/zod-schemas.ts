@@ -1,5 +1,5 @@
-import { type CoinType } from "@ensdomains/address-encoder";
-import { type Address, type Hex, bytesToHex, hexToBytes, isAddress, isHex } from "viem";
+import type { CoinType } from "@ensdomains/address-encoder";
+import { type Address, type Hex, isAddress } from "viem";
 /**
  * All zod schemas we define must remain internal implementation details.
  * We want the freedom to move away from zod in the future without impacting
@@ -9,8 +9,10 @@ import { type Address, type Hex, bytesToHex, hexToBytes, isAddress, isHex } from
  * `./src/internal.ts` file.
  */
 import z from "zod/v4";
+
 import { ENSNamespaceIds } from "../ens";
 import { asLowerCaseAddress } from "./address";
+import { CurrencyIds, type Price } from "./currencies";
 import type {
   BlockRef,
   ChainId,
@@ -19,8 +21,6 @@ import type {
   Duration,
   UnixTimestamp,
 } from "./types";
-
-import { CurrencyIds, type Price } from "./currencies";
 
 /**
  * Zod `.check()` function input.

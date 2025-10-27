@@ -1,5 +1,6 @@
-import { Address, bytesToHex, zeroAddress } from "viem";
+import { type Address, bytesToHex, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
+
 import { decodeReferrer } from "./helpers";
 
 const vitalikEthAddress: Address = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";

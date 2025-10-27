@@ -1,5 +1,6 @@
 import z from "zod/v4";
-import { ParsePayload } from "zod/v4/core";
+import type { ParsePayload } from "zod/v4/core";
+
 import {
   makeChainIdSchema,
   makeHexStringSchema,

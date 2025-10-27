@@ -8,12 +8,12 @@ import schema from "ponder:schema";
 import type { Address } from "viem";
 
 import {
+  decodeReferrer,
   type EncodedReferrer,
   type Node,
-  Price,
+  type Price,
   RegistrarActionType,
   type RegistrarActionTypes,
-  decodeReferrer,
 } from "@ensnode/ensnode-sdk";
 
 /**
@@ -127,7 +127,7 @@ export async function handleRegistrarAction(
   const decodedReferrer = decodeReferrer(encodedReferrer);
 
   // 2. Get incremental duration for handled registrar action
-  let incrementalDuration = await getIncrementalDurationForRegistrarAction(context, event, {
+  const incrementalDuration = await getIncrementalDurationForRegistrarAction(context, event, {
     type,
     node,
     expiresAt,

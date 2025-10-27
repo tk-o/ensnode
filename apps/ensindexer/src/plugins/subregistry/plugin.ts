@@ -2,15 +2,17 @@
  * The Referrals plugin indexes registration and renewal referral data emitted by the `UnwrappedEthRegistrarController` contract.
  */
 
+import * as ponder from "ponder";
+
+import { DatasourceNames } from "@ensnode/datasources";
+import { PluginName } from "@ensnode/ensnode-sdk";
+
 import {
   createPlugin,
   getDatasourceAsFullyDefinedAtCompileTime,
   namespaceContract,
 } from "@/lib/plugin-helpers";
 import { chainConfigForContract, chainsConnectionConfig } from "@/lib/ponder-helpers";
-import { DatasourceNames } from "@ensnode/datasources";
-import { PluginName } from "@ensnode/ensnode-sdk";
-import * as ponder from "ponder";
 
 const pluginName = PluginName.Subregistry;
 
@@ -34,7 +36,7 @@ export default createPlugin({
     );
 
     const registrarContracts = {
-      ["eth"]: {
+      eth: {
         [namespaceContract(pluginName, "Eth_BaseRegistrarOld")]: {
           chain: chainConfigForContract(
             config.globalBlockrange,
@@ -52,7 +54,7 @@ export default createPlugin({
           abi: rootChainDatasource.contracts.BaseRegistrar.abi,
         },
       },
-      ["base.eth"]: {
+      "base.eth": {
         [namespaceContract(pluginName, "BaseEth_BaseRegistrar")]: {
           chain: chainConfigForContract(
             config.globalBlockrange,
@@ -62,7 +64,7 @@ export default createPlugin({
           abi: basenamesDatasource.contracts.BaseRegistrar.abi,
         },
       },
-      ["linea.eth"]: {
+      "linea.eth": {
         [namespaceContract(pluginName, "LineaEth_BaseRegistrar")]: {
           chain: chainConfigForContract(
             config.globalBlockrange,
@@ -75,7 +77,7 @@ export default createPlugin({
     };
 
     const registrarControllerContracts = {
-      ["eth"]: {
+      eth: {
         [namespaceContract(pluginName, "Eth_LegacyEthRegistrarController")]: {
           chain: chainConfigForContract(
             config.globalBlockrange,
@@ -102,7 +104,7 @@ export default createPlugin({
         },
       },
 
-      ["base.eth"]: {
+      "base.eth": {
         [namespaceContract(pluginName, "BaseEth_EARegistrarController")]: {
           chain: chainConfigForContract(
             config.globalBlockrange,
@@ -129,7 +131,7 @@ export default createPlugin({
         },
       },
 
-      ["linea.eth"]: {
+      "linea.eth": {
         [namespaceContract(pluginName, "LineaEth_EthRegistrarController")]: {
           chain: chainConfigForContract(
             config.globalBlockrange,
@@ -148,8 +150,8 @@ export default createPlugin({
         ...chainsConnectionConfig(config.rpcConfigs, linenamesDatasource.chain.id),
       },
       contracts: {
-        ...registrarContracts["eth"],
-        ...registrarControllerContracts["eth"],
+        ...registrarContracts.eth,
+        ...registrarControllerContracts.eth,
         ...registrarContracts["base.eth"],
         ...registrarControllerContracts["base.eth"],
         ...registrarContracts["linea.eth"],

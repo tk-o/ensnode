@@ -1,4 +1,4 @@
-import { Price, SerializedPrice } from "./currencies";
+import type { Price, SerializedPrice } from "./currencies";
 import type { ChainIdString, DatetimeISO8601, UrlString } from "./serialized-types";
 import type { ChainId, Datetime } from "./types";
 

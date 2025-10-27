@@ -1,4 +1,5 @@
 import { type Address, bytesToHex, hexToBytes, zeroAddress } from "viem";
+
 import { asLowerCaseAddress } from "../shared";
 import type { EncodedReferrer } from "./types";
 

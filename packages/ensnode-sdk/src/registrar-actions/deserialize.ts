@@ -1,4 +1,5 @@
 import { prettifyError } from "zod/v4";
+
 import type { SerializedRegistrarAction } from "./serialized-types";
 import type { RegistrarAction } from "./types";
 import { makeRegistrarActionSchema } from "./zod-schemas";

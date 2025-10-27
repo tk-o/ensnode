@@ -1,12 +1,12 @@
 import { type Address, namehash, parseEther } from "viem";
 import { describe, expect, it } from "vitest";
+
 import { CurrencyIds } from "../shared";
 import { deserializeRegistrarAction } from "./deserialize";
 import { serializeRegistrarAction } from "./serialize";
-import { SerializedRegistrarAction } from "./serialized-types";
-import { RegistrarAction, RegistrarActionType } from "./types";
+import type { SerializedRegistrarAction } from "./serialized-types";
+import { type RegistrarAction, RegistrarActionType } from "./types";
 
-const vitalikEthAddress: Address = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
 const vb2Address: Address = "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6";
 const vb3Address: Address = "0x220866b1a2219f40e72f5c628b65d54268ca3a9d";
 

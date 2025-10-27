@@ -1,4 +1,5 @@
 import type { Address, Hash, Hex } from "viem";
+
 import type { Node } from "../ens";
 import type { ChainId, Price, UnixTimestamp } from "../shared";
 

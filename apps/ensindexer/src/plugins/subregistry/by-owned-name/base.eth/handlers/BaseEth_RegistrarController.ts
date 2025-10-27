@@ -1,18 +1,19 @@
+import config from "@/config";
+
 import { ponder } from "ponder:registry";
+import { namehash } from "viem/ens";
+
 import {
-  BASENAMES_NODE,
   CurrencyIds,
-  ETH_NODE,
+  makeSubdomainNode,
   PluginName,
   RegistrarActionType,
   ZERO_RAW_REFERRER,
-  makeSubdomainNode,
 } from "@ensnode/ensnode-sdk";
-import { namehash } from "viem/ens";
 
-import config from "@/config";
 import { namespaceContract } from "@/lib/plugin-helpers";
 import { handleRegistrarAction } from "@/lib/registrar-actions-helpers";
+
 import { getRegistrarManagedName } from "../lib/registrar-helpers";
 
 /**

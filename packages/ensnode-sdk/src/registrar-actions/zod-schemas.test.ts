@@ -1,6 +1,7 @@
-import { Address, namehash } from "viem";
+import { type Address, namehash } from "viem";
 import { describe, expect, it } from "vitest";
-import { type ZodSafeParseResult, prettifyError } from "zod/v4";
+import { prettifyError, type ZodSafeParseResult } from "zod/v4";
+
 import { CurrencyIds } from "../shared";
 import type { SerializedRegistrarAction } from "./serialized-types";
 import { RegistrarActionType } from "./types";

@@ -239,7 +239,7 @@ export const subregistry_registrarAction = onchainTable(
 
 export const subregistry_registrarAction_relations = relations(
   subregistry_registrarAction,
-  ({ one, many }) => ({
+  ({ one }) => ({
     // RegistrarAction belongs to subregistry_registrarAction
     referrer: one(subregistry_registration, {
       fields: [subregistry_registrarAction.node],
@@ -250,7 +250,7 @@ export const subregistry_registrarAction_relations = relations(
 
 export const subregistry_registration_relations = relations(
   subregistry_registration,
-  ({ one, many }) => ({
+  ({ many }) => ({
     // Registration has many RegistrarAction
     registrarActions: many(subregistry_registrarAction),
   }),

@@ -1,10 +1,13 @@
+import config from "@/config";
+
 import { ponder } from "ponder:registry";
 import schema from "ponder:schema";
-import { PluginName, makeSubdomainNode } from "@ensnode/ensnode-sdk";
 import { namehash } from "viem/ens";
 
-import config from "@/config";
+import { makeSubdomainNode, PluginName } from "@ensnode/ensnode-sdk";
+
 import { namespaceContract } from "@/lib/plugin-helpers";
+
 import { getRegistrarManagedName, tokenIdToLabelHash } from "../lib/registrar-helpers";
 
 /**
