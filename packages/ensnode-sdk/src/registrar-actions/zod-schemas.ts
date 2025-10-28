@@ -3,13 +3,15 @@ import type { ParsePayload } from "zod/v4/core";
 
 import {
   makeChainIdSchema,
+  makeDurationSchema,
   makeHexStringSchema,
   makeLowercaseAddressSchema,
+  makeNonNegativeIntegerSchema,
   makePriceSchema,
   makeUnixTimestampSchema,
 } from "../internal";
 import { decodeReferrer } from "./helpers";
-import { type RegistrarAction, RegistrarActionType } from "./types";
+import { type RegistrarAction, RegistrarActionTypes } from "./types";
 
 /** Invariant: total is sum of baseCost and premium */
 function invariant_registrarActionTotalIsSumOfBaseCostAndPremium(
@@ -74,6 +76,8 @@ const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Acti
     premium: makePriceSchema(`${valueLabel} Premium`),
     total: makePriceSchema(`${valueLabel} Total`),
 
+    incrementalDuration: makeDurationSchema(`${valueLabel} Incremental Duration`),
+
     registrant: makeLowercaseAddressSchema(`${valueLabel} Registrant`),
     encodedReferrer: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Encoded Referrer`),
     decodedReferrer: makeLowercaseAddressSchema(`${valueLabel} Decoded Referrer`),
@@ -81,12 +85,13 @@ const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Acti
     timestamp: makeUnixTimestampSchema(`${valueLabel} Block Timestamp`),
     chainId: makeChainIdSchema(`${valueLabel} Chain ID`),
     transactionHash: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Transaction Hash`),
+    logIndex: makeNonNegativeIntegerSchema(`${valueLabel} Log Index`),
   });
 
 export const makeRegistrarActionRegistrationSchema = (valueLabel: string = "Registration ") =>
   makeBaseRegistrarActionSchema(valueLabel)
     .extend({
-      type: z.literal(RegistrarActionType.Registration),
+      type: z.literal(RegistrarActionTypes.Registration),
     })
     .check(invariant_registrarActionTotalIsSumOfBaseCostAndPremium)
     .check(invariant_registrarActionDecodedReferrerBasedOnRawReferrer);
@@ -94,7 +99,7 @@ export const makeRegistrarActionRegistrationSchema = (valueLabel: string = "Regi
 export const makeRegistrarActionRenewalSchema = (valueLabel: string = "Renewal") =>
   makeBaseRegistrarActionSchema(valueLabel)
     .extend({
-      type: z.literal(RegistrarActionType.Renewal),
+      type: z.literal(RegistrarActionTypes.Renewal),
 
       premium: makePriceSchema(`${valueLabel} Premium`).refine((v) => v.amount === 0n, {
         error: `Renewal Premium must always be '0'`,

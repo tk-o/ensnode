@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hash } from "viem";
 
 import type { DEFAULT_EVM_CHAIN_ID } from "../ens";
 
@@ -87,6 +87,39 @@ export interface Blockrange<BlockType = BlockNumber> {
 
   /** End block number */
   endBlock?: BlockType;
+}
+
+/**
+ * EventRef
+ *
+ * Describes an onchain event.
+ *
+ * Useful to capture information about indexed events.
+ */
+export interface EventRef {
+  /**
+   * Chain ID
+   */
+  chainId: ChainId;
+
+  /**
+   * Block timestamp
+   */
+  timestamp: UnixTimestamp;
+
+  /**
+   * Transaction Hash
+   */
+  transactionHash: Hash;
+
+  /**
+   * Log Index
+   *
+   * The index of a log within a block.
+   *
+   * Guaranteed to be a non-negative integer.
+   */
+  logIndex: number;
 }
 
 /**

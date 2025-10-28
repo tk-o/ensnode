@@ -7,13 +7,19 @@ import {
   CurrencyIds,
   makeSubdomainNode,
   PluginName,
-  RegistrarActionType,
-  ZERO_RAW_REFERRER,
+  RegistrarActionTypes,
+  ZERO_REFERRER_ENCODED,
 } from "@ensnode/ensnode-sdk";
 
 import { namespaceContract } from "@/lib/plugin-helpers";
-import { handleRegistrarAction } from "@/lib/registrar-actions-helpers";
+import {
+  buildSubregistryRegistrarAction,
+  getIncrementalDurationForRegistration,
+  getIncrementalDurationForRenewal,
+} from "@/lib/subregistry/registrar-action";
 
+import { getCurrentRegistration } from "../../../shared/lib/get-current-registration";
+import { handleRegistrarAction } from "../../../shared/lib/handle-registrar-action";
 import { getRegistrarManagedName } from "../lib/registrar-helpers";
 
 /**
@@ -30,7 +36,8 @@ export default function () {
   ponder.on(
     namespaceContract(pluginName, "Eth_LegacyEthRegistrarController:NameRegistered"),
     async ({ context, event }) => {
-      const type = RegistrarActionType.Registration;
+      const timestamp = event.block.timestamp;
+      const type = RegistrarActionTypes.Registration;
       const labelHash = event.args.label;
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
@@ -49,30 +56,42 @@ export default function () {
        * Eth_LegacyEthRegistrarController does not emit a referrer in
        * the NameRegistered event.
        */
-      const encodedReferrer = ZERO_RAW_REFERRER;
+      const encodedReferrer = ZERO_REFERRER_ENCODED;
 
-      await handleRegistrarAction(context, event, {
-        type,
-        node,
-        expiresAt,
-        baseCost: {
-          currency: CurrencyIds.ETH,
-          amount: baseCost,
+      // Get incremental duration for Registration Action
+      const incrementalDuration = getIncrementalDurationForRegistration(
+        Number(expiresAt),
+        Number(timestamp),
+      );
+
+      const registrarAction = buildSubregistryRegistrarAction(
+        {
+          chainId: context.chain.id,
+          timestamp: event.block.timestamp,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
         },
-        premium: {
-          currency: CurrencyIds.ETH,
-          amount: premium,
+        {
+          type,
+          node,
+          expiresAt,
+          baseCost,
+          premium,
+          incrementalDuration,
+          registrant,
+          encodedReferrer,
         },
-        registrant,
-        encodedReferrer,
-      });
+        CurrencyIds.ETH,
+      );
+
+      await handleRegistrarAction(context, event, registrarAction);
     },
   );
 
   ponder.on(
     namespaceContract(pluginName, "Eth_LegacyEthRegistrarController:NameRenewed"),
     async ({ context, event }) => {
-      const type = RegistrarActionType.Renewal;
+      const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.label;
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
@@ -90,23 +109,37 @@ export default function () {
        * Eth_LegacyEthRegistrarController does not emit a referrer in
        * the NameRenewed event.
        */
-      const encodedReferrer = ZERO_RAW_REFERRER;
+      const encodedReferrer = ZERO_REFERRER_ENCODED;
 
-      await handleRegistrarAction(context, event, {
-        type,
-        node,
-        expiresAt,
-        baseCost: {
-          currency: CurrencyIds.ETH,
-          amount: baseCost,
+      const currentRegistration = await getCurrentRegistration(context, node);
+
+      // Get incremental duration for Renewal Action
+      const incrementalDuration = getIncrementalDurationForRenewal(
+        Number(expiresAt),
+        currentRegistration,
+      );
+
+      const registrarAction = buildSubregistryRegistrarAction(
+        {
+          chainId: context.chain.id,
+          timestamp: event.block.timestamp,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
         },
-        premium: {
-          currency: CurrencyIds.ETH,
-          amount: premium,
+        {
+          type,
+          node,
+          expiresAt,
+          baseCost,
+          premium,
+          incrementalDuration,
+          registrant,
+          encodedReferrer,
         },
-        registrant,
-        encodedReferrer,
-      });
+        CurrencyIds.ETH,
+      );
+
+      await handleRegistrarAction(context, event, registrarAction);
     },
   );
 
@@ -117,7 +150,8 @@ export default function () {
   ponder.on(
     namespaceContract(pluginName, "Eth_WrappedEthRegistrarController:NameRegistered"),
     async ({ context, event }) => {
-      const type = RegistrarActionType.Registration;
+      const timestamp = event.block.timestamp;
+      const type = RegistrarActionTypes.Registration;
       const labelHash = event.args.label;
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
@@ -132,30 +166,42 @@ export default function () {
        * Eth_WrappedEthRegistrarController does not emit a referrer in
        * the NameRegistered event.
        */
-      const encodedReferrer = ZERO_RAW_REFERRER;
+      const encodedReferrer = ZERO_REFERRER_ENCODED;
 
-      await handleRegistrarAction(context, event, {
-        type,
-        node,
-        expiresAt,
-        baseCost: {
-          currency: CurrencyIds.ETH,
-          amount: baseCost,
+      // Get incremental duration for Registration Action
+      const incrementalDuration = getIncrementalDurationForRegistration(
+        Number(expiresAt),
+        Number(timestamp),
+      );
+
+      const registrarAction = buildSubregistryRegistrarAction(
+        {
+          chainId: context.chain.id,
+          timestamp: event.block.timestamp,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
         },
-        premium: {
-          currency: CurrencyIds.ETH,
-          amount: premium,
+        {
+          type,
+          node,
+          expiresAt,
+          baseCost,
+          premium,
+          incrementalDuration,
+          registrant,
+          encodedReferrer,
         },
-        registrant,
-        encodedReferrer,
-      });
+        CurrencyIds.ETH,
+      );
+
+      await handleRegistrarAction(context, event, registrarAction);
     },
   );
 
   ponder.on(
     namespaceContract(pluginName, "Eth_WrappedEthRegistrarController:NameRenewed"),
     async ({ context, event }) => {
-      const type = RegistrarActionType.Renewal;
+      const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.label;
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
@@ -173,23 +219,37 @@ export default function () {
        * Eth_WrappedEthRegistrarController does not emit a referrer in
        * the NameRenewed event.
        */
-      const encodedReferrer = ZERO_RAW_REFERRER;
+      const encodedReferrer = ZERO_REFERRER_ENCODED;
 
-      await handleRegistrarAction(context, event, {
-        type,
-        node,
-        expiresAt,
-        baseCost: {
-          currency: CurrencyIds.ETH,
-          amount: baseCost,
+      const currentRegistration = await getCurrentRegistration(context, node);
+
+      // Get incremental duration for Renewal Action
+      const incrementalDuration = getIncrementalDurationForRenewal(
+        Number(expiresAt),
+        currentRegistration,
+      );
+
+      const registrarAction = buildSubregistryRegistrarAction(
+        {
+          chainId: context.chain.id,
+          timestamp: event.block.timestamp,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
         },
-        premium: {
-          currency: CurrencyIds.ETH,
-          amount: premium,
+        {
+          type,
+          node,
+          expiresAt,
+          baseCost,
+          premium,
+          incrementalDuration,
+          registrant,
+          encodedReferrer,
         },
-        registrant,
-        encodedReferrer,
-      });
+        CurrencyIds.ETH,
+      );
+
+      await handleRegistrarAction(context, event, registrarAction);
     },
   );
 
@@ -200,7 +260,8 @@ export default function () {
   ponder.on(
     namespaceContract(pluginName, "Eth_UnwrappedEthRegistrarController:NameRegistered"),
     async ({ context, event }) => {
-      const type = RegistrarActionType.Registration;
+      const timestamp = event.block.timestamp;
+      const type = RegistrarActionTypes.Registration;
       const labelHash = event.args.labelhash;
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
@@ -213,28 +274,40 @@ export default function () {
       const registrant = event.transaction.from;
       const encodedReferrer = event.args.referrer;
 
-      await handleRegistrarAction(context, event, {
-        type,
-        node,
-        expiresAt,
-        baseCost: {
-          currency: CurrencyIds.ETH,
-          amount: baseCost,
+      // Get incremental duration for Registration Action
+      const incrementalDuration = getIncrementalDurationForRegistration(
+        Number(expiresAt),
+        Number(timestamp),
+      );
+
+      const registrarAction = buildSubregistryRegistrarAction(
+        {
+          chainId: context.chain.id,
+          timestamp: event.block.timestamp,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
         },
-        premium: {
-          currency: CurrencyIds.ETH,
-          amount: premium,
+        {
+          type,
+          node,
+          expiresAt,
+          baseCost,
+          premium,
+          incrementalDuration,
+          registrant,
+          encodedReferrer,
         },
-        registrant,
-        encodedReferrer,
-      });
+        CurrencyIds.ETH,
+      );
+
+      await handleRegistrarAction(context, event, registrarAction);
     },
   );
 
   ponder.on(
     namespaceContract(pluginName, "Eth_UnwrappedEthRegistrarController:NameRenewed"),
     async ({ context, event }) => {
-      const type = RegistrarActionType.Renewal;
+      const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.labelhash;
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
@@ -250,21 +323,35 @@ export default function () {
       const registrant = event.transaction.from;
       const encodedReferrer = event.args.referrer;
 
-      await handleRegistrarAction(context, event, {
-        type,
-        node,
-        expiresAt,
-        baseCost: {
-          currency: CurrencyIds.ETH,
-          amount: baseCost,
+      const currentRegistration = await getCurrentRegistration(context, node);
+
+      // Get incremental duration for Renewal Action
+      const incrementalDuration = getIncrementalDurationForRenewal(
+        Number(expiresAt),
+        currentRegistration,
+      );
+
+      const registrarAction = buildSubregistryRegistrarAction(
+        {
+          chainId: context.chain.id,
+          timestamp: event.block.timestamp,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
         },
-        premium: {
-          currency: CurrencyIds.ETH,
-          amount: premium,
+        {
+          type,
+          node,
+          expiresAt,
+          baseCost,
+          premium,
+          incrementalDuration,
+          registrant,
+          encodedReferrer,
         },
-        registrant,
-        encodedReferrer,
-      });
+        CurrencyIds.ETH,
+      );
+
+      await handleRegistrarAction(context, event, registrarAction);
     },
   );
 }

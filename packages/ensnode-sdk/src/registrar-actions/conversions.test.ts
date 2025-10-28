@@ -5,7 +5,7 @@ import { CurrencyIds } from "../shared";
 import { deserializeRegistrarAction } from "./deserialize";
 import { serializeRegistrarAction } from "./serialize";
 import type { SerializedRegistrarAction } from "./serialized-types";
-import { type RegistrarAction, RegistrarActionType } from "./types";
+import { type RegistrarAction, RegistrarActionTypes } from "./types";
 
 const vb2Address: Address = "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6";
 const vb3Address: Address = "0x220866b1a2219f40e72f5c628b65d54268ca3a9d";
@@ -13,7 +13,7 @@ const vb3Address: Address = "0x220866b1a2219f40e72f5c628b65d54268ca3a9d";
 describe("Registrar Actions", () => {
   it("can serialize and deserialize registrar action object", () => {
     const serialized = {
-      type: RegistrarActionType.Registration,
+      type: RegistrarActionTypes.Registration,
       node: namehash("vitalik.eth"),
 
       baseCost: {
@@ -29,6 +29,8 @@ describe("Registrar Actions", () => {
         amount: parseEther("1.7").toString(),
       },
 
+      incrementalDuration: 123,
+
       registrant: vb3Address,
       encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
       decodedReferrer: vb2Address,
@@ -36,12 +38,13 @@ describe("Registrar Actions", () => {
       timestamp: 1761062418,
       chainId: 1,
       transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+      logIndex: 1,
     } satisfies SerializedRegistrarAction;
 
     const deserialized = deserializeRegistrarAction(serialized);
 
     expect(deserialized).toStrictEqual({
-      type: RegistrarActionType.Registration,
+      type: RegistrarActionTypes.Registration,
 
       node: namehash("vitalik.eth"),
 
@@ -58,6 +61,8 @@ describe("Registrar Actions", () => {
         amount: parseEther("1.7"),
       },
 
+      incrementalDuration: 123,
+
       registrant: vb3Address,
       encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
       decodedReferrer: vb2Address,
@@ -65,6 +70,7 @@ describe("Registrar Actions", () => {
       timestamp: 1761062418,
       chainId: 1,
       transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+      logIndex: 1,
     } satisfies RegistrarAction);
 
     expect(serializeRegistrarAction(deserialized)).toStrictEqual(serialized);

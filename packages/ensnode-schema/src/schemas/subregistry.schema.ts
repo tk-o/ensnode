@@ -42,8 +42,8 @@ export const subregistry_registrar_controller = onchainTable(
     removedAt: t.bigint(),
 
     /**
-     * Chain ID that the transaction associated with the registrar action
-     * occurred on.
+     * Chain ID that the transaction associated with the registrar controller
+     * update occurred on.
      *
      * Guaranteed to be a non-negative integer value.
      */
@@ -51,7 +51,7 @@ export const subregistry_registrar_controller = onchainTable(
 
     /**
      * Transaction hash of the transaction on `chainId` associated with
-     * the registrar action.
+     * the registrar controller.
      *
      * Guaranteed to be a string representation of 32-bytes.
      */
@@ -87,7 +87,7 @@ export const subregistry_registration = onchainTable("subregistry_registrations"
   expiresAt: t.bigint().notNull(),
 
   /**
-   * Indicates whether the registration is managed by a known registrar controller.
+   * Indicates whether the registration is managed by an indexed registrar controller contract.
    *
    * If true, it means that the registration was performed via a known
    * subregistry registrar controller contract.
@@ -179,7 +179,8 @@ export const subregistry_registrarAction = onchainTable(
      * Incremental Duration
      *
      * Definition of "incremental duration" is
-     * the incremental increase in the lifespan of the current registration.
+     * The incremental increase in the lifespan of the registration for
+     * `node` that was active as of `timestamp`.
      *
      * Please consider the following situation:
      *
@@ -230,6 +231,15 @@ export const subregistry_registrarAction = onchainTable(
      * Guaranteed to be a string representation of 32-bytes.
      */
     transactionHash: t.hex().notNull(),
+
+    /**
+     * Log Index
+     *
+     * The index of a log within a block.
+     *
+     * Guaranteed to be a non-negative integer.
+     */
+    logIndex: t.integer().notNull(),
   }),
   (t) => ({
     byRegistrant: index().on(t.registrant),

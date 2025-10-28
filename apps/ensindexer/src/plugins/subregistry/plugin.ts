@@ -1,5 +1,10 @@
 /**
- * The Referrals plugin indexes registration and renewal referral data emitted by the `UnwrappedEthRegistrarController` contract.
+ * The Subregistry plugin indexes data about ENS subregistries, specifically the
+ * registrar and registrar controller contracts that manage registrations and renewals
+ * for known subregistry base registrars owning the following names:
+ * - eth
+ * - base.eth
+ * - linea.eth
  */
 
 import * as ponder from "ponder";

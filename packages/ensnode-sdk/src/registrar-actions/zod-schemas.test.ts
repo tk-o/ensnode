@@ -4,7 +4,7 @@ import { prettifyError, type ZodSafeParseResult } from "zod/v4";
 
 import { CurrencyIds } from "../shared";
 import type { SerializedRegistrarAction } from "./serialized-types";
-import { RegistrarActionType } from "./types";
+import { RegistrarActionTypes } from "./types";
 import { makeRegistrarActionSchema } from "./zod-schemas";
 
 const vitalikEthAddress: Address = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
@@ -21,7 +21,7 @@ describe("ENSIndexer: Registrar Actions", () => {
         expect(
           formatParseError(
             makeRegistrarActionSchema().safeParse({
-              type: RegistrarActionType.Renewal,
+              type: RegistrarActionTypes.Renewal,
               node: namehash("vitalik.eth"),
 
               baseCost: {
@@ -37,6 +37,8 @@ describe("ENSIndexer: Registrar Actions", () => {
                 amount: "2",
               },
 
+              incrementalDuration: 123,
+
               registrant: vb3Address,
               encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
               decodedReferrer: vb2Address,
@@ -44,6 +46,7 @@ describe("ENSIndexer: Registrar Actions", () => {
               timestamp: 1761062418,
               chainId: 1,
               transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+              logIndex: 1,
             } satisfies SerializedRegistrarAction),
           ),
         ).toMatch(/Renewal Premium must always be '0'/);
@@ -53,7 +56,7 @@ describe("ENSIndexer: Registrar Actions", () => {
         expect(
           formatParseError(
             makeRegistrarActionSchema().safeParse({
-              type: RegistrarActionType.Registration,
+              type: RegistrarActionTypes.Registration,
               node: namehash("vitalik.eth"),
 
               baseCost: {
@@ -69,6 +72,8 @@ describe("ENSIndexer: Registrar Actions", () => {
                 amount: "5",
               },
 
+              incrementalDuration: 123,
+
               registrant: vb3Address,
               encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
               decodedReferrer: vb2Address,
@@ -76,6 +81,7 @@ describe("ENSIndexer: Registrar Actions", () => {
               timestamp: 1761062418,
               chainId: 1,
               transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+              logIndex: 1,
             } satisfies SerializedRegistrarAction),
           ),
         ).toMatch(/'total' must be equal to the sum of 'baseCost' and 'premium'/);
@@ -83,7 +89,7 @@ describe("ENSIndexer: Registrar Actions", () => {
         expect(
           formatParseError(
             makeRegistrarActionSchema().safeParse({
-              type: RegistrarActionType.Renewal,
+              type: RegistrarActionTypes.Renewal,
               node: namehash("vitalik.eth"),
 
               baseCost: {
@@ -99,6 +105,8 @@ describe("ENSIndexer: Registrar Actions", () => {
                 amount: "4",
               },
 
+              incrementalDuration: 123,
+
               registrant: vb3Address,
               encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
               decodedReferrer: vb2Address,
@@ -106,6 +114,7 @@ describe("ENSIndexer: Registrar Actions", () => {
               timestamp: 1761062418,
               chainId: 1,
               transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+              logIndex: 1,
             } satisfies SerializedRegistrarAction),
           ),
         ).toMatch(/'total' must be equal to the sum of 'baseCost' and 'premium'/);
@@ -113,7 +122,7 @@ describe("ENSIndexer: Registrar Actions", () => {
 
       it("refuses to parse Registrar Action when decodedReferrer is not based on encodedReferrer", () => {
         const parsed = makeRegistrarActionSchema().safeParse({
-          type: RegistrarActionType.Registration,
+          type: RegistrarActionTypes.Registration,
           node: namehash("vitalik.eth"),
 
           baseCost: {
@@ -129,6 +138,8 @@ describe("ENSIndexer: Registrar Actions", () => {
             amount: "4",
           },
 
+          incrementalDuration: 123,
+
           registrant: vb3Address,
           encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
           decodedReferrer: vitalikEthAddress,
@@ -136,6 +147,7 @@ describe("ENSIndexer: Registrar Actions", () => {
           timestamp: 1761062418,
           chainId: 1,
           transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+          logIndex: 1,
         } satisfies SerializedRegistrarAction);
 
         expect(formatParseError(parsed)).toMatch(
