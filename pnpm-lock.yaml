@@ -327,6 +327,9 @@ importers:
       p-retry:
         specifier: ^7.1.0
         version: 7.1.0
+      pino:
+        specifier: 10.1.0
+        version: 10.1.0
       ponder:
         specifier: 'catalog:'
         version: 0.13.14(@opentelemetry/api@1.9.0(patch_hash=4b2adeefaf7c22f9987d0a125d69cab900719bec7ed7636648bea6947107033a))(@types/node@22.15.3)(bufferutil@4.0.9)(hono@4.10.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.19.3)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.76))(yaml@2.7.0)(zod@3.25.76)
@@ -346,6 +349,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 22.15.3
+      pino-pretty:
+        specifier: ^13.1.2
+        version: 13.1.2
       tsx:
         specifier: ^4.7.1
         version: 4.19.3
@@ -437,9 +443,6 @@ importers:
       pino:
         specifier: 10.1.0
         version: 10.1.0
-      pino-pretty:
-        specifier: ^13.1.2
-        version: 13.1.2
       progress:
         specifier: ^2.0.3
         version: 2.0.3
@@ -465,6 +468,9 @@ importers:
       '@types/yargs':
         specifier: ^17.0.32
         version: 17.0.33
+      pino-pretty:
+        specifier: ^13.1.2
+        version: 13.1.2
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
