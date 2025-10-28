@@ -370,6 +370,9 @@ importers:
       '@ensnode/datasources':
         specifier: workspace:*
         version: link:../../packages/datasources
+      '@ensnode/ens-referrals':
+        specifier: workspace:*
+        version: link:../../packages/ens-referrals
       '@ensnode/ensnode-schema':
         specifier: workspace:*
         version: link:../../packages/ensnode-schema
@@ -647,6 +650,30 @@ importers:
         specifier: 'catalog:'
         version: 4.0.3(@types/debug@4.1.12)(@types/node@22.15.3)(jiti@2.6.1)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(lightningcss@1.30.2)(tsx@4.19.3)(yaml@2.7.0)
 
+  packages/ens-referrals:
+    devDependencies:
+      '@ensnode/ensnode-sdk':
+        specifier: workspace:*
+        version: link:../ensnode-sdk
+      '@ensnode/shared-configs':
+        specifier: workspace:*
+        version: link:../shared-configs
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.15.3
+      tsup:
+        specifier: ^8.3.6
+        version: 8.3.6(jiti@2.6.1)(postcss@8.5.6)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.7.3
+      viem:
+        specifier: 'catalog:'
+        version: 2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.25.76)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.3(@types/debug@4.1.12)(@types/node@22.15.3)(jiti@2.6.1)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(lightningcss@1.30.2)(tsx@4.19.3)(yaml@2.7.0)
+
   packages/ensnode-react:
     dependencies:
       '@ensnode/ensnode-sdk':
@@ -720,6 +747,9 @@ importers:
       '@ensnode/datasources':
         specifier: workspace:*
         version: link:../datasources
+      '@ensnode/ens-referrals':
+        specifier: workspace:*
+        version: link:../ens-referrals
       zod:
         specifier: 'catalog:'
         version: 3.25.76
@@ -11147,6 +11177,14 @@ snapshots:
       chai: 6.2.0
       tinyrainbow: 3.0.3
 
+  '@vitest/mocker@4.0.3(vite@7.1.11(@types/node@20.17.14)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.19.3)(yaml@2.7.0))':
+    dependencies:
+      '@vitest/spy': 4.0.3
+      estree-walker: 3.0.3
+      magic-string: 0.30.19
+    optionalDependencies:
+      vite: 7.1.11(@types/node@20.17.14)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.19.3)(yaml@2.7.0)
+
   '@vitest/mocker@4.0.3(vite@7.1.11(@types/node@22.15.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.19.3)(yaml@2.7.0))':
     dependencies:
       '@vitest/spy': 4.0.3
@@ -15754,7 +15792,7 @@ snapshots:
   vitest@4.0.3(@types/debug@4.1.12)(@types/node@20.17.14)(jiti@2.6.1)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(lightningcss@1.30.2)(tsx@4.19.3)(yaml@2.7.0):
     dependencies:
       '@vitest/expect': 4.0.3
-      '@vitest/mocker': 4.0.3(vite@7.1.11(@types/node@22.15.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.19.3)(yaml@2.7.0))
+      '@vitest/mocker': 4.0.3(vite@7.1.11(@types/node@20.17.14)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.19.3)(yaml@2.7.0))
       '@vitest/pretty-format': 4.0.3
       '@vitest/runner': 4.0.3
       '@vitest/snapshot': 4.0.3

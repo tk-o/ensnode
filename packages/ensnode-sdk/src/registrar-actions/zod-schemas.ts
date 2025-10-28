@@ -1,6 +1,8 @@
 import z from "zod/v4";
 import type { ParsePayload } from "zod/v4/core";
 
+import { decodeEncodedReferrer } from "@ensnode/ens-referrals";
+
 import {
   makeChainIdSchema,
   makeDurationSchema,
@@ -10,7 +12,6 @@ import {
   makePriceSchema,
   makeUnixTimestampSchema,
 } from "../internal";
-import { decodeReferrer } from "./helpers";
 import { type RegistrarAction, RegistrarActionTypes } from "./types";
 
 /** Invariant: total is sum of baseCost and premium */
@@ -52,12 +53,7 @@ function invariant_registrarActionDecodedReferrerBasedOnRawReferrer(
   ctx: ParsePayload<Pick<RegistrarAction, "encodedReferrer" | "decodedReferrer">>,
 ) {
   const registrarAction = ctx.value;
-  const expectedDecodedReferrer = decodeReferrer(registrarAction.encodedReferrer);
-
-  console.log({
-    actual: registrarAction.decodedReferrer,
-    expectedDecodedReferrer,
-  });
+  const expectedDecodedReferrer = decodeEncodedReferrer(registrarAction.encodedReferrer);
 
   if (registrarAction.decodedReferrer !== expectedDecodedReferrer) {
     ctx.issues.push({

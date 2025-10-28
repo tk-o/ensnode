@@ -1,4 +1,6 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
+
+import type { EncodedReferrer } from "@ensnode/ens-referrals";
 
 import type { Node } from "../ens";
 import type { Duration, EventRef, Price } from "../shared";
@@ -9,13 +11,6 @@ export const RegistrarActionTypes = {
 } as const;
 
 export type RegistrarActionType = (typeof RegistrarActionTypes)[keyof typeof RegistrarActionTypes];
-
-/**
- * Raw Referrer
- *
- * Guaranteed to be a string representation of 32-bytes.
- */
-export type EncodedReferrer = Hex;
 
 /**
  * Registrar Action

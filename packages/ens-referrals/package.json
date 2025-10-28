@@ -1,25 +1,24 @@
 {
-  "name": "@ensnode/ensnode-sdk",
+  "name": "@ensnode/ens-referrals",
   "version": "0.36.0",
   "type": "module",
-  "description": "A utility library for interacting with ENSNode and ENS data",
+  "description": "A utility library for interacting with ENS Referrals data",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/namehash/ensnode.git",
-    "directory": "packages/ensnode-sdk"
+    "directory": "packages/ens-referrals"
   },
-  "homepage": "https://github.com/namehash/ensnode/tree/main/packages/ensnode-sdk",
+  "homepage": "https://github.com/namehash/ensnode/tree/main/packages/ens-referrals",
   "keywords": [
     "ENS",
-    "ENSNode"
+    "ENSReferrals"
   ],
   "files": [
     "dist"
   ],
   "exports": {
-    ".": "./src/index.ts",
-    "./internal": "./src/internal.ts"
+    ".": "./src/index.ts"
   },
   "publishConfig": {
     "access": "public",
@@ -45,18 +44,11 @@
   },
   "devDependencies": {
     "@ensnode/shared-configs": "workspace:*",
+    "@ensnode/ensnode-sdk": "workspace:*",
     "@types/node": "catalog:",
-    "pg-connection-string": "^2.9.0",
     "tsup": "^8.3.6",
     "typescript": "catalog:",
     "viem": "catalog:",
     "vitest": "catalog:"
-  },
-  "dependencies": {
-    "@adraffy/ens-normalize": "catalog:",
-    "@ensdomains/address-encoder": "^1.1.2",
-    "@ensnode/datasources": "workspace:*",
-    "@ensnode/ens-referrals": "workspace:*",
-    "zod": "catalog:"
   }
 }

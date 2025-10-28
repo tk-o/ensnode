@@ -3,19 +3,17 @@
  * registrations and renewals information.
  */
 
-import type { Event } from "ponder:registry";
 import type { Address, Hash } from "viem";
 
-import {
-  type ChainId,
-  type CurrencyId,
-  type Duration,
-  decodeReferrer,
-  type EncodedReferrer,
-  type Node,
-  type RegistrarAction,
-  type RegistrarActionType,
-  type UnixTimestamp,
+import { decodeEncodedReferrer, type EncodedReferrer } from "@ensnode/ens-referrals";
+import type {
+  ChainId,
+  CurrencyId,
+  Duration,
+  Node,
+  RegistrarAction,
+  RegistrarActionType,
+  UnixTimestamp,
 } from "@ensnode/ensnode-sdk";
 
 import type { SubregistryRegistration } from "@/lib/subregistry/registration";
@@ -124,7 +122,7 @@ export function buildSubregistryRegistrarAction(
   const total = baseCost + premium;
 
   // 1. Decode the encoded referrer
-  const decodedReferrer = decodeReferrer(encodedReferrer);
+  const decodedReferrer = decodeEncodedReferrer(encodedReferrer);
 
   return {
     type,
