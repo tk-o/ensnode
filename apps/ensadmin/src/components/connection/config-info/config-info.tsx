@@ -8,8 +8,8 @@
 import { Replace } from "lucide-react";
 import { ReactNode } from "react";
 
-import { useENSIndexerConfig } from "@ensnode/ensnode-react";
-import { ENSIndexerPublicConfig } from "@ensnode/ensnode-sdk";
+import { useENSNodeConfig } from "@ensnode/ensnode-react";
+import { type ENSApiPublicConfig, getENSRootChainId } from "@ensnode/ensnode-sdk";
 
 import { ChainIcon } from "@/components/chains/ChainIcon";
 import { ConfigInfoAppCard } from "@/components/connection/config-info/app-card";
@@ -84,16 +84,16 @@ function ENSNodeCardLoadingSkeleton() {
  * Props for ENSNodeConfigCardDisplay - display component that accepts props for testing/mocking
  */
 export interface ENSNodeConfigCardDisplayProps {
-  ensIndexerConfig: ENSIndexerPublicConfig;
+  ensApiPublicConfig: ENSApiPublicConfig;
 }
 
 /**
  * Display component that receives props - used for reusable/mockable presentation
  */
-export function ENSNodeConfigCardDisplay({ ensIndexerConfig }: ENSNodeConfigCardDisplayProps) {
+export function ENSNodeConfigCardDisplay({ ensApiPublicConfig }: ENSNodeConfigCardDisplayProps) {
   return (
     <ENSNodeCard>
-      <ENSNodeConfigCardContent ensIndexerConfig={ensIndexerConfig} />
+      <ENSNodeConfigCardContent ensApiPublicConfig={ensApiPublicConfig} />
     </ENSNodeCard>
   );
 }
@@ -102,7 +102,7 @@ export function ENSNodeConfigCardDisplay({ ensIndexerConfig }: ENSNodeConfigCard
  * Props for ENSNodeConfigInfoView - internal component that accepts props for testing/mocking
  */
 export interface ENSNodeConfigInfoViewProps {
-  ensIndexerConfig?: ENSIndexerPublicConfig;
+  ensApiPublicConfig?: ENSApiPublicConfig;
   error?: ErrorInfoProps;
   isLoading?: boolean;
 }
@@ -111,7 +111,7 @@ export interface ENSNodeConfigInfoViewProps {
  * Internal view component that accepts props - used by both the main component and mock pages
  */
 export function ENSNodeConfigInfoView({
-  ensIndexerConfig,
+  ensApiPublicConfig,
   error,
   isLoading = false,
 }: ENSNodeConfigInfoViewProps) {
@@ -120,7 +120,7 @@ export function ENSNodeConfigInfoView({
   }
 
   // Show ENSNode card - shell with skeleton while loading, or content when ready
-  if (isLoading || !ensIndexerConfig) {
+  if (isLoading || !ensApiPublicConfig) {
     return (
       <ENSNodeCard>
         <ENSNodeCardLoadingSkeleton />
@@ -128,42 +128,44 @@ export function ENSNodeConfigInfoView({
     );
   }
 
-  return <ENSNodeConfigCardDisplay ensIndexerConfig={ensIndexerConfig} />;
+  return <ENSNodeConfigCardDisplay ensApiPublicConfig={ensApiPublicConfig} />;
 }
 
 /**
  * ENSNodeConfigInfo component - fetches and displays ENSNode configuration data
  */
 export function ENSNodeConfigInfo() {
-  const ensIndexerConfigQuery = useENSIndexerConfig();
+  const ensNodeConfigQuery = useENSNodeConfig();
 
   return (
     <ENSNodeConfigInfoView
-      ensIndexerConfig={ensIndexerConfigQuery.isSuccess ? ensIndexerConfigQuery.data : undefined}
+      ensApiPublicConfig={ensNodeConfigQuery.isSuccess ? ensNodeConfigQuery.data : undefined}
       error={
-        ensIndexerConfigQuery.isError
+        ensNodeConfigQuery.isError
           ? {
               title: "ENSNodeConfigInfo Error",
-              description: ensIndexerConfigQuery.error.message,
+              description: ensNodeConfigQuery.error.message,
             }
           : undefined
       }
-      isLoading={ensIndexerConfigQuery.isPending}
+      isLoading={ensNodeConfigQuery.isPending}
     />
   );
 }
 
 function ENSNodeConfigCardContent({
-  ensIndexerConfig,
+  ensApiPublicConfig,
 }: {
-  ensIndexerConfig: ENSIndexerPublicConfig;
+  ensApiPublicConfig: ENSApiPublicConfig;
 }) {
   const cardItemValueStyles = "text-sm leading-6 font-normal text-black";
 
-  const healReverseAddressesActivated = !ensIndexerConfig.isSubgraphCompatible;
-  const indexAdditionalRecordsActivated = !ensIndexerConfig.isSubgraphCompatible;
-  const replaceUnnormalizedLabelsActivated = !ensIndexerConfig.isSubgraphCompatible;
-  const subgraphCompatibilityActivated = ensIndexerConfig.isSubgraphCompatible;
+  const { ensIndexerPublicConfig } = ensApiPublicConfig;
+
+  const healReverseAddressesActivated = !ensIndexerPublicConfig.isSubgraphCompatible;
+  const indexAdditionalRecordsActivated = !ensIndexerPublicConfig.isSubgraphCompatible;
+  const replaceUnnormalizedLabelsActivated = !ensIndexerPublicConfig.isSubgraphCompatible;
+  const subgraphCompatibilityActivated = ensIndexerPublicConfig.isSubgraphCompatible;
 
   const healReverseAddressesDescription = healReverseAddressesActivated ? (
     <p>Subnames of addr.reverse will all be known (healed) labels.</p>
@@ -212,6 +214,8 @@ function ENSNodeConfigCardContent({
     </p>
   );
 
+  const ensRootChainId = getENSRootChainId(ensIndexerPublicConfig.namespace);
+
   return (
     <>
       {/*ENSDb*/}
@@ -225,7 +229,9 @@ function ENSNodeConfigCardContent({
           },
           {
             label: "Database Schema",
-            value: <p className={cardItemValueStyles}>{ensIndexerConfig.databaseSchemaName}</p>,
+            value: (
+              <p className={cardItemValueStyles}>{ensIndexerPublicConfig.databaseSchemaName}</p>
+            ),
             additionalInfo: (
               <p>ENSIndexer writes indexed data to tables within this Postgres database schema.</p>
             ),
@@ -233,7 +239,7 @@ function ENSNodeConfigCardContent({
         ]}
         version={
           <p className="text-sm leading-normal font-normal text-muted-foreground">
-            v{ensIndexerConfig.versionInfo.ensDb}
+            v{ensIndexerPublicConfig.versionInfo.ensDb}
           </p>
         }
         docsLink={new URL("https://ensnode.io/ensdb/")}
@@ -246,12 +252,14 @@ function ENSNodeConfigCardContent({
         items={[
           {
             label: "Node.js",
-            value: <p className={cardItemValueStyles}>{ensIndexerConfig.versionInfo.nodejs}</p>,
+            value: (
+              <p className={cardItemValueStyles}>{ensIndexerPublicConfig.versionInfo.nodejs}</p>
+            ),
             additionalInfo: (
               <p>
                 Version of the{" "}
                 <ExternalLinkWithIcon
-                  href={`https://nodejs.org/en/download/archive/v${ensIndexerConfig.versionInfo.nodejs}`}
+                  href={`https://nodejs.org/en/download/archive/v${ensIndexerPublicConfig.versionInfo.nodejs}`}
                 >
                   Node.js
                 </ExternalLinkWithIcon>{" "}
@@ -261,12 +269,14 @@ function ENSNodeConfigCardContent({
           },
           {
             label: "Ponder",
-            value: <p className={cardItemValueStyles}>{ensIndexerConfig.versionInfo.ponder}</p>,
+            value: (
+              <p className={cardItemValueStyles}>{ensIndexerPublicConfig.versionInfo.ponder}</p>
+            ),
             additionalInfo: (
               <p>
                 Version of the{" "}
                 <ExternalLinkWithIcon
-                  href={`https://www.npmjs.com/package/ponder/v/${ensIndexerConfig.versionInfo.ponder}`}
+                  href={`https://www.npmjs.com/package/ponder/v/${ensIndexerPublicConfig.versionInfo.ponder}`}
                 >
                   ponder
                 </ExternalLinkWithIcon>{" "}
@@ -277,13 +287,15 @@ function ENSNodeConfigCardContent({
           {
             label: "ens-normalize.js",
             value: (
-              <p className={cardItemValueStyles}>{ensIndexerConfig.versionInfo.ensNormalize}</p>
+              <p className={cardItemValueStyles}>
+                {ensIndexerPublicConfig.versionInfo.ensNormalize}
+              </p>
             ),
             additionalInfo: (
               <p>
                 Version of the{" "}
                 <ExternalLinkWithIcon
-                  href={`https://www.npmjs.com/package/@adraffy/ens-normalize/v/${ensIndexerConfig.versionInfo.ensNormalize}`}
+                  href={`https://www.npmjs.com/package/@adraffy/ens-normalize/v/${ensIndexerPublicConfig.versionInfo.ensNormalize}`}
                 >
                   @adraffy/ens-normalize
                 </ExternalLinkWithIcon>{" "}
@@ -296,7 +308,8 @@ function ENSNodeConfigCardContent({
             value: (
               <ul className={cardItemValueStyles}>
                 <li>
-                  {ensIndexerConfig.labelSet.labelSetId}:{ensIndexerConfig.labelSet.labelSetVersion}
+                  {ensIndexerPublicConfig.labelSet.labelSetId}:
+                  {ensIndexerPublicConfig.labelSet.labelSetVersion}
                 </li>
               </ul>
             ),
@@ -315,14 +328,14 @@ function ENSNodeConfigCardContent({
           },
           {
             label: "ENS Namespace",
-            value: <p className={cardItemValueStyles}>{ensIndexerConfig.namespace}</p>,
+            value: <p className={cardItemValueStyles}>{ensIndexerPublicConfig.namespace}</p>,
             additionalInfo: <p>The ENS namespace that ENSNode operates in the context of.</p>,
           },
           {
             label: "Indexed Chains",
             value: (
               <div className="flex flex-row flex-nowrap max-sm:flex-wrap justify-start items-start gap-3 pt-1">
-                {Array.from(ensIndexerConfig.indexedChainIds).map((chainId) => (
+                {Array.from(ensIndexerPublicConfig.indexedChainIds).map((chainId) => (
                   <Tooltip key={`indexed-chain-#${chainId}`}>
                     <TooltipTrigger className="cursor-default">
                       <ChainIcon key={`indexed-chain-${chainId}-icon`} chainId={chainId} />
@@ -342,7 +355,7 @@ function ENSNodeConfigCardContent({
             label: "Plugins",
             value: (
               <div className="w-full flex flex-row flex-nowrap max-[1100px]:flex-wrap justify-start items-start gap-1 pt-1">
-                {ensIndexerConfig.plugins.map((plugin) => (
+                {ensIndexerPublicConfig.plugins.map((plugin) => (
                   <span
                     key={`${plugin}-plugin-badge`}
                     className="flex justify-start items-start py-[2px] px-[10px] rounded-full bg-secondary text-sm leading-normal font-semibold text-black cursor-default whitespace-nowrap"
@@ -384,7 +397,7 @@ function ENSNodeConfigCardContent({
         ]}
         version={
           <p className="text-sm leading-normal font-normal text-muted-foreground">
-            v{ensIndexerConfig.versionInfo.ensIndexer}
+            v{ensIndexerPublicConfig.versionInfo.ensIndexer}
           </p>
         }
         docsLink={new URL("https://ensnode.io/ensindexer/")}
@@ -399,7 +412,8 @@ function ENSNodeConfigCardContent({
             label: "Server LabelSet",
             value: (
               <p className={cardItemValueStyles}>
-                {ensIndexerConfig.labelSet.labelSetId}:{ensIndexerConfig.labelSet.labelSetVersion}
+                {ensIndexerPublicConfig.labelSet.labelSetId}:
+                {ensIndexerPublicConfig.labelSet.labelSetVersion}
               </p>
             ),
             additionalInfo: (
@@ -416,7 +430,7 @@ function ENSNodeConfigCardContent({
         ]}
         version={
           <p className="text-sm leading-normal font-normal text-muted-foreground">
-            v{ensIndexerConfig.versionInfo.ensRainbow}
+            v{ensIndexerPublicConfig.versionInfo.ensRainbow}
           </p>
         }
         docsLink={new URL("https://ensnode.io/ensrainbow/")}
