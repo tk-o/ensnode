@@ -44,7 +44,6 @@
   },
   "devDependencies": {
     "@ensnode/shared-configs": "workspace:*",
-    "@ensnode/ensnode-sdk": "workspace:*",
     "@types/node": "catalog:",
     "tsup": "^8.3.6",
     "typescript": "catalog:",

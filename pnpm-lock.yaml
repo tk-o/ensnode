@@ -661,9 +661,6 @@ importers:
 
   packages/ens-referrals:
     devDependencies:
-      '@ensnode/ensnode-sdk':
-        specifier: workspace:*
-        version: link:../ensnode-sdk
       '@ensnode/shared-configs':
         specifier: workspace:*
         version: link:../shared-configs
