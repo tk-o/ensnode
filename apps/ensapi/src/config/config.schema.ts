@@ -1,11 +1,11 @@
 import pRetry from "p-retry";
+import { parse as parseConnectionString } from "pg-connection-string";
 import { prettifyError, ZodError, z } from "zod/v4";
 
 import { ENSNodeClient, serializeENSIndexerPublicConfig } from "@ensnode/ensnode-sdk";
 import {
   buildRpcConfigsFromEnv,
   DatabaseSchemaNameSchema,
-  DatabaseUrlSchema,
   ENSNamespaceSchema,
   EnsIndexerUrlSchema,
   invariant_rpcConfigsSpecifiedForRootChain,
@@ -17,6 +17,24 @@ import {
 import { ENSApi_DEFAULT_PORT } from "@/config/defaults";
 import type { EnsApiEnvironment } from "@/config/environment";
 import { invariant_ensIndexerPublicConfigVersionInfo } from "@/config/validations";
+
+export const DatabaseUrlSchema = z.string().refine(
+  (url) => {
+    try {
+      if (!url.startsWith("postgresql://") && !url.startsWith("postgres://")) {
+        return false;
+      }
+      const config = parseConnectionString(url);
+      return !!(config.host && config.port && config.database);
+    } catch {
+      return false;
+    }
+  },
+  {
+    error:
+      "Invalid PostgreSQL connection string. Expected format: postgresql://username:password@host:port/database",
+  },
+);
 
 const EnsApiConfigSchema = z
   .object({
