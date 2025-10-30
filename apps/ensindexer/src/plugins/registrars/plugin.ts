@@ -1,7 +1,7 @@
 /**
  * The `registrars` plugin indexes data about ENS subregistries, specifically the
  * registrar and registrar controller contracts that manage registrations and renewals
- * for known registrars owning the following names:
+ * for known subregistry base registrars for the following:
  * - ENS Root (direct subnames of .eth)
  * - Basenames
  * - Lineanames
@@ -25,142 +25,144 @@ export default createPlugin({
   name: pluginName,
   requiredDatasourceNames: [DatasourceNames.ENSRoot],
   createPonderConfig(config) {
-    const rootChainDatasource = getDatasourceAsFullyDefinedAtCompileTime(
+    // configure ENSRoot dependencies
+    const ensRootDatasource = getDatasourceAsFullyDefinedAtCompileTime(
       config.namespace,
       DatasourceNames.ENSRoot,
     );
 
+    const ensRootRegistrarContracts = {
+      [namespaceContract(pluginName, "Eth_BaseRegistrarOld")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          ensRootDatasource.chain.id,
+          ensRootDatasource.contracts.BaseRegistrarOld,
+        ),
+        abi: ensRootDatasource.contracts.BaseRegistrarOld.abi,
+      },
+
+      [namespaceContract(pluginName, "Eth_BaseRegistrar")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          ensRootDatasource.chain.id,
+          ensRootDatasource.contracts.BaseRegistrar,
+        ),
+        abi: ensRootDatasource.contracts.BaseRegistrar.abi,
+      },
+    };
+
+    const ensRootRegistrarControllerContracts = {
+      [namespaceContract(pluginName, "Eth_LegacyEthRegistrarController")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          ensRootDatasource.chain.id,
+          ensRootDatasource.contracts.LegacyEthRegistrarController,
+        ),
+        abi: ensRootDatasource.contracts.LegacyEthRegistrarController.abi,
+      },
+      [namespaceContract(pluginName, "Eth_WrappedEthRegistrarController")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          ensRootDatasource.chain.id,
+          ensRootDatasource.contracts.WrappedEthRegistrarController,
+        ),
+        abi: ensRootDatasource.contracts.WrappedEthRegistrarController.abi,
+      },
+      [namespaceContract(pluginName, "Eth_UnwrappedEthRegistrarController")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          ensRootDatasource.chain.id,
+          ensRootDatasource.contracts.UnwrappedEthRegistrarController,
+        ),
+        abi: ensRootDatasource.contracts.UnwrappedEthRegistrarController.abi,
+      },
+    };
+
+    // configure Basenames dependencies
     const basenamesDatasource = getDatasourceAsFullyDefinedAtCompileTime(
       config.namespace,
       DatasourceNames.Basenames,
     );
 
+    const basenamesRegistrarContracts = {
+      [namespaceContract(pluginName, "BaseEth_BaseRegistrar")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          basenamesDatasource.chain.id,
+          basenamesDatasource.contracts.BaseRegistrar,
+        ),
+        abi: basenamesDatasource.contracts.BaseRegistrar.abi,
+      },
+    };
+
+    const basenamesRegistrarControllerContracts = {
+      [namespaceContract(pluginName, "BaseEth_EARegistrarController")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          basenamesDatasource.chain.id,
+          basenamesDatasource.contracts.EARegistrarController,
+        ),
+        abi: basenamesDatasource.contracts.EARegistrarController.abi,
+      },
+      [namespaceContract(pluginName, "BaseEth_RegistrarController")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          basenamesDatasource.chain.id,
+          basenamesDatasource.contracts.RegistrarController,
+        ),
+        abi: basenamesDatasource.contracts.RegistrarController.abi,
+      },
+      [namespaceContract(pluginName, "BaseEth_UpgradeableRegistrarController")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          basenamesDatasource.chain.id,
+          basenamesDatasource.contracts.UpgradeableRegistrarController,
+        ),
+        abi: basenamesDatasource.contracts.UpgradeableRegistrarController.abi,
+      },
+    };
+
+    // configure Lineanames dependencies
     const linenamesDatasource = getDatasourceAsFullyDefinedAtCompileTime(
       config.namespace,
       DatasourceNames.Lineanames,
     );
 
-    const registrarContracts = {
-      eth: {
-        [namespaceContract(pluginName, "Eth_BaseRegistrarOld")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            rootChainDatasource.chain.id,
-            rootChainDatasource.contracts.BaseRegistrarOld,
-          ),
-          abi: rootChainDatasource.contracts.BaseRegistrarOld.abi,
-        },
-        [namespaceContract(pluginName, "Eth_BaseRegistrar")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            rootChainDatasource.chain.id,
-            rootChainDatasource.contracts.BaseRegistrar,
-          ),
-          abi: rootChainDatasource.contracts.BaseRegistrar.abi,
-        },
-      },
-      "base.eth": {
-        [namespaceContract(pluginName, "BaseEth_BaseRegistrar")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            basenamesDatasource.chain.id,
-            basenamesDatasource.contracts.BaseRegistrar,
-          ),
-          abi: basenamesDatasource.contracts.BaseRegistrar.abi,
-        },
-      },
-      "linea.eth": {
-        [namespaceContract(pluginName, "LineaEth_BaseRegistrar")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            linenamesDatasource.chain.id,
-            linenamesDatasource.contracts.BaseRegistrar,
-          ),
-          abi: linenamesDatasource.contracts.BaseRegistrar.abi,
-        },
+    const lineanamesRegistrarContracts = {
+      [namespaceContract(pluginName, "LineaEth_BaseRegistrar")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          linenamesDatasource.chain.id,
+          linenamesDatasource.contracts.BaseRegistrar,
+        ),
+        abi: linenamesDatasource.contracts.BaseRegistrar.abi,
       },
     };
 
-    const registrarControllerContracts = {
-      eth: {
-        [namespaceContract(pluginName, "Eth_LegacyEthRegistrarController")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            rootChainDatasource.chain.id,
-            rootChainDatasource.contracts.LegacyEthRegistrarController,
-          ),
-          abi: rootChainDatasource.contracts.LegacyEthRegistrarController.abi,
-        },
-        [namespaceContract(pluginName, "Eth_WrappedEthRegistrarController")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            rootChainDatasource.chain.id,
-            rootChainDatasource.contracts.WrappedEthRegistrarController,
-          ),
-          abi: rootChainDatasource.contracts.WrappedEthRegistrarController.abi,
-        },
-        [namespaceContract(pluginName, "Eth_UnwrappedEthRegistrarController")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            rootChainDatasource.chain.id,
-            rootChainDatasource.contracts.UnwrappedEthRegistrarController,
-          ),
-          abi: rootChainDatasource.contracts.UnwrappedEthRegistrarController.abi,
-        },
-      },
-
-      "base.eth": {
-        [namespaceContract(pluginName, "BaseEth_EARegistrarController")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            basenamesDatasource.chain.id,
-            basenamesDatasource.contracts.EARegistrarController,
-          ),
-          abi: basenamesDatasource.contracts.EARegistrarController.abi,
-        },
-        [namespaceContract(pluginName, "BaseEth_RegistrarController")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            basenamesDatasource.chain.id,
-            basenamesDatasource.contracts.RegistrarController,
-          ),
-          abi: basenamesDatasource.contracts.RegistrarController.abi,
-        },
-        [namespaceContract(pluginName, "BaseEth_UpgradeableRegistrarController")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            basenamesDatasource.chain.id,
-            basenamesDatasource.contracts.UpgradeableRegistrarController,
-          ),
-          abi: basenamesDatasource.contracts.UpgradeableRegistrarController.abi,
-        },
-      },
-
-      "linea.eth": {
-        [namespaceContract(pluginName, "LineaEth_EthRegistrarController")]: {
-          chain: chainConfigForContract(
-            config.globalBlockrange,
-            linenamesDatasource.chain.id,
-            linenamesDatasource.contracts.EthRegistrarController,
-          ),
-          abi: linenamesDatasource.contracts.EthRegistrarController.abi,
-        },
+    const lineanamesRegistrarControllerContracts = {
+      [namespaceContract(pluginName, "LineaEth_EthRegistrarController")]: {
+        chain: chainConfigForContract(
+          config.globalBlockrange,
+          linenamesDatasource.chain.id,
+          linenamesDatasource.contracts.EthRegistrarController,
+        ),
+        abi: linenamesDatasource.contracts.EthRegistrarController.abi,
       },
     };
 
     return ponder.createConfig({
       chains: {
-        ...chainsConnectionConfig(config.rpcConfigs, rootChainDatasource.chain.id),
+        ...chainsConnectionConfig(config.rpcConfigs, ensRootDatasource.chain.id),
         ...chainsConnectionConfig(config.rpcConfigs, basenamesDatasource.chain.id),
         ...chainsConnectionConfig(config.rpcConfigs, linenamesDatasource.chain.id),
       },
       contracts: {
-        ...registrarContracts.eth,
-        ...registrarControllerContracts.eth,
-        ...registrarContracts["base.eth"],
-        ...registrarControllerContracts["base.eth"],
-        ...registrarContracts["linea.eth"],
-        ...registrarControllerContracts["linea.eth"],
+        ...ensRootRegistrarContracts,
+        ...ensRootRegistrarControllerContracts,
+        ...basenamesRegistrarContracts,
+        ...basenamesRegistrarControllerContracts,
+        ...lineanamesRegistrarContracts,
+        ...lineanamesRegistrarControllerContracts,
       },
     });
   },

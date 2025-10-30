@@ -11,8 +11,8 @@ import { BaseRegistrar as linea_BaseRegistrar } from "./abis/lineanames/BaseRegi
 import { EthRegistrarController as linea_EthRegistrarController } from "./abis/lineanames/EthRegistrarController";
 import { NameWrapper as linea_NameWrapper } from "./abis/lineanames/NameWrapper";
 import { Registry as linea_Registry } from "./abis/lineanames/Registry";
-import { BaseRegistrar as root_BaseRegistrar } from "./abis/root/BaseRegistrar";
 // ABIs for ENSRoot Datasource
+import { BaseRegistrar as root_BaseRegistrar } from "./abis/root/BaseRegistrar";
 import { BaseRegistrarOld as root_BaseRegistrarOld } from "./abis/root/BaseRegistrarOld";
 import { LegacyEthRegistrarController as root_LegacyEthRegistrarController } from "./abis/root/LegacyEthRegistrarController";
 import { NameWrapper as root_NameWrapper } from "./abis/root/NameWrapper";
@@ -62,7 +62,7 @@ export default {
         startBlock: 7666399,
       },
       BaseRegistrar: {
-        abi: root_BaseRegistrar, // BaseRegistrar was redeployed, new abi
+        abi: root_BaseRegistrar,
         address: "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85",
         startBlock: 9380410,
       },
