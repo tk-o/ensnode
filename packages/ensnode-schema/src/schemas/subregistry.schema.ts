@@ -5,66 +5,63 @@
 import { index, onchainEnum, onchainTable, relations } from "ponder";
 
 /**
- * Subregistry Registrar Controller Table
+ * Registrar Controller Table
  *
- * Tracks known subregistry registrar controller contracts that manage registrations
- * and renewals for known subregistry base registrars.
+ * Tracks known registrar controller contracts that manage registrations
+ * and renewals for known base registrars.
  */
-export const subregistry_registrar_controller = onchainTable(
-  "subregistry_registrar_controllers",
-  (t) => ({
-    /**
-     * The contract address of the registrar controller instance.
-     */
-    address: t.hex().primaryKey(),
+export const registrar_controller = onchainTable("registrar_controllers", (t) => ({
+  /**
+   * The contract address of the registrar controller instance.
+   */
+  address: t.hex().primaryKey(),
 
-    /**
-     * The base registrar contract address that this controller manages.
-     */
-    baseRegistrarAddress: t.hex().notNull(),
+  /**
+   * The base registrar contract address that this controller manages.
+   */
+  baseRegistrarAddress: t.hex().notNull(),
 
-    /**
-     * The timestamp when the registrar controller contract was added
-     * to the base registrar.
-     *
-     * Guaranteed to be a non-negative bigint value.
-     */
-    addedAt: t.bigint().notNull(),
+  /**
+   * The timestamp when the registrar controller contract was added
+   * to the base registrar.
+   *
+   * Guaranteed to be a non-negative bigint value.
+   */
+  addedAt: t.bigint().notNull(),
 
-    /**
-     * The timestamp when the registrar controller contract was removed
-     * from the base registrar.
-     *
-     * Guaranteed to be:
-     * - null if still active,
-     * - otherwise, a non-negative bigint value.
-     */
-    removedAt: t.bigint(),
+  /**
+   * The timestamp when the registrar controller contract was removed
+   * from the base registrar.
+   *
+   * Guaranteed to be:
+   * - null if still active,
+   * - otherwise, a non-negative bigint value.
+   */
+  removedAt: t.bigint(),
 
-    /**
-     * Chain ID that the transaction associated with the registrar controller
-     * update occurred on.
-     *
-     * Guaranteed to be a non-negative integer value.
-     */
-    chainId: t.integer().notNull(),
+  /**
+   * Chain ID that the transaction associated with the registrar controller
+   * update occurred on.
+   *
+   * Guaranteed to be a non-negative integer value.
+   */
+  chainId: t.integer().notNull(),
 
-    /**
-     * Transaction hash of the transaction on `chainId` associated with
-     * the registrar controller.
-     *
-     * Guaranteed to be a string representation of 32-bytes.
-     */
-    transactionHash: t.hex().notNull(),
-  }),
-);
+  /**
+   * Transaction hash of the transaction on `chainId` associated with
+   * the registrar controller.
+   *
+   * Guaranteed to be a string representation of 32-bytes.
+   */
+  transactionHash: t.hex().notNull(),
+}));
 
 /**
- * Subregistry Registration Table
+ * Registration Table
  *
  * Tracks current registration state for nodes registered via subregistries.
  */
-export const subregistry_registration = onchainTable("subregistry_registrations", (t) => ({
+export const registration = onchainTable("registrations", (t) => ({
   /**
    * The node for which the registration was executed.
    *
@@ -73,7 +70,7 @@ export const subregistry_registration = onchainTable("subregistry_registrations"
   node: t.hex().primaryKey(),
 
   /**
-   * The parent node under which the subregistry issues subnames.
+   * The parent node under which the issues subnames.
    *
    * Guaranteed to be a string representation of 32-bytes.
    */
@@ -90,30 +87,30 @@ export const subregistry_registration = onchainTable("subregistry_registrations"
    * Indicates whether the registration is managed by an indexed registrar controller contract.
    *
    * If true, it means that the registration was performed via a known
-   * subregistry registrar controller contract.
+   * registrar controller contract.
    * Otherwise, it the registration was performed via unknown registrar controller address.
    */
   isControllerManaged: t.boolean().notNull().default(false),
 }));
 
 /**
- * Subregistry Registrar Action Type Enum
+ * Registrar Action Type Enum
  *
  * Types of Registrar Actions.
  */
-export const subregistry_registrarActionType = onchainEnum("registrar_action_type", [
+export const registrarActionType = onchainEnum("registrar_action_type", [
   "registration",
   "renewal",
 ]);
 
 /**
- * Subregistry Registrar Action Table
+ * Registrar Action Table
  *
  * Tracks registrar actions (registrations and renewals) performed
  * via subregistries.
  */
-export const subregistry_registrarAction = onchainTable(
-  "subregistry_registrar_actions",
+export const registrarAction = onchainTable(
+  "registrar_actions",
   (t) => ({
     /**
      * Unique EVM event identifier for the registrar action.
@@ -123,7 +120,7 @@ export const subregistry_registrarAction = onchainTable(
     /**
      * Type of registrar action.
      */
-    type: subregistry_registrarActionType().notNull(),
+    type: registrarActionType().notNull(),
 
     /**
      * Node for which the registrar action was executed.
@@ -247,21 +244,15 @@ export const subregistry_registrarAction = onchainTable(
   }),
 );
 
-export const subregistry_registrarAction_relations = relations(
-  subregistry_registrarAction,
-  ({ one }) => ({
-    // RegistrarAction belongs to subregistry_registrarAction
-    referrer: one(subregistry_registration, {
-      fields: [subregistry_registrarAction.node],
-      references: [subregistry_registration.node],
-    }),
+export const registrarAction_relations = relations(registrarAction, ({ one }) => ({
+  // RegistrarAction belongs to registrarAction
+  referrer: one(registration, {
+    fields: [registrarAction.node],
+    references: [registration.node],
   }),
-);
+}));
 
-export const subregistry_registration_relations = relations(
-  subregistry_registration,
-  ({ many }) => ({
-    // Registration has many RegistrarAction
-    registrarActions: many(subregistry_registrarAction),
-  }),
-);
+export const registration_relations = relations(registration, ({ many }) => ({
+  // Registration has many RegistrarAction
+  registrarActions: many(registrarAction),
+}));

@@ -1,9 +1,9 @@
-# `subregistry` plugin for ENSIndexer
+# `registrars` plugin for ENSIndexer
 
 This plugin allows tracking all registrations and renewals that ever happened for subregistries managing the following names:
-- `eth`
-- `base.eth`
-- `linea.eth`
+- ENS Root (direct subnames of .eth)
+- Basenames
+- Lineanames
 
 Additionally, indexing includes all registrar controller addresses that were ever added or removed to any relevant BaseRegistrar contract.
 

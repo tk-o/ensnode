@@ -14,13 +14,13 @@ import { getRegistrarManagedName, tokenIdToLabelHash } from "../lib/registrar-he
  * Registers event handlers with Ponder.
  */
 export default function () {
-  const pluginName = PluginName.Subregistry;
+  const pluginName = PluginName.Registrars;
   const parentNode = namehash(getRegistrarManagedName(config.namespace));
 
   ponder.on(
     namespaceContract(pluginName, "Eth_BaseRegistrarOld:ControllerAdded"),
     async ({ context, event }) => {
-      await context.db.insert(schema.subregistry_registrar_controller).values({
+      await context.db.insert(schema.registrar_controller).values({
         address: event.args.controller,
         baseRegistrarAddress: event.log.address,
         addedAt: event.block.timestamp,
@@ -33,18 +33,16 @@ export default function () {
   ponder.on(
     namespaceContract(pluginName, "Eth_BaseRegistrarOld:ControllerRemoved"),
     async ({ context, event }) => {
-      await context.db
-        .update(schema.subregistry_registrar_controller, { address: event.args.controller })
-        .set({
-          removedAt: event.block.timestamp,
-        });
+      await context.db.update(schema.registrar_controller, { address: event.args.controller }).set({
+        removedAt: event.block.timestamp,
+      });
     },
   );
 
   ponder.on(
     namespaceContract(pluginName, "Eth_BaseRegistrar:ControllerAdded"),
     async ({ context, event }) => {
-      await context.db.insert(schema.subregistry_registrar_controller).values({
+      await context.db.insert(schema.registrar_controller).values({
         address: event.args.controller,
         baseRegistrarAddress: event.log.address,
         addedAt: event.block.timestamp,
@@ -57,11 +55,9 @@ export default function () {
   ponder.on(
     namespaceContract(pluginName, "Eth_BaseRegistrar:ControllerRemoved"),
     async ({ context, event }) => {
-      await context.db
-        .update(schema.subregistry_registrar_controller, { address: event.args.controller })
-        .set({
-          removedAt: event.block.timestamp,
-        });
+      await context.db.update(schema.registrar_controller, { address: event.args.controller }).set({
+        removedAt: event.block.timestamp,
+      });
     },
   );
 
@@ -72,10 +68,10 @@ export default function () {
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
 
-      // Upsert the Subregistry Registration record
+      // Upsert the Registration record
       // This record represents the current registration state for the `node`.
       await context.db
-        .insert(schema.subregistry_registration)
+        .insert(schema.registration)
         .values({
           node,
           parentNode,
@@ -96,10 +92,10 @@ export default function () {
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
 
-      // Update the Subregistry Registration record
+      // Update the Registration record
       // This record represents the current registration state for the `node`.
       await context.db
-        .update(schema.subregistry_registration, {
+        .update(schema.registration, {
           node,
         })
         .set({

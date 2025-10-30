@@ -10,7 +10,7 @@ import attach_LineaEth_Registrars from "./by-owned-name/linea.eth/handlers/Linea
 import attach_LineaEth_RegistrarControllers from "./by-owned-name/linea.eth/handlers/LineaEth_RegistrarController";
 
 // conditionally attach event handlers when Ponder executes this file
-if (config.plugins.includes(PluginName.Subregistry)) {
+if (config.plugins.includes(PluginName.Registrars)) {
   attach_Eth_Registrars();
   attach_Eth_RegistrarControllers();
 

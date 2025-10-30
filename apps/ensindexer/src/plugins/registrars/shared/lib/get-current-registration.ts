@@ -6,16 +6,16 @@ import type { Node } from "@ensnode/ensnode-sdk";
 import {
   buildSubregistryRegistration,
   type SubregistryRegistration,
-} from "@/lib/subregistry/registration";
+} from "@/lib/registrars/registration";
 
 /**
- * Get currently indexed subregistry registration for a node.
+ * Get currently indexed registration for a node.
  */
 export async function getCurrentRegistration(
   context: Context,
   node: Node,
 ): Promise<SubregistryRegistration> {
-  const currentRegistration = await context.db.find(schema.subregistry_registration, {
+  const currentRegistration = await context.db.find(schema.registration, {
     node,
   });
 

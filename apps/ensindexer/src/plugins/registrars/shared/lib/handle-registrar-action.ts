@@ -31,12 +31,12 @@ export async function handleRegistrarAction(
   // We can't add the state invariant about name renewals yet, because
   // doing so would require us to index more historical RegistrarControllers
 
-  // 1. Update the Subregistry Registration record
+  // 1. Update the Registration record
   // This record represents the current registration state for the `node`.
   // The record must already exist, as it is created upon handling
   // the Base Registrar:NameRegistered event.
   await context.db
-    .update(schema.subregistry_registration, {
+    .update(schema.registration, {
       node,
     })
     .set(({ expiresAt }) => ({
@@ -45,7 +45,7 @@ export async function handleRegistrarAction(
     }));
 
   // 2. Insert the Registrar Action record
-  await context.db.insert(schema.subregistry_registrarAction).values({
+  await context.db.insert(schema.registrarAction).values({
     id: event.id,
     type,
     node,

@@ -16,7 +16,7 @@ import type {
   UnixTimestamp,
 } from "@ensnode/ensnode-sdk";
 
-import type { SubregistryRegistration } from "@/lib/subregistry/registration";
+import type { SubregistryRegistration } from "@/lib/registrars/registration";
 
 /**
  * Get the incremental duration for Registration action.

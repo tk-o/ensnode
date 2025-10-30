@@ -1,10 +1,10 @@
 /**
- * The Subregistry plugin indexes data about ENS subregistries, specifically the
+ * The `registrars` plugin indexes data about ENS subregistries, specifically the
  * registrar and registrar controller contracts that manage registrations and renewals
- * for known subregistry base registrars owning the following names:
- * - eth
- * - base.eth
- * - linea.eth
+ * for known registrars owning the following names:
+ * - ENS Root (direct subnames of .eth)
+ * - Basenames
+ * - Lineanames
  */
 
 import * as ponder from "ponder";
@@ -19,7 +19,7 @@ import {
 } from "@/lib/plugin-helpers";
 import { chainConfigForContract, chainsConnectionConfig } from "@/lib/ponder-helpers";
 
-const pluginName = PluginName.Subregistry;
+const pluginName = PluginName.Registrars;
 
 export default createPlugin({
   name: pluginName,

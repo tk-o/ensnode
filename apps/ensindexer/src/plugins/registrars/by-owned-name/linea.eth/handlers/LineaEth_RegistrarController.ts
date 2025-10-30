@@ -1,4 +1,7 @@
+import config from "@/config";
+
 import { ponder } from "ponder:registry";
+import { namehash } from "viem/ens";
 
 import {
   CurrencyIds,
@@ -14,7 +17,8 @@ import {
   buildSubregistryRegistrarAction,
   getIncrementalDurationForRegistration,
   getIncrementalDurationForRenewal,
-} from "@/lib/subregistry/registrar-action";
+} from "@/lib/registrars/registrar-action";
+import { getRegistrarManagedName } from "@/plugins/subgraph/plugins/lineanames/lib/registrar-helpers";
 
 import { getCurrentRegistration } from "../../../shared/lib/get-current-registration";
 import { handleRegistrarAction } from "../../../shared/lib/handle-registrar-action";
@@ -23,8 +27,8 @@ import { handleRegistrarAction } from "../../../shared/lib/handle-registrar-acti
  * Registers event handlers with Ponder.
  */
 export default function () {
-  const pluginName = PluginName.Subregistry;
-  const parentNode = LINEANAMES_NODE;
+  const pluginName = PluginName.Registrars;
+  const parentNode = namehash(getRegistrarManagedName(config.namespace));
   /**
    * No Registrar Controller event includes a referrer.
    */

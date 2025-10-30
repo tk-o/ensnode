@@ -1,15 +1,15 @@
 import { namehash } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { ETH_NODE, makeSubdomainNode, type UnixTimestamp } from "@ensnode/ensnode-sdk";
+import { ETH_NODE, type UnixTimestamp } from "@ensnode/ensnode-sdk";
 
 import {
   getIncrementalDurationForRegistration,
   getIncrementalDurationForRenewal,
-} from "@/lib/subregistry/registrar-action";
-import type { SubregistryRegistration } from "@/lib/subregistry/registration";
+} from "@/lib/registrars/registrar-action";
+import type { SubregistryRegistration } from "@/lib/registrars/registration";
 
-describe("Subregistry: Registrar Action", () => {
+describe("Registrars", () => {
   describe("Registration Action", () => {
     it("can calculate incremental duration", () => {
       const eventArgExpiresAt: UnixTimestamp = 1234;
