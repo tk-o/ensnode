@@ -23,7 +23,11 @@ const pluginName = PluginName.Registrars;
 
 export default createPlugin({
   name: pluginName,
-  requiredDatasourceNames: [DatasourceNames.ENSRoot],
+  requiredDatasourceNames: [
+    DatasourceNames.ENSRoot,
+    DatasourceNames.Basenames,
+    DatasourceNames.Lineanames,
+  ],
   createPonderConfig(config) {
     // configure ENSRoot dependencies
     const ensRootDatasource = getDatasourceAsFullyDefinedAtCompileTime(

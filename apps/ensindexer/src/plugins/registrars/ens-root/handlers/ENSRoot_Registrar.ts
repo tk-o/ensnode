@@ -17,27 +17,27 @@ export default function () {
   const pluginName = PluginName.Registrars;
   const parentNode = namehash(getRegistrarManagedName(config.namespace));
 
-  ponder.on(
-    namespaceContract(pluginName, "Eth_BaseRegistrarOld:ControllerAdded"),
-    async ({ context, event }) => {
-      await context.db.insert(schema.registrar_controller).values({
-        address: event.args.controller,
-        baseRegistrarAddress: event.log.address,
-        addedAt: event.block.timestamp,
-        chainId: context.chain.id,
-        transactionHash: event.transaction.hash,
-      });
-    },
-  );
+  // ponder.on(
+  //   namespaceContract(pluginName, "Eth_BaseRegistrarOld:ControllerAdded"),
+  //   async ({ context, event }) => {
+  //     await context.db.insert(schema.registrar_controller).values({
+  //       address: event.args.controller,
+  //       baseRegistrarAddress: event.log.address,
+  //       addedAt: event.block.timestamp,
+  //       chainId: context.chain.id,
+  //       transactionHash: event.transaction.hash,
+  //     });
+  //   },
+  // );
 
-  ponder.on(
-    namespaceContract(pluginName, "Eth_BaseRegistrarOld:ControllerRemoved"),
-    async ({ context, event }) => {
-      await context.db.update(schema.registrar_controller, { address: event.args.controller }).set({
-        removedAt: event.block.timestamp,
-      });
-    },
-  );
+  // ponder.on(
+  //   namespaceContract(pluginName, "Eth_BaseRegistrarOld:ControllerRemoved"),
+  //   async ({ context, event }) => {
+  //     await context.db.update(schema.registrar_controller, { address: event.args.controller }).set({
+  //       removedAt: event.block.timestamp,
+  //     });
+  //   },
+  // );
 
   ponder.on(
     namespaceContract(pluginName, "Eth_BaseRegistrar:ControllerAdded"),
