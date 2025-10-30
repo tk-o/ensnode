@@ -20,8 +20,8 @@ import {
 } from "@/lib/registrars/registrar-action";
 import { getRegistrarManagedName } from "@/plugins/subgraph/plugins/lineanames/lib/registrar-helpers";
 
-import { getCurrentRegistration } from "../../../shared/lib/get-current-registration";
-import { handleRegistrarAction } from "../../../shared/lib/handle-registrar-action";
+import { getCurrentRegistration } from "../../shared/lib/get-current-registration";
+import { handleRegistrarAction } from "../../shared/lib/handle-registrar-action";
 
 /**
  * Registers event handlers with Ponder.
