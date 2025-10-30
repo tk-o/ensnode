@@ -4,12 +4,12 @@ import type { MergedTypes } from "@/lib/lib-helpers";
 
 // Core-Schema-Indepdendent Plugins
 import protocolAccelerationPlugin from "./protocol-acceleration/plugin";
+import registrarsPlugin from "./registrars/plugin";
 // Subgraph-Schema Core Plugins
 import basenamesPlugin from "./subgraph/plugins/basenames/plugin";
 import lineaNamesPlugin from "./subgraph/plugins/lineanames/plugin";
 import subgraphPlugin from "./subgraph/plugins/subgraph/plugin";
 import threednsPlugin from "./subgraph/plugins/threedns/plugin";
-import subregistryPlugin from "./subregistry/plugin";
 import tokenScopePlugin from "./tokenscope/plugin";
 
 export const ALL_PLUGINS = [
@@ -19,7 +19,7 @@ export const ALL_PLUGINS = [
   threednsPlugin,
   tokenScopePlugin,
   protocolAccelerationPlugin,
-  subregistryPlugin,
+  registrarsPlugin,
 ] as const;
 
 /**
