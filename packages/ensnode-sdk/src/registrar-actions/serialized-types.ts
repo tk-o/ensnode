@@ -17,7 +17,7 @@ export interface SerializedRegistrarAction
   premium: SerializedPrice;
 
   /**
-   * Total cost of preforming the registrar action.
+   * Total cost for performing the registrar action.
    *
    * Sum of `baseCost` and `premium`.
    */

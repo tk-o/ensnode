@@ -16,8 +16,8 @@ describe("Registrars", () => {
       const currentBlockTimestamp: UnixTimestamp = 1230;
 
       const incrementalDuration = getIncrementalDurationForRegistration(
-        eventArgExpiresAt,
         currentBlockTimestamp,
+        eventArgExpiresAt,
       );
 
       expect(incrementalDuration).toEqual(4);
@@ -35,8 +35,8 @@ describe("Registrars", () => {
       } satisfies SubregistryRegistration;
 
       const incrementalDuration = getIncrementalDurationForRenewal(
-        eventArgExpiresAt,
         currentRegistration,
+        eventArgExpiresAt,
       );
 
       expect(incrementalDuration).toEqual(54);

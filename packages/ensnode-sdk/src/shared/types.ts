@@ -90,32 +90,64 @@ export interface Blockrange<BlockType = BlockNumber> {
 }
 
 /**
+ * Event ID
+ *
+ * A globally unique identifier of a single indexed event.
+ */
+export type EventId = string;
+
+/**
  * EventRef
  *
- * Describes an onchain event.
- *
- * Useful to capture information about indexed events.
+ * References a distinct onchain event.
  */
-export interface EventRef {
+export interface EventRef<EventNameType extends string> {
+  /**
+   * Event ID
+   *
+   * A globally unique identifier of a single indexed event.
+   */
+  id: EventId;
+
+  /**
+   * Event Name
+   */
+  name: EventNameType;
+
   /**
    * Chain ID
+   *
+   * Chain ID where the event occurred.
    */
   chainId: ChainId;
 
   /**
-   * Block timestamp
+   * Block Ref
+   *
+   * Reference to a block which includes the event log on `chainId` chain.
    */
-  timestamp: UnixTimestamp;
+  blockRef: BlockRef;
+
+  /**
+   * Contract address
+   *
+   * Address of a contract that emitted the event on `chainId` chain.
+   */
+  contractAddress: Address;
 
   /**
    * Transaction Hash
+   *
+   * Hash of a transaction on `chainId` chain where the event occurred.
+   *
+   * Guaranteed to be a hex string representation of 32-bytes.
    */
   transactionHash: Hash;
 
   /**
    * Log Index
    *
-   * The index of a log within a block.
+   * Index of the event log within a block on `chainId` where the event occurred.
    *
    * Guaranteed to be a non-negative integer.
    */

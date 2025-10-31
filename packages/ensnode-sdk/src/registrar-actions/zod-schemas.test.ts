@@ -1,10 +1,11 @@
-import { type Address, namehash } from "viem";
+import { ENCODED_REFERRER_BYTE_LENGTH } from "@namehash/ens-referrals";
+import { type Address, namehash, pad, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
-import { prettifyError, type ZodSafeParseResult } from "zod/v4";
+import { number, prettifyError, type ZodSafeParseResult } from "zod/v4";
 
 import { CurrencyIds } from "../shared";
 import type { SerializedRegistrarAction } from "./serialized-types";
-import { RegistrarActionTypes } from "./types";
+import { RegistrarActionTypes, RegistrarEventNames } from "./types";
 import { makeRegistrarActionSchema } from "./zod-schemas";
 
 const vitalikEthAddress: Address = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
@@ -40,13 +41,22 @@ describe("ENSIndexer: Registrar Actions", () => {
               incrementalDuration: 123,
 
               registrant: vb3Address,
-              encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+              encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
               decodedReferrer: vb2Address,
 
-              timestamp: 1761062418,
-              chainId: 1,
-              transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
-              logIndex: 1,
+              eventRef: {
+                id: "123",
+                name: RegistrarEventNames.NameRegistered,
+                chainId: 1,
+                blockRef: {
+                  number: 123,
+                  timestamp: 1761062418,
+                },
+                contractAddress: zeroAddress,
+                transactionHash:
+                  "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+                logIndex: 1,
+              },
             } satisfies SerializedRegistrarAction),
           ),
         ).toMatch(/Renewal Premium must always be '0'/);
@@ -75,13 +85,22 @@ describe("ENSIndexer: Registrar Actions", () => {
               incrementalDuration: 123,
 
               registrant: vb3Address,
-              encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+              encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
               decodedReferrer: vb2Address,
 
-              timestamp: 1761062418,
-              chainId: 1,
-              transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
-              logIndex: 1,
+              eventRef: {
+                id: "123",
+                name: RegistrarEventNames.NameRegistered,
+                chainId: 1,
+                blockRef: {
+                  number: 123,
+                  timestamp: 1761062418,
+                },
+                contractAddress: zeroAddress,
+                transactionHash:
+                  "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+                logIndex: 1,
+              },
             } satisfies SerializedRegistrarAction),
           ),
         ).toMatch(/'total' must be equal to the sum of 'baseCost' and 'premium'/);
@@ -111,13 +130,66 @@ describe("ENSIndexer: Registrar Actions", () => {
               encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
               decodedReferrer: vb2Address,
 
-              timestamp: 1761062418,
-              chainId: 1,
-              transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
-              logIndex: 1,
+              eventRef: {
+                id: "123",
+                name: RegistrarEventNames.NameRegistered,
+                chainId: 1,
+                blockRef: {
+                  number: 123,
+                  timestamp: 1761062418,
+                },
+                contractAddress: zeroAddress,
+                transactionHash:
+                  "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+                logIndex: 1,
+              },
             } satisfies SerializedRegistrarAction),
           ),
         ).toMatch(/'total' must be equal to the sum of 'baseCost' and 'premium'/);
+      });
+
+      it("refuses to parse Registrar Action when currency is not set to ETH", () => {
+        expect(
+          formatParseError(
+            makeRegistrarActionSchema().safeParse({
+              type: RegistrarActionTypes.Registration,
+              node: namehash("vitalik.eth"),
+
+              baseCost: {
+                currency: CurrencyIds.DAI,
+                amount: "3",
+              },
+              premium: {
+                currency: CurrencyIds.DAI,
+                amount: "1",
+              },
+              total: {
+                currency: CurrencyIds.DAI,
+                amount: "4",
+              },
+
+              incrementalDuration: 123,
+
+              registrant: vb3Address,
+              encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
+              decodedReferrer: vb2Address,
+
+              eventRef: {
+                id: "123",
+                name: RegistrarEventNames.NameRegistered,
+                chainId: 1,
+                blockRef: {
+                  number: 123,
+                  timestamp: 1761062418,
+                },
+                contractAddress: zeroAddress,
+                transactionHash:
+                  "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+                logIndex: 1,
+              },
+            } satisfies SerializedRegistrarAction),
+          ),
+        ).toMatch(/currency must be set to 'ETH'/);
       });
 
       it("refuses to parse Registrar Action when decodedReferrer is not based on encodedReferrer", () => {
@@ -141,13 +213,21 @@ describe("ENSIndexer: Registrar Actions", () => {
           incrementalDuration: 123,
 
           registrant: vb3Address,
-          encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+          encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
           decodedReferrer: vitalikEthAddress,
 
-          timestamp: 1761062418,
-          chainId: 1,
-          transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
-          logIndex: 1,
+          eventRef: {
+            id: "123",
+            name: RegistrarEventNames.NameRegistered,
+            chainId: 1,
+            blockRef: {
+              number: 123,
+              timestamp: 1761062418,
+            },
+            contractAddress: zeroAddress,
+            transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+            logIndex: 1,
+          },
         } satisfies SerializedRegistrarAction);
 
         expect(formatParseError(parsed)).toMatch(

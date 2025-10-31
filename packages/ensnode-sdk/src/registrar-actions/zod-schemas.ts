@@ -6,13 +6,15 @@ import type { ParsePayload } from "zod/v4/core";
 import {
   makeChainIdSchema,
   makeDurationSchema,
+  makeEventRefSchema,
   makeHexStringSchema,
   makeLowercaseAddressSchema,
   makeNonNegativeIntegerSchema,
-  makePriceSchema,
+  makePriceEthSchema,
   makeUnixTimestampSchema,
 } from "../internal";
-import { type RegistrarAction, RegistrarActionTypes } from "./types";
+import { CurrencyIds } from "../shared";
+import { type RegistrarAction, RegistrarActionTypes, RegistrarEventNames } from "./types";
 
 /** Invariant: total is sum of baseCost and premium */
 function invariant_registrarActionTotalIsSumOfBaseCostAndPremium(
@@ -28,6 +30,14 @@ function invariant_registrarActionTotalIsSumOfBaseCostAndPremium(
       code: "custom",
       input: registrarAction,
       message: `'total' must be equal to the sum of 'baseCost' and 'premium'`,
+    });
+  }
+
+  if (registrarAction.baseCost.currency !== CurrencyIds.ETH) {
+    ctx.issues.push({
+      code: "custom",
+      input: registrarAction,
+      message: `'baseCost.currency' must set to '${CurrencyIds.ETH}'`,
     });
   }
 
@@ -72,9 +82,9 @@ const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Acti
   z.object({
     node: makeHexStringSchema({ bytesCount: 32 }, `${valueLabel} Node`),
 
-    baseCost: makePriceSchema(`${valueLabel} Base Cost`),
-    premium: makePriceSchema(`${valueLabel} Premium`),
-    total: makePriceSchema(`${valueLabel} Total`),
+    baseCost: makePriceEthSchema(`${valueLabel} Base Cost`),
+    premium: makePriceEthSchema(`${valueLabel} Premium`),
+    total: makePriceEthSchema(`${valueLabel} Total`),
 
     incrementalDuration: makeDurationSchema(`${valueLabel} Incremental Duration`),
 
@@ -85,10 +95,7 @@ const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Acti
     ),
     decodedReferrer: makeLowercaseAddressSchema(`${valueLabel} Decoded Referrer`),
 
-    timestamp: makeUnixTimestampSchema(`${valueLabel} Block Timestamp`),
-    chainId: makeChainIdSchema(`${valueLabel} Chain ID`),
-    transactionHash: makeHexStringSchema({ bytesCount: 32 }, `${valueLabel} Transaction Hash`),
-    logIndex: makeNonNegativeIntegerSchema(`${valueLabel} Log Index`),
+    eventRef: makeEventRefSchema({ eventNames: Object.values(RegistrarEventNames) }, valueLabel),
   });
 
 export const makeRegistrarActionRegistrationSchema = (valueLabel: string = "Registration ") =>
@@ -104,7 +111,7 @@ export const makeRegistrarActionRenewalSchema = (valueLabel: string = "Renewal")
     .extend({
       type: z.literal(RegistrarActionTypes.Renewal),
 
-      premium: makePriceSchema(`${valueLabel} Premium`).refine((v) => v.amount === 0n, {
+      premium: makePriceEthSchema(`${valueLabel} Premium`).refine((v) => v.amount === 0n, {
         error: `Renewal Premium must always be '0'`,
       }),
     })

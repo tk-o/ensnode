@@ -2,7 +2,14 @@
  * Schema Definitions for tracking of ENS subregistries.
  */
 
-import { index, onchainEnum, onchainTable, relations } from "ponder";
+import {
+  index,
+  onchainEnum,
+  onchainTable,
+  type PgColumnsBuilders,
+  primaryKey,
+  relations,
+} from "ponder";
 
 /**
  * Registrar Controller Table
@@ -10,51 +17,37 @@ import { index, onchainEnum, onchainTable, relations } from "ponder";
  * Tracks known registrar controller contracts that manage registrations
  * and renewals for known base registrars.
  */
-export const registrar_controller = onchainTable("registrar_controllers", (t) => ({
-  /**
-   * The contract address of the registrar controller instance.
-   */
-  address: t.hex().primaryKey(),
+export const registrarController = onchainTable(
+  "registrar_controllers",
+  (t) => ({
+    /**
+     * Chain ID that the transaction associated with the registrar controller
+     * update occurred on.
+     *
+     * Guaranteed to be a non-negative integer value.
+     */
+    chainId: t.integer().notNull(),
 
-  /**
-   * The base registrar contract address that this controller manages.
-   */
-  baseRegistrarAddress: t.hex().notNull(),
+    /**
+     * The contract address of the registrar controller instance.
+     */
+    controllerAddress: t.hex().notNull(),
 
-  /**
-   * The timestamp when the registrar controller contract was added
-   * to the base registrar.
-   *
-   * Guaranteed to be a non-negative bigint value.
-   */
-  addedAt: t.bigint().notNull(),
+    /**
+     * The registrar contract address that this controller manages.
+     */
+    registrarAddress: t.hex().notNull(),
 
-  /**
-   * The timestamp when the registrar controller contract was removed
-   * from the base registrar.
-   *
-   * Guaranteed to be:
-   * - null if still active,
-   * - otherwise, a non-negative bigint value.
-   */
-  removedAt: t.bigint(),
-
-  /**
-   * Chain ID that the transaction associated with the registrar controller
-   * update occurred on.
-   *
-   * Guaranteed to be a non-negative integer value.
-   */
-  chainId: t.integer().notNull(),
-
-  /**
-   * Transaction hash of the transaction on `chainId` associated with
-   * the registrar controller.
-   *
-   * Guaranteed to be a string representation of 32-bytes.
-   */
-  transactionHash: t.hex().notNull(),
-}));
+    /**
+     * Tells if registrar controller was added in to the registry contract,
+     * and has not been removed yet.
+     */
+    isActive: t.boolean().notNull(),
+  }),
+  (t) => ({
+    pk: primaryKey({ columns: [t.chainId, t.controllerAddress] }),
+  }),
+);
 
 /**
  * Registration Table
@@ -91,6 +84,90 @@ export const registration = onchainTable("registrations", (t) => ({
    * Otherwise, it the registration was performed via unknown registrar controller address.
    */
   isControllerManaged: t.boolean().notNull().default(false),
+}));
+
+/**
+ * Shared Event Columns
+ *
+ * Includes all columns that describe an EVM event.
+ */
+const sharedEventColumns = (t: PgColumnsBuilders) => ({
+  /**
+   * Unique EVM event identifier for the registrar event.
+   */
+  id: t.text().primaryKey(),
+
+  /**
+   * Chain ID that the transaction associated with the registrar event
+   * occurred on.
+   *
+   * Guaranteed to be a non-negative integer value.
+   */
+  chainId: t.integer().notNull(),
+
+  /**
+   * Address of a contract that emitted the registrar event.
+   */
+  contractAddress: t.hex().notNull(),
+
+  /**
+   * Number of the block that includes the registrar event.
+   *
+   * Guaranteed to be a non-negative bigint value.
+   */
+  blockNumber: t.bigint().notNull(),
+
+  /**
+   * Timestamp of the block that includes the registrar event.
+   *
+   * Guaranteed to be a non-negative bigint value.
+   */
+  blockTimestamp: t.bigint().notNull(),
+
+  /**
+   * Transaction hash of the transaction on `chainId` chain associated with
+   * the registrar event.
+   *
+   * Guaranteed to be a string representation of 32-bytes.
+   */
+  transactionHash: t.hex().notNull(),
+
+  /**
+   * Log Index
+   *
+   * The index of a log within the `blockNumber` block on `chainId` chain
+   * associated with the registrar event.
+   *
+   * Guaranteed to be a non-negative integer.
+   */
+  logIndex: t.integer().notNull(),
+});
+
+/**
+ * Registrar Event Name Enum
+ *
+ * Names of Registrar Events.
+ */
+export const registrarEventName = onchainEnum("registrar_event_name", [
+  "NameRegistered",
+  "NameRenewed",
+  "ControllerAdded",
+  "ControllerRemoved",
+]);
+
+/**
+ * Registrar Event
+ *
+ * Identifies an onchain event that was emitted by
+ * Registrar contract, or Registrar Controller contract.
+ */
+export const registrarEvent = onchainTable("registrar_events", (t) => ({
+  ...sharedEventColumns(t),
+
+  /**
+   * Name of registrar event.
+   */
+  name: registrarEventName().notNull(),
 }));
 
 /**
@@ -204,39 +281,6 @@ export const registrarAction = onchainTable(
      * Guaranteed to be a non-negative bigint value.
      */
     incrementalDuration: t.bigint().notNull(),
-
-    /**
-     * Timestamp of the transaction on `chainId` associated with
-     * the registrar action.
-     *
-     * Guaranteed to be a non-negative bigint value.
-     */
-    timestamp: t.bigint().notNull(),
-
-    /**
-     * Chain ID that the transaction associated with the registrar action
-     * occurred on.
-     *
-     * Guaranteed to be a non-negative integer value.
-     */
-    chainId: t.integer().notNull(),
-
-    /**
-     * Transaction hash of the transaction on `chainId` associated with
-     * the registrar action.
-     *
-     * Guaranteed to be a string representation of 32-bytes.
-     */
-    transactionHash: t.hex().notNull(),
-
-    /**
-     * Log Index
-     *
-     * The index of a log within a block.
-     *
-     * Guaranteed to be a non-negative integer.
-     */
-    logIndex: t.integer().notNull(),
   }),
   (t) => ({
     byRegistrant: index().on(t.registrant),
@@ -244,15 +288,59 @@ export const registrarAction = onchainTable(
   }),
 );
 
-export const registrarAction_relations = relations(registrarAction, ({ one }) => ({
-  // RegistrarAction belongs to registrarAction
-  referrer: one(registration, {
+// Relations
+
+/**
+ * Registrar Controller Relations
+ *
+ * - exactly one registrar
+ * - many registrar events
+ */
+export const registrarControllerRelations = relations(registrarController, ({ many }) => ({
+  registrarEvents: many(registrarEvent),
+}));
+
+/**
+ * Registrar Event Relations
+ *
+ * - at most one Registrar Controller
+ * - at most one Registrar Action
+ */
+export const registrarEventRelations = relations(registrarEvent, ({ one }) => ({
+  registrarController: one(registrarController, {
+    fields: [registrarEvent.chainId, registrarEvent.contractAddress],
+    references: [registrarController.chainId, registrarController.controllerAddress],
+  }),
+
+  registrarAction: one(registrarAction, {
+    fields: [registrarEvent.id],
+    references: [registrarAction.id],
+  }),
+}));
+
+/**
+ * Registrar Action Relations
+ *
+ * - exactly one Registrar Event
+ * - exactly one Registration
+ */
+export const registrarActionRelations = relations(registrarAction, ({ one }) => ({
+  registrarEvent: one(registrarEvent, {
+    fields: [registrarAction.id],
+    references: [registrarEvent.id],
+  }),
+
+  registration: one(registration, {
     fields: [registrarAction.node],
     references: [registration.node],
   }),
 }));
 
-export const registration_relations = relations(registration, ({ many }) => ({
-  // Registration has many RegistrarAction
+/**
+ * Registration Relations
+ *
+ * - many Registrar Actions
+ */
+export const registrationRelations = relations(registration, ({ many }) => ({
   registrarActions: many(registrarAction),
 }));

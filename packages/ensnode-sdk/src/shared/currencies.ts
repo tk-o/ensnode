@@ -11,17 +11,32 @@ export const CurrencyIds = {
 
 export type CurrencyId = (typeof CurrencyIds)[keyof typeof CurrencyIds];
 
-export interface Price {
-  currency: CurrencyId;
+/**
+ * The amount of the currency in the smallest unit of the currency.
+ *
+ * Guaranteed to be non-negative.
+ */
+export type CurrencyAmount = bigint;
 
-  /**
-   * The amount of the currency in the smallest unit of the currency. (see
-   * decimals of the {@link CurrencyConfig} for the currency).
-   *
-   * Guaranteed to be non-negative.
-   */
-  amount: bigint;
+export interface PriceEth {
+  currency: typeof CurrencyIds.ETH;
+
+  amount: CurrencyAmount;
 }
+
+export interface PriceDai {
+  currency: typeof CurrencyIds.DAI;
+
+  amount: CurrencyAmount;
+}
+
+export interface PriceUsdc {
+  currency: typeof CurrencyIds.USDC;
+
+  amount: CurrencyAmount;
+}
+
+export type Price = PriceEth | PriceDai | PriceUsdc;
 
 export interface SerializedPrice extends Omit<Price, "amount"> {
   currency: CurrencyId;
@@ -43,7 +58,7 @@ export interface CurrencyInfo {
 const currencyInfo: Record<CurrencyId, CurrencyInfo> = {
   [CurrencyIds.ETH]: {
     id: CurrencyIds.ETH,
-    name: "Ethereum",
+    name: "ETH",
     decimals: 18,
   },
   [CurrencyIds.USDC]: {

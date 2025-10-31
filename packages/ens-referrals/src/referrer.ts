@@ -34,6 +34,11 @@ export const encodedReferrerPadding = pad("0x", {
   dir: "left",
 });
 
+/**
+ * Zero Encoded Referrer
+ *
+ * Guaranteed to be a hex string representation of a 32-byte zero value.
+ */
 export const zeroEncodedReferrer = pad("0x", {
   size: ENCODED_REFERRER_BYTE_LENGTH,
   dir: "left",
@@ -50,7 +55,8 @@ export function buildEncodedReferrer(address: Address): EncodedReferrer {
 }
 
 /**
- * Decode an {@link EncodedReferrer} value into a checksummed {@link Address}.
+ * Decode an {@link EncodedReferrer} value into a checksummed {@link Address}
+ * according to the subjective referrer encoding used for ENS Holiday Awards.
  *
  * @param encodedReferrer - The "raw" {@link EncodedReferrer} value to decode.
  * @returns The decoded referrer checksummed address.

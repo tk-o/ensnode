@@ -12,13 +12,14 @@ import z from "zod/v4";
 
 import { ENSNamespaceIds } from "../ens";
 import { asLowerCaseAddress } from "./address";
-import { CurrencyIds, type Price } from "./currencies";
+import { CurrencyIds } from "./currencies";
 import type {
   BlockRef,
   ChainId,
   Datetime,
   DefaultableChainId,
   Duration,
+  EventRef,
   UnixTimestamp,
 } from "./types";
 
@@ -228,6 +229,38 @@ export const makeBlockRefSchema = (valueLabel: string = "Value") =>
   );
 
 /**
+ * Parses an object value as the {@link EventRef} object.
+ *
+ * @param {string[]} options.eventNames A list of allowed event names for event ref.
+ */
+export const makeEventRefSchema = <const EventNames extends string[]>(
+  options: {
+    eventNames: EventNames;
+  },
+  valueLabel: string = "Value",
+) =>
+  z.strictObject(
+    {
+      id: z.string().nonempty(),
+
+      name: z.enum(options.eventNames),
+
+      chainId: makeChainIdSchema(valueLabel),
+
+      blockRef: makeBlockRefSchema(valueLabel),
+
+      contractAddress: makeLowercaseAddressSchema(valueLabel),
+
+      transactionHash: makeHexStringSchema({ bytesCount: 32 }, valueLabel),
+
+      logIndex: makeNonNegativeIntegerSchema(valueLabel),
+    },
+    {
+      error: `${valueLabel} must be a valid EventRef object.`,
+    },
+  );
+
+/**
  * Parses a string value as ENSNamespaceId.
  */
 export const makeENSNamespaceIdSchema = (valueLabel: string = "ENSNamespaceId") =>
@@ -272,12 +305,12 @@ export const makeHexStringSchema = (
     });
 
 /**
- * Schema for {@link Price} type.
+ * Schema for {@link PriceEth} type.
  */
-export const makePriceSchema = (valueLabel: string = "Cost") =>
+export const makePriceEthSchema = (valueLabel: string = "Cost") =>
   z.strictObject({
-    currency: z.enum(Object.values(CurrencyIds), {
-      error: `${valueLabel} currency must be a valid CurrencyId.`,
+    currency: z.literal(CurrencyIds.ETH, {
+      error: `${valueLabel} currency must be set to '${CurrencyIds.ETH}'.`,
     }),
 
     amount: z.coerce

@@ -1,13 +1,24 @@
 import config from "@/config";
 
 import { ponder } from "ponder:registry";
-import schema from "ponder:schema";
+import { getAddress } from "viem";
 import { namehash } from "viem/ens";
 
-import { makeSubdomainNode, PluginName } from "@ensnode/ensnode-sdk";
+import {
+  asLowerCaseAddress,
+  makeSubdomainNode,
+  PluginName,
+  RegistrarEventNames,
+} from "@ensnode/ensnode-sdk";
 
 import { namespaceContract } from "@/lib/plugin-helpers";
 
+import {
+  handleControllerAddedToRegistrar,
+  handleControllerRemovedFromRegistrar,
+  handleRegistration,
+  handleRenewal,
+} from "../../shared/lib/handle-registrar-events";
 import { getRegistrarManagedName, tokenIdToLabelHash } from "../lib/registrar-helpers";
 
 /**
@@ -20,22 +31,51 @@ export default function () {
   ponder.on(
     namespaceContract(pluginName, "BaseEth_BaseRegistrar:ControllerAdded"),
     async ({ context, event }) => {
-      await context.db.insert(schema.registrar_controller).values({
-        address: event.args.controller,
-        baseRegistrarAddress: event.log.address,
-        addedAt: event.block.timestamp,
-        chainId: context.chain.id,
-        transactionHash: event.transaction.hash,
-      });
+      await handleControllerAddedToRegistrar(
+        context,
+        {
+          id: event.id,
+          name: RegistrarEventNames.ControllerAdded,
+          chainId: context.chain.id,
+          blockRef: {
+            number: Number(event.block.number),
+            timestamp: Number(event.block.timestamp),
+          },
+          contractAddress: event.log.address,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
+        },
+        {
+          chainId: context.chain.id,
+          controllerAddress: event.args.controller,
+          registrarAddress: event.log.address,
+        },
+      );
     },
   );
 
   ponder.on(
     namespaceContract(pluginName, "BaseEth_BaseRegistrar:ControllerRemoved"),
     async ({ context, event }) => {
-      await context.db.update(schema.registrar_controller, { address: event.args.controller }).set({
-        removedAt: event.block.timestamp,
-      });
+      await handleControllerRemovedFromRegistrar(
+        context,
+        {
+          id: event.id,
+          name: RegistrarEventNames.ControllerRemoved,
+          chainId: context.chain.id,
+          blockRef: {
+            number: Number(event.block.number),
+            timestamp: Number(event.block.timestamp),
+          },
+          contractAddress: event.log.address,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
+        },
+        {
+          chainId: context.chain.id,
+          controllerAddress: event.args.controller,
+        },
+      );
     },
   );
 
@@ -45,22 +85,28 @@ export default function () {
     async ({ context, event }) => {
       const labelHash = tokenIdToLabelHash(event.args.id);
       const node = makeSubdomainNode(labelHash, parentNode);
-      const expiresAt = event.args.expires;
+      const expiresAt = Number(event.args.expires);
 
-      // Upsert the Registration record
-      // This record represents the current registration state for the `node`.
-      await context.db
-        .insert(schema.registration)
-        .values({
+      await handleRegistration(
+        context,
+        {
+          id: event.id,
+          name: RegistrarEventNames.NameRegistered,
+          chainId: context.chain.id,
+          blockRef: {
+            number: Number(event.block.number),
+            timestamp: Number(event.block.timestamp),
+          },
+          contractAddress: event.log.address,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
+        },
+        {
           node,
           parentNode,
           expiresAt,
-        })
-        // in case the record already exists, it means the name was re-registered
-        // after expiry, so we update the expiresAt field
-        .onConflictDoUpdate({
-          expiresAt,
-        });
+        },
+      );
     },
   );
 
@@ -69,22 +115,28 @@ export default function () {
     async ({ context, event }) => {
       const labelHash = tokenIdToLabelHash(event.args.id);
       const node = makeSubdomainNode(labelHash, parentNode);
-      const expiresAt = event.args.expires;
+      const expiresAt = Number(event.args.expires);
 
-      // Upsert the Registration record
-      // This record represents the current registration state for the `node`.
-      await context.db
-        .insert(schema.registration)
-        .values({
+      await handleRegistration(
+        context,
+        {
+          id: event.id,
+          name: RegistrarEventNames.NameRegistered,
+          chainId: context.chain.id,
+          blockRef: {
+            number: Number(event.block.number),
+            timestamp: Number(event.block.timestamp),
+          },
+          contractAddress: event.log.address,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
+        },
+        {
           node,
           parentNode,
           expiresAt,
-        })
-        // in case the record already exists, it means the name was re-registered
-        // after expiry, so we update the expiresAt field
-        .onConflictDoUpdate({
-          expiresAt,
-        });
+        },
+      );
     },
   );
 
@@ -93,17 +145,24 @@ export default function () {
     async ({ context, event }) => {
       const labelHash = tokenIdToLabelHash(event.args.id);
       const node = makeSubdomainNode(labelHash, parentNode);
-      const expiresAt = event.args.expires;
+      const expiresAt = Number(event.args.expires);
 
-      // Update the Registration record
-      // This record represents the current registration state for the `node`.
-      await context.db
-        .update(schema.registration, {
-          node,
-        })
-        .set({
-          expiresAt,
-        });
+      await handleRenewal(
+        context,
+        {
+          id: event.id,
+          name: RegistrarEventNames.NameRenewed,
+          chainId: context.chain.id,
+          blockRef: {
+            number: Number(event.block.number),
+            timestamp: Number(event.block.timestamp),
+          },
+          contractAddress: event.log.address,
+          transactionHash: event.transaction.hash,
+          logIndex: event.log.logIndex,
+        },
+        { node, expiresAt },
+      );
     },
   );
 }

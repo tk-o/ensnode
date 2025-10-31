@@ -1,8 +1,8 @@
-import type { EncodedReferrer } from "@namehash/ens-referrals";
+import type { EncodedReferrer, zeroEncodedReferrer } from "@namehash/ens-referrals";
 import type { Address } from "viem";
 
 import type { Node } from "../ens";
-import type { Duration, EventRef, Price } from "../shared";
+import type { Duration, EventRef, PriceEth } from "../shared";
 
 export const RegistrarActionTypes = {
   Registration: "registration",
@@ -11,10 +11,19 @@ export const RegistrarActionTypes = {
 
 export type RegistrarActionType = (typeof RegistrarActionTypes)[keyof typeof RegistrarActionTypes];
 
+export const RegistrarEventNames = {
+  NameRegistered: "NameRegistered",
+  NameRenewed: "NameRenewed",
+  ControllerAdded: "ControllerAdded",
+  ControllerRemoved: "ControllerRemoved",
+} as const;
+
+export type RegistrarEventName = (typeof RegistrarEventNames)[keyof typeof RegistrarEventNames];
+
 /**
  * Registrar Action
  */
-export interface RegistrarAction extends EventRef {
+export interface RegistrarAction {
   /**
    * Type of registrar action
    */
@@ -29,51 +38,61 @@ export interface RegistrarAction extends EventRef {
 
   /**
    * Base cost
+   *
+   * Note: the "baseCost.amount" may be`0` or more.
    */
-  baseCost: Price;
+  baseCost: PriceEth;
 
   /**
    * Premium
+   *
+   * Note: the "premium.amount" may be`0` or more.
    */
-  premium: Price;
+  premium: PriceEth;
 
   /**
-   * Total cost of preforming the registrar action.
+   * Total cost for performing the registrar action.
    *
-   * Sum of `baseCost` and `premium`.
+   * Sum of `baseCost.amount` and `premium.amount`.
+   *
+   * Note: the "total.amount" may be`0` or more.
    */
-  total: Price;
+  total: PriceEth;
 
   /**
    * Incremental Duration
    *
-   * Definition of "incremental duration" is
-   * The incremental increase in the lifespan of the registration for
-   * `node` that was active as of `timestamp`.
+   * Represents the incremental increase in the duration of the lifespan of
+   * the registration for `node` that was active as of `timestamp`.
+   * Measured in seconds.
    *
-   * Please consider the following situation:
+   * A name with an active registration can be renewed at any time.
    *
-   * A registration of direct subname of .eth is scheduled to expire on
-   * Jan 1, midnight UTC. It is currently 30 days after this expiration time.
-   * Therefore, there are currently another 60 days of grace period remaining
-   * for this name. Anyone can now make a renewal of this name.
+   * Names that have expired may still be renewable.
    *
-   * There are two possible scenarios when a renewal is made:
+   * For example: assume the registration of a direct subname of .eth is
+   * scheduled to expire on Jan 1, midnight UTC. It is currently 30 days after
+   * this expiration time. Therefore, there are currently another 60 days of
+   * grace period remaining for this name. Anyone can still make
+   * a renewal of this name.
    *
-   * 1) If a renewal is made for 10 days incremental duration,
-   *    this name remains in an "expired" state, but it now
-   *    has another 70 days of grace period remaining.
+   * Consider the following scenarios for renewals of a name that
+   * has expired but is still within its grace period:
    *
-   * 2) If a renewal is made for 50 days incremental duration,
-   *    this name is no longer "expired" and is active, but it now
-   *    expires in 20 days.
+   * 1) Expired (in grace period) -> Expired (in grace period):
+   *    If a renewal is made for 10 days incremental duration,
+   *    this name remains in an "expired" (in grace period) state, but it now
+   *    has 70 days of grace period remaining instead of only 60.
+   *
+   * 2) Expired (in grace period) -> Active:
+   *    If a renewal is made for 50 days incremental duration,
+   *    this name is no longer "expired" (in grace period) and is active, but it now
+   *    expires and begins a new grace period in 20 days.
    *
    * After the latest registration of a direct subname becomes expired by
    * more than the grace period, it can no longer be renewed by anyone.
    * It must first be registered again, starting a new registration lifecycle of
-   * expiry / grace period / etc.
-   *
-   * Guaranteed to be a non-negative bigint value.
+   * active / expiry / grace period / etc.
    */
   incrementalDuration: Duration;
 
@@ -81,19 +100,31 @@ export interface RegistrarAction extends EventRef {
    * Registrant
    *
    * Account that initiated the registrarAction and is paying the "total".
-   * Note: the "total.amount" may be`0` or more.
+   * It may not be the owner of the name:
+   *
+   * 1. When a name is registered, the initial owner of the name may be
+   *    distinct from the registrant.
+   * 2. There are no restrictions on who may renew a name.
+   *    Therefore the owner of the name may be distinct from the registrant.
    */
   registrant: Address;
 
   /**
    * Encoded Referrer
    *
-   * A 32-bytes value.
+   * Represents the "raw" 32-byte "referrer" value emitted onchain in
+   * association with the registrar action.
+   *
+   * If a registrar / registrar controller doesn't support the concept of
+   * referrers then this field is set to {@link zeroEncodedReferrer} value.
    */
   encodedReferrer: EncodedReferrer;
 
   /**
    * Decoded Referrer
+   *
+   * Represents ENSNode's subjective interpretation of
+   * {@link RegistrarAction.encodedReferrer}.
    *
    * Invariants:
    * - If the first `12`-bytes of "encodedReferrer" are all `0`,
@@ -101,4 +132,11 @@ export interface RegistrarAction extends EventRef {
    *   else: "decodedReferrer" is the zero address.
    */
   decodedReferrer: Address;
+
+  /**
+   * Event Ref
+   *
+   * References an EVM event which was used to derive the Registrar Action.
+   */
+  eventRef: EventRef<RegistrarEventName>;
 }

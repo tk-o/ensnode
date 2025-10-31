@@ -5,6 +5,6 @@ This plugin allows tracking all registrations and renewals that ever happened fo
 - Basenames
 - Lineanames
 
-Additionally, indexing includes all registrar controller addresses that were ever added or removed to any relevant BaseRegistrar contract.
-
-Data indexed by this plugin covers also ENS Referrals, including encoded referrer and decoded referrer values. These values support creating ENS Referral rankings. 
+Additionally indexes:
+- All Registrar Controllers ever associated with a known Registrar contract.
+- All ENS Referrals (for Registrar Controllers supporting ENS Referral Programs).

@@ -1,12 +1,12 @@
 import { ENCODED_REFERRER_BYTE_LENGTH } from "@namehash/ens-referrals";
-import { type Address, namehash, pad, parseEther } from "viem";
+import { type Address, namehash, pad, parseEther, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { CurrencyIds } from "../shared";
 import { deserializeRegistrarAction } from "./deserialize";
 import { serializeRegistrarAction } from "./serialize";
 import type { SerializedRegistrarAction } from "./serialized-types";
-import { type RegistrarAction, RegistrarActionTypes } from "./types";
+import { type RegistrarAction, RegistrarActionTypes, RegistrarEventNames } from "./types";
 
 const vb2Address: Address = "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6";
 const vb3Address: Address = "0x220866b1a2219f40e72f5c628b65d54268ca3a9d";
@@ -36,10 +36,18 @@ describe("Registrar Actions", () => {
       encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
       decodedReferrer: vb2Address,
 
-      timestamp: 1761062418,
-      chainId: 1,
-      transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
-      logIndex: 1,
+      eventRef: {
+        id: "0123",
+        name: RegistrarEventNames.NameRegistered,
+        chainId: 1,
+        blockRef: {
+          number: 123,
+          timestamp: 1761062418,
+        },
+        contractAddress: zeroAddress,
+        transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+        logIndex: 1,
+      },
     } satisfies SerializedRegistrarAction;
 
     const deserialized = deserializeRegistrarAction(serialized);
@@ -68,10 +76,18 @@ describe("Registrar Actions", () => {
       encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
       decodedReferrer: vb2Address,
 
-      timestamp: 1761062418,
-      chainId: 1,
-      transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
-      logIndex: 1,
+      eventRef: {
+        id: "0123",
+        name: RegistrarEventNames.NameRegistered,
+        chainId: 1,
+        blockRef: {
+          number: 123,
+          timestamp: 1761062418,
+        },
+        contractAddress: zeroAddress,
+        transactionHash: "0x5371489034e7858bfa320cf3887700f997198810a8b8a880fdae98bb4d5ef66f",
+        logIndex: 1,
+      },
     } satisfies RegistrarAction);
 
     expect(serializeRegistrarAction(deserialized)).toStrictEqual(serialized);

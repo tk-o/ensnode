@@ -15,9 +15,6 @@ export function serializeRegistrarAction(
     decodedReferrer: registrarAction.decodedReferrer,
     registrant: registrarAction.registrant,
     incrementalDuration: registrarAction.incrementalDuration,
-    timestamp: registrarAction.timestamp,
-    chainId: registrarAction.chainId,
-    transactionHash: registrarAction.transactionHash,
-    logIndex: registrarAction.logIndex,
+    eventRef: registrarAction.eventRef,
   };
 }

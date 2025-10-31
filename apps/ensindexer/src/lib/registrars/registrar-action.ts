@@ -7,13 +7,17 @@ import { decodeEncodedReferrer, type EncodedReferrer } from "@namehash/ens-refer
 import type { Address, Hash } from "viem";
 
 import {
+  type BlockRef,
   type ChainId,
-  type CurrencyId,
+  type CurrencyIds,
   type Duration,
   deserializeDuration,
+  type EventId,
+  type EventRef,
   type Node,
   type RegistrarAction,
   type RegistrarActionType,
+  type RegistrarEventName,
   type UnixTimestamp,
 } from "@ensnode/ensnode-sdk";
 
@@ -22,13 +26,13 @@ import type { SubregistryRegistration } from "@/lib/registrars/registration";
 /**
  * Get the incremental duration for Registration action.
  *
+ * @param currentBlockTimestamp The current block timestamp.
  * @param registrationWillExpireAt The timestamp that is about to replace
  *        the `expiresAt` field of the `currentRegistration`.
- * @param currentBlockTimestamp The current block timestamp.
  */
 export function getIncrementalDurationForRegistration(
-  registrationWillExpireAt: UnixTimestamp,
   currentBlockTimestamp: UnixTimestamp,
+  registrationWillExpireAt: UnixTimestamp,
 ): Duration {
   return deserializeDuration(registrationWillExpireAt - currentBlockTimestamp);
 }
@@ -61,33 +65,23 @@ export function getIncrementalDurationForRegistration(
  * It must first be registered again, starting a new registration lifecycle of
  * expiry / grace period / etc.
  *
+ * @param currentRegistration The current indexed registration.
  * @param registrationWillExpireAt The timestamp that is about to replace
  *        the `expiresAt` field of the `currentRegistration`.
- * @param currentRegistration The current indexed registration.
  *
  * @returns incremental duration in seconds.
  * @throws if no related Registration was indexed before.
  */
 export function getIncrementalDurationForRenewal(
-  registrationWillExpireAt: UnixTimestamp,
   currentRegistration: SubregistryRegistration,
+  registrationWillExpireAt: UnixTimestamp,
 ): Duration {
   // Calculate and return the incremental duration
   return deserializeDuration(registrationWillExpireAt - currentRegistration.expiresAt);
 }
 
 export function buildSubregistryRegistrarAction(
-  {
-    chainId,
-    timestamp,
-    transactionHash,
-    logIndex,
-  }: {
-    chainId: ChainId;
-    timestamp: bigint;
-    transactionHash: Hash;
-    logIndex: number;
-  },
+  eventRef: EventRef<RegistrarEventName>,
   {
     type,
     node,
@@ -106,7 +100,7 @@ export function buildSubregistryRegistrarAction(
     encodedReferrer: EncodedReferrer;
     incrementalDuration: Duration;
   },
-  currency: CurrencyId,
+  currency: typeof CurrencyIds.ETH,
 ): RegistrarAction {
   // 0. Calculate total cost
   const total = baseCost + premium;
@@ -134,9 +128,6 @@ export function buildSubregistryRegistrarAction(
     registrant,
     encodedReferrer,
     decodedReferrer,
-    chainId,
-    timestamp: Number(timestamp),
-    transactionHash,
-    logIndex,
+    eventRef,
   };
 }
