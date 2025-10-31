@@ -70,7 +70,7 @@ export interface RegistrarAction {
    *
    * Names that have expired may still be renewable.
    *
-   * For example: assume the registration of a direct subname of .eth is
+   * For example: assume the registration of a direct subname of Ethnames is
    * scheduled to expire on Jan 1, midnight UTC. It is currently 30 days after
    * this expiration time. Therefore, there are currently another 60 days of
    * grace period remaining for this name. Anyone can still make

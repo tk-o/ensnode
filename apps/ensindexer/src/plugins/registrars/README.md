@@ -1,7 +1,7 @@
 # `registrars` plugin for ENSIndexer
 
 This plugin allows tracking all registrations and renewals that ever happened for subregistries managing the following names:
-- ENS Root (direct subnames of .eth)
+- Ethnames
 - Basenames
 - Lineanames
 

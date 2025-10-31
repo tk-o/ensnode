@@ -258,7 +258,7 @@ export const registrarAction = onchainTable(
      *
      * Please consider the following situation:
      *
-     * A registration of direct subname of .eth is scheduled to expire on
+     * A registration of direct subname of Ethnames is scheduled to expire on
      * Jan 1, midnight UTC. It is currently 30 days after this expiration time.
      * Therefore, there are currently another 60 days of grace period remaining
      * for this name. Anyone can now make a renewal of this name.

@@ -4,12 +4,12 @@ import { type LabelHash, uint256ToHex32 } from "@ensnode/ensnode-sdk";
 import type { RegistrarManagedName } from "@/lib/types";
 
 /**
- * When direct subnames of .eth are registered through
+ * When direct subnames of Ethnames are registered through
  * the ETHRegistrarController contract,
  * an ERC721 NFT is minted that tokenizes ownership of the registration.
  * The minted NFT will be assigned a unique tokenId which is
  * uint256(labelhash(label)) where label is the direct subname of
- * .eth that was registered.
+ * the Ethname that was registered.
  * https://github.com/ensdomains/ens-contracts/blob/db613bc/contracts/ethregistrar/ETHRegistrarController.sol#L215
  */
 export function tokenIdToLabelHash(tokenId: bigint): LabelHash {
@@ -17,7 +17,7 @@ export function tokenIdToLabelHash(tokenId: bigint): LabelHash {
 }
 
 /**
- * Get the registrar managed name for the .eth subregistry for the selected ENS namespace.
+ * Get the registrar managed name for the Ethnames subregistry for the selected ENS namespace.
  *
  * @param namespaceId
  * @returns registrar managed name

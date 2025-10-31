@@ -2,7 +2,7 @@
  * The `registrars` plugin indexes data about ENS subregistries, specifically the
  * registrar and registrar controller contracts that manage registrations and renewals
  * for known subregistry base registrars for the following:
- * - ENS Root (direct subnames of .eth)
+ * - Ethnames
  * - Basenames
  * - Lineanames
  */
@@ -29,56 +29,56 @@ export default createPlugin({
     DatasourceNames.Lineanames,
   ],
   createPonderConfig(config) {
-    // configure ENSRoot dependencies
-    const ensRootDatasource = getDatasourceAsFullyDefinedAtCompileTime(
+    // configure Ethnames dependencies
+    const ethnamesDatasource = getDatasourceAsFullyDefinedAtCompileTime(
       config.namespace,
       DatasourceNames.ENSRoot,
     );
 
-    const ensRootRegistrarContracts = {
+    const ethnamesRegistrarContracts = {
       [namespaceContract(pluginName, "Eth_BaseRegistrarOld")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
-          ensRootDatasource.chain.id,
-          ensRootDatasource.contracts.BaseRegistrarOld,
+          ethnamesDatasource.chain.id,
+          ethnamesDatasource.contracts.BaseRegistrarOld,
         ),
-        abi: ensRootDatasource.contracts.BaseRegistrarOld.abi,
+        abi: ethnamesDatasource.contracts.BaseRegistrarOld.abi,
       },
 
       [namespaceContract(pluginName, "Eth_BaseRegistrar")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
-          ensRootDatasource.chain.id,
-          ensRootDatasource.contracts.BaseRegistrar,
+          ethnamesDatasource.chain.id,
+          ethnamesDatasource.contracts.BaseRegistrar,
         ),
-        abi: ensRootDatasource.contracts.BaseRegistrar.abi,
+        abi: ethnamesDatasource.contracts.BaseRegistrar.abi,
       },
     };
 
-    const ensRootRegistrarControllerContracts = {
+    const ethnamesRegistrarControllerContracts = {
       [namespaceContract(pluginName, "Eth_LegacyEthRegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
-          ensRootDatasource.chain.id,
-          ensRootDatasource.contracts.LegacyEthRegistrarController,
+          ethnamesDatasource.chain.id,
+          ethnamesDatasource.contracts.LegacyEthRegistrarController,
         ),
-        abi: ensRootDatasource.contracts.LegacyEthRegistrarController.abi,
+        abi: ethnamesDatasource.contracts.LegacyEthRegistrarController.abi,
       },
       [namespaceContract(pluginName, "Eth_WrappedEthRegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
-          ensRootDatasource.chain.id,
-          ensRootDatasource.contracts.WrappedEthRegistrarController,
+          ethnamesDatasource.chain.id,
+          ethnamesDatasource.contracts.WrappedEthRegistrarController,
         ),
-        abi: ensRootDatasource.contracts.WrappedEthRegistrarController.abi,
+        abi: ethnamesDatasource.contracts.WrappedEthRegistrarController.abi,
       },
       [namespaceContract(pluginName, "Eth_UnwrappedEthRegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
-          ensRootDatasource.chain.id,
-          ensRootDatasource.contracts.UnwrappedEthRegistrarController,
+          ethnamesDatasource.chain.id,
+          ethnamesDatasource.contracts.UnwrappedEthRegistrarController,
         ),
-        abi: ensRootDatasource.contracts.UnwrappedEthRegistrarController.abi,
+        abi: ethnamesDatasource.contracts.UnwrappedEthRegistrarController.abi,
       },
     };
 
@@ -156,13 +156,13 @@ export default createPlugin({
 
     return ponder.createConfig({
       chains: {
-        ...chainsConnectionConfig(config.rpcConfigs, ensRootDatasource.chain.id),
+        ...chainsConnectionConfig(config.rpcConfigs, ethnamesDatasource.chain.id),
         ...chainsConnectionConfig(config.rpcConfigs, basenamesDatasource.chain.id),
         ...chainsConnectionConfig(config.rpcConfigs, linenamesDatasource.chain.id),
       },
       contracts: {
-        ...ensRootRegistrarContracts,
-        ...ensRootRegistrarControllerContracts,
+        ...ethnamesRegistrarContracts,
+        ...ethnamesRegistrarControllerContracts,
         ...basenamesRegistrarContracts,
         ...basenamesRegistrarControllerContracts,
         ...lineanamesRegistrarContracts,
