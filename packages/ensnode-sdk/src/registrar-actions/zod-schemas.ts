@@ -1,7 +1,7 @@
+import { decodeEncodedReferrer, ENCODED_REFERRER_BYTE_LENGTH } from "@namehash/ens-referrals";
+import type { Address } from "viem";
 import z from "zod/v4";
 import type { ParsePayload } from "zod/v4/core";
-
-import { decodeEncodedReferrer } from "@ensnode/ens-referrals";
 
 import {
   makeChainIdSchema,
@@ -53,7 +53,11 @@ function invariant_registrarActionDecodedReferrerBasedOnRawReferrer(
   ctx: ParsePayload<Pick<RegistrarAction, "encodedReferrer" | "decodedReferrer">>,
 ) {
   const registrarAction = ctx.value;
-  const expectedDecodedReferrer = decodeEncodedReferrer(registrarAction.encodedReferrer);
+  // decodeEncodedReferrer returns checksummed address, but ENSNode work on lowercase address values
+  // so we lowercase the result before using for checks
+  const expectedDecodedReferrer = decodeEncodedReferrer(
+    registrarAction.encodedReferrer,
+  ).toLowerCase() as Address;
 
   if (registrarAction.decodedReferrer !== expectedDecodedReferrer) {
     ctx.issues.push({
@@ -66,7 +70,7 @@ function invariant_registrarActionDecodedReferrerBasedOnRawReferrer(
 
 const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Action") =>
   z.object({
-    node: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Node`),
+    node: makeHexStringSchema({ bytesCount: 32 }, `${valueLabel} Node`),
 
     baseCost: makePriceSchema(`${valueLabel} Base Cost`),
     premium: makePriceSchema(`${valueLabel} Premium`),
@@ -75,12 +79,15 @@ const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Acti
     incrementalDuration: makeDurationSchema(`${valueLabel} Incremental Duration`),
 
     registrant: makeLowercaseAddressSchema(`${valueLabel} Registrant`),
-    encodedReferrer: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Encoded Referrer`),
+    encodedReferrer: makeHexStringSchema(
+      { bytesCount: ENCODED_REFERRER_BYTE_LENGTH },
+      `${valueLabel} Encoded Referrer`,
+    ),
     decodedReferrer: makeLowercaseAddressSchema(`${valueLabel} Decoded Referrer`),
 
     timestamp: makeUnixTimestampSchema(`${valueLabel} Block Timestamp`),
     chainId: makeChainIdSchema(`${valueLabel} Chain ID`),
-    transactionHash: makeHexStringSchema({ expectedLength: 32 }, `${valueLabel} Transaction Hash`),
+    transactionHash: makeHexStringSchema({ bytesCount: 32 }, `${valueLabel} Transaction Hash`),
     logIndex: makeNonNegativeIntegerSchema(`${valueLabel} Log Index`),
   });
 

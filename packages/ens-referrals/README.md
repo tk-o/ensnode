@@ -1,27 +1,27 @@
 # ENS Referrals
 
-This package is a set of libraries enabling smooth interaction with ENS Referrals data, including shared types, and data processing (such as encoding referrer, decoding encoded referrer, building referral URL to ENS App).
+This package provides utilities for working with ENS Referrals, including useful types and utility functions.
 
 ## Installation
 
 ```bash
-npm install @ensnode/ens-referrals
+npm install @namehash/ens-referrals
 ```
 
 ### Basic Usage
 
 ```typescript
-import { buildEncodedReferrer, decodeEncodedReferrer, bu} from "@ensnode/ens-referrals";
+import { buildEncodedReferrer, decodeEncodedReferrer } from "@namehash/ens-referrals";
 import type { Address } from 'viem';
 
 const referrerAddress: Address = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
 
-// Building an encoded referrer value
+// Build an encoded referrer value (according to the subjective referrer encoding used for ENS Holiday Awards)
 const encodedReferrer = buildEncodedReferrer(referrerAddress); // 0x000000000000000000000000d8da6bf26964af9d7eed9e03e53415d37aa96045
 
-// Decoding the encoded referrer value
-const decodedReferrer = decodeEncodedReferrer(encodedReferrer); // 0xd8da6bf26964af9d7eed9e03e53415d37aa96045
+// Decode an encoded referrer value (according to the subjective referrer encoding used for ENS Holiday Awards)
+const decodedReferrer = decodeEncodedReferrer(encodedReferrer); // 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
 
-// Building a referrer URL to ENS App
-const referrerUrl = buildReferrerUrl(referrerAddress).toString(); // https://app.ens.domains/?referrer=0xd8da6bf26964af9d7eed9e03e53415d37aa96045
+// Build a referrer URL to the official ENS manager app
+const referrerUrl = buildEnsReferralUrl(referrerAddress).toString(); // https://app.ens.domains/?referrer=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
 ```

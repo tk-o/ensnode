@@ -3,17 +3,18 @@
  * registrations and renewals information.
  */
 
+import { decodeEncodedReferrer, type EncodedReferrer } from "@namehash/ens-referrals";
 import type { Address, Hash } from "viem";
 
-import { decodeEncodedReferrer, type EncodedReferrer } from "@ensnode/ens-referrals";
-import type {
-  ChainId,
-  CurrencyId,
-  Duration,
-  Node,
-  RegistrarAction,
-  RegistrarActionType,
-  UnixTimestamp,
+import {
+  type ChainId,
+  type CurrencyId,
+  type Duration,
+  deserializeDuration,
+  type Node,
+  type RegistrarAction,
+  type RegistrarActionType,
+  type UnixTimestamp,
 } from "@ensnode/ensnode-sdk";
 
 import type { SubregistryRegistration } from "@/lib/registrars/registration";
@@ -29,10 +30,7 @@ export function getIncrementalDurationForRegistration(
   registrationWillExpireAt: UnixTimestamp,
   currentBlockTimestamp: UnixTimestamp,
 ): Duration {
-  const incrementalDurationStartsAt = currentBlockTimestamp;
-  const incrementalDurationEndsAt = registrationWillExpireAt;
-
-  return incrementalDurationEndsAt - incrementalDurationStartsAt;
+  return deserializeDuration(registrationWillExpireAt - currentBlockTimestamp);
 }
 
 /**
@@ -74,16 +72,8 @@ export function getIncrementalDurationForRenewal(
   registrationWillExpireAt: UnixTimestamp,
   currentRegistration: SubregistryRegistration,
 ): Duration {
-  const incrementalDurationStartsAt = currentRegistration.expiresAt;
-  const incrementalDurationEndsAt = registrationWillExpireAt;
-
-  // Invariant: the end of the incremental duration must be after its start.
-  if (incrementalDurationEndsAt < incrementalDurationStartsAt) {
-    throw new Error(`Incremental Duration end timestamp must be after its start timestamp.`);
-  }
-
   // Calculate and return the incremental duration
-  return incrementalDurationEndsAt - incrementalDurationStartsAt;
+  return deserializeDuration(registrationWillExpireAt - currentRegistration.expiresAt);
 }
 
 export function buildSubregistryRegistrarAction(
@@ -122,7 +112,8 @@ export function buildSubregistryRegistrarAction(
   const total = baseCost + premium;
 
   // 1. Decode the encoded referrer
-  const decodedReferrer = decodeEncodedReferrer(encodedReferrer);
+  //    Note: the result address is checksummed, so we turn it lowercase
+  const decodedReferrer = decodeEncodedReferrer(encodedReferrer).toLowerCase() as Address;
 
   return {
     type,

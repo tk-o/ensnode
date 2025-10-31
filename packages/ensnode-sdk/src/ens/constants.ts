@@ -1,6 +1,5 @@
+import { buildEncodedReferrer, type EncodedReferrer } from "@namehash/ens-referrals";
 import { namehash, zeroAddress } from "viem";
-
-import { buildEncodedReferrer, type EncodedReferrer } from "@ensnode/ens-referrals";
 
 import type { Node } from "./types";
 

@@ -1,4 +1,5 @@
-import { type Address, namehash, parseEther } from "viem";
+import { ENCODED_REFERRER_BYTE_LENGTH } from "@namehash/ens-referrals";
+import { type Address, namehash, pad, parseEther } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { CurrencyIds } from "../shared";
@@ -32,7 +33,7 @@ describe("Registrar Actions", () => {
       incrementalDuration: 123,
 
       registrant: vb3Address,
-      encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+      encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
       decodedReferrer: vb2Address,
 
       timestamp: 1761062418,
@@ -64,7 +65,7 @@ describe("Registrar Actions", () => {
       incrementalDuration: 123,
 
       registrant: vb3Address,
-      encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
+      encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
       decodedReferrer: vb2Address,
 
       timestamp: 1761062418,

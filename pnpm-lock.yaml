@@ -381,7 +381,7 @@ importers:
       '@ensnode/datasources':
         specifier: workspace:*
         version: link:../../packages/datasources
-      '@ensnode/ens-referrals':
+      '@namehash/ens-referrals':
         specifier: workspace:*
         version: link:../../packages/ens-referrals
       '@ensnode/ensnode-schema':
@@ -757,7 +757,7 @@ importers:
       '@ensnode/datasources':
         specifier: workspace:*
         version: link:../datasources
-      '@ensnode/ens-referrals':
+      '@namehash/ens-referrals':
         specifier: workspace:*
         version: link:../ens-referrals
       zod:

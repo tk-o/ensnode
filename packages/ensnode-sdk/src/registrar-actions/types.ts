@@ -1,6 +1,5 @@
+import type { EncodedReferrer } from "@namehash/ens-referrals";
 import type { Address } from "viem";
-
-import type { EncodedReferrer } from "@ensnode/ens-referrals";
 
 import type { Node } from "../ens";
 import type { Duration, EventRef, Price } from "../shared";

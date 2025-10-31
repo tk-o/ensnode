@@ -1,5 +1,5 @@
 import type { CoinType } from "@ensdomains/address-encoder";
-import { type Address, type Hex, isAddress } from "viem";
+import { type Address, type Hex, isAddress, isHex, size } from "viem";
 /**
  * All zod schemas we define must remain internal implementation details.
  * We want the freedom to move away from zod in the future without impacting
@@ -239,35 +239,37 @@ export const makeENSNamespaceIdSchema = (valueLabel: string = "ENSNamespaceId") 
 
 /**
  * Make a schema for {@link Hex} representation of bytes array.
+ *
+ * @param {number} options.bytesCount expected count of bytes to be hex-encoded
  */
 export const makeHexStringSchema = (
-  { expectedLength }: { expectedLength: number },
-  valueLabel: string = "String representation of bytes",
+  options: { bytesCount: number },
+  valueLabel: string = "String representation of bytes array",
 ) =>
   z
     .string()
-    .check(function invariant_stringStartsWith0x(ctx) {
-      if (!ctx.value.startsWith("0x")) {
+    .check(function invariant_isHexEncoded(ctx) {
+      if (!isHex(ctx.value)) {
         ctx.issues.push({
           code: "custom",
           input: ctx.value,
-          message: `${valueLabel} type must start with '0x'.`,
+          message: `${valueLabel} must start with '0x'.`,
         });
       }
     })
-    .check(function invariant_rawReferrerIs32Bytes(ctx) {
-      const bytesString = ctx.value.slice(2);
-      const bytesStringLength = bytesString.length / 2;
+    .transform((v) => v as Hex)
+    .check(function invariant_encodesRequiredBytesCount(ctx) {
+      const expectedBytesCount = options.bytesCount;
+      const actualBytesCount = size(ctx.value);
 
-      if (bytesStringLength !== expectedLength) {
+      if (actualBytesCount !== expectedBytesCount) {
         ctx.issues.push({
           code: "custom",
           input: ctx.value,
-          message: `${valueLabel} must be represented by exactly ${expectedLength} bytes. Provided bytes count: ${bytesStringLength}.`,
+          message: `${valueLabel} must represent exactly ${expectedBytesCount} bytes. Currently represented bytes count: ${actualBytesCount}.`,
         });
       }
-    })
-    .transform((v) => v as Hex);
+    });
 
 /**
  * Schema for {@link Price} type.
