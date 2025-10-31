@@ -52,7 +52,7 @@ export function buildEncodedReferrer(address: Address): EncodedReferrer {
 /**
  * Decode an {@link EncodedReferrer} value into a checksummed {@link Address}.
  *
- * @param encodedReferrer - The raw referrer value to decode.
+ * @param encodedReferrer - The "raw" {@link EncodedReferrer} value to decode.
  * @returns The decoded referrer checksummed address.
  */
 export function decodeEncodedReferrer(encodedReferrer: Hex): Address {
