@@ -134,9 +134,9 @@ export interface RegistrarAction {
   decodedReferrer: Address;
 
   /**
-   * Event Ref
+   * Event
    *
-   * References an EVM event which was used to derive the Registrar Action.
+   * References the EVM event which was used to derive the Registrar Action.
    */
-  eventRef: EventRef<RegistrarEventName>;
+  event: EventRef<RegistrarEventName>;
 }

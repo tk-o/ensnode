@@ -22,11 +22,11 @@ export async function makeRegistrarAction(
     registrant,
     encodedReferrer,
     decodedReferrer,
-    eventRef,
+    event,
   }: RegistrarAction,
 ) {
   await context.db.insert(schema.registrarAction).values({
-    id: eventRef.id,
+    id: event.id,
     type,
     node,
     baseCost: baseCost.amount,

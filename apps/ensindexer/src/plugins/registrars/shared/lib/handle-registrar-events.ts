@@ -26,7 +26,7 @@ import {
  */
 export async function handleRegistration(
   context: Context,
-  eventRef: EventRef<typeof RegistrarEventNames.NameRegistered>,
+  event: EventRef<typeof RegistrarEventNames.NameRegistered>,
   {
     node,
     parentNode,
@@ -56,7 +56,7 @@ export async function handleRegistration(
   }
 
   // 2. Insert the Registrar Event record.
-  await makeEventRef(context, eventRef);
+  await makeEventRef(context, event);
 }
 
 /**
@@ -64,7 +64,7 @@ export async function handleRegistration(
  */
 export async function handleRenewal(
   context: Context,
-  eventRef: EventRef<typeof RegistrarEventNames.NameRenewed>,
+  event: EventRef<typeof RegistrarEventNames.NameRenewed>,
   {
     node,
     expiresAt,
@@ -82,7 +82,7 @@ export async function handleRenewal(
   await renewRegistration(context, { node, expiresAt });
 
   // 2. Insert the Registrar Event record.
-  await makeEventRef(context, eventRef);
+  await makeEventRef(context, event);
 }
 
 /**
@@ -90,7 +90,7 @@ export async function handleRenewal(
  */
 export async function handleControllerAddedToRegistrar(
   context: Context,
-  eventRef: EventRef<typeof RegistrarEventNames.ControllerAdded>,
+  event: EventRef<typeof RegistrarEventNames.ControllerAdded>,
   {
     chainId,
     controllerAddress,
@@ -109,7 +109,7 @@ export async function handleControllerAddedToRegistrar(
   });
 
   // 2. Insert the Registrar Event record.
-  await makeEventRef(context, eventRef);
+  await makeEventRef(context, event);
 }
 
 /**
@@ -117,7 +117,7 @@ export async function handleControllerAddedToRegistrar(
  */
 export async function handleControllerRemovedFromRegistrar(
   context: Context,
-  eventRef: EventRef<typeof RegistrarEventNames.ControllerRemoved>,
+  event: EventRef<typeof RegistrarEventNames.ControllerRemoved>,
   {
     chainId,
     controllerAddress,
@@ -133,5 +133,5 @@ export async function handleControllerRemovedFromRegistrar(
   });
 
   // 2. Insert the Registrar Event record.
-  await makeEventRef(context, eventRef);
+  await makeEventRef(context, event);
 }

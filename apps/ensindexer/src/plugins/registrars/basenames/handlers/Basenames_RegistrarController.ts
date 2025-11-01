@@ -68,7 +68,7 @@ export default function () {
           id: event.id,
           name: RegistrarEventNames.NameRegistered,
           chainId: context.chain.id,
-          blockRef: {
+          block: {
             number: Number(event.block.number),
             timestamp: Number(event.block.timestamp),
           },
@@ -119,7 +119,7 @@ export default function () {
           id: event.id,
           name: RegistrarEventNames.NameRegistered,
           chainId: context.chain.id,
-          blockRef: {
+          block: {
             number: Number(event.block.number),
             timestamp: Number(event.block.timestamp),
           },
@@ -175,7 +175,7 @@ export default function () {
           id: event.id,
           name: RegistrarEventNames.NameRenewed,
           chainId: context.chain.id,
-          blockRef: {
+          block: {
             number: Number(event.block.number),
             timestamp: Number(event.block.timestamp),
           },
@@ -226,7 +226,7 @@ export default function () {
           id: event.id,
           name: RegistrarEventNames.NameRegistered,
           chainId: context.chain.id,
-          blockRef: {
+          block: {
             number: Number(event.block.number),
             timestamp: Number(event.block.timestamp),
           },
@@ -282,7 +282,7 @@ export default function () {
           id: event.id,
           name: RegistrarEventNames.NameRenewed,
           chainId: context.chain.id,
-          blockRef: {
+          block: {
             number: Number(event.block.number),
             timestamp: Number(event.block.timestamp),
           },

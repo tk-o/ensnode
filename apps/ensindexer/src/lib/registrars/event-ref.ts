@@ -13,7 +13,7 @@ export function buildEventRef<RegistrarEventNameType extends RegistrarEventName>
     id: event.id,
     name: event.name,
     chainId: event.chainId,
-    blockRef: {
+    block: {
       number: Number(event.block.number),
       timestamp: Number(event.block.timestamp),
     },

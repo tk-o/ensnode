@@ -9,12 +9,12 @@ import type { EventRef, RegistrarEventName } from "@ensnode/ensnode-sdk";
 /**
  * Make Event Ref record in database.
  */
-export async function makeEventRef(context: Context, eventRef: EventRef<RegistrarEventName>) {
-  const { blockRef, ...remainingEventRef } = eventRef;
+export async function makeEventRef(context: Context, event: EventRef<RegistrarEventName>) {
+  const { block, ...remainingEventFields } = event;
 
   await context.db.insert(schema.registrarEvent).values({
-    blockNumber: BigInt(blockRef.number),
-    blockTimestamp: BigInt(blockRef.timestamp),
-    ...remainingEventRef,
+    blockNumber: BigInt(block.number),
+    blockTimestamp: BigInt(block.timestamp),
+    ...remainingEventFields,
   });
 }

@@ -92,7 +92,7 @@ const makeBaseRegistrarActionSchema = (valueLabel: string = "Base Registrar Acti
     ),
     decodedReferrer: makeLowercaseAddressSchema(`${valueLabel} Decoded Referrer`),
 
-    eventRef: makeEventRefSchema({ eventNames: Object.values(RegistrarEventNames) }, valueLabel),
+    event: makeEventRefSchema({ eventNames: Object.values(RegistrarEventNames) }, valueLabel),
   });
 
 export const makeRegistrarActionRegistrationSchema = (valueLabel: string = "Registration ") =>

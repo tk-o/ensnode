@@ -25,14 +25,14 @@ export async function handleRegistrarAction(
     registrant,
     encodedReferrer,
     decodedReferrer,
-    eventRef,
+    event,
   }: RegistrarAction,
 ) {
   // 1. Mark the Registration for the `node` value as controller-managed.
   await markRegistrationAsManagedByController(context, { node });
 
   // 2. Insert the Registrar Event record.
-  await makeEventRef(context, eventRef);
+  await makeEventRef(context, event);
 
   // 3. Insert the Registrar Action record.
   await makeRegistrarAction(context, {
@@ -45,6 +45,6 @@ export async function handleRegistrarAction(
     registrant,
     encodedReferrer,
     decodedReferrer,
-    eventRef,
+    event,
   });
 }

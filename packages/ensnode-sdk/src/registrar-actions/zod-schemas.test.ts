@@ -44,11 +44,11 @@ describe("ENSIndexer: Registrar Actions", () => {
               encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
               decodedReferrer: vb2Address,
 
-              eventRef: {
+              event: {
                 id: "123",
                 name: RegistrarEventNames.NameRegistered,
                 chainId: 1,
-                blockRef: {
+                block: {
                   number: 123,
                   timestamp: 1761062418,
                 },
@@ -88,11 +88,11 @@ describe("ENSIndexer: Registrar Actions", () => {
               encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
               decodedReferrer: vb2Address,
 
-              eventRef: {
+              event: {
                 id: "123",
                 name: RegistrarEventNames.NameRegistered,
                 chainId: 1,
-                blockRef: {
+                block: {
                   number: 123,
                   timestamp: 1761062418,
                 },
@@ -130,11 +130,11 @@ describe("ENSIndexer: Registrar Actions", () => {
               encodedReferrer: `0x000000000000000000000000${vb2Address.slice(2)}`,
               decodedReferrer: vb2Address,
 
-              eventRef: {
+              event: {
                 id: "123",
                 name: RegistrarEventNames.NameRegistered,
                 chainId: 1,
-                blockRef: {
+                block: {
                   number: 123,
                   timestamp: 1761062418,
                 },
@@ -174,11 +174,11 @@ describe("ENSIndexer: Registrar Actions", () => {
               encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
               decodedReferrer: vb2Address,
 
-              eventRef: {
+              event: {
                 id: "123",
                 name: RegistrarEventNames.NameRegistered,
                 chainId: 1,
-                blockRef: {
+                block: {
                   number: 123,
                   timestamp: 1761062418,
                 },
@@ -216,11 +216,11 @@ describe("ENSIndexer: Registrar Actions", () => {
           encodedReferrer: pad(vb2Address, { size: ENCODED_REFERRER_BYTE_LENGTH, dir: "left" }),
           decodedReferrer: vitalikEthAddress,
 
-          eventRef: {
+          event: {
             id: "123",
             name: RegistrarEventNames.NameRegistered,
             chainId: 1,
-            blockRef: {
+            block: {
               number: 123,
               timestamp: 1761062418,
             },

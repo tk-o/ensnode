@@ -105,7 +105,7 @@ export interface EventRef<EventNameType extends string> {
   /**
    * Event ID
    *
-   * A globally unique identifier of a single indexed event.
+   * A globally unique identifier of the indexed event.
    */
   id: EventId;
 
@@ -122,23 +122,23 @@ export interface EventRef<EventNameType extends string> {
   chainId: ChainId;
 
   /**
-   * Block Ref
+   * Block
    *
-   * Reference to a block which includes the event log on `chainId` chain.
+   * Reference to the block which includes the event log on `chainId` chain.
    */
-  blockRef: BlockRef;
+  block: BlockRef;
 
   /**
    * Contract address
    *
-   * Address of a contract that emitted the event on `chainId` chain.
+   * Address of the contract that emitted the event on `chainId` chain.
    */
   contractAddress: Address;
 
   /**
    * Transaction Hash
    *
-   * Hash of a transaction on `chainId` chain where the event occurred.
+   * Hash of the transaction on `chainId` chain where the event occurred.
    *
    * Guaranteed to be a hex string representation of 32-bytes.
    */
@@ -147,7 +147,7 @@ export interface EventRef<EventNameType extends string> {
   /**
    * Log Index
    *
-   * Index of the event log within a block on `chainId` where the event occurred.
+   * Index of the event log within the block on `chainId` where the event occurred.
    *
    * Guaranteed to be a non-negative integer.
    */

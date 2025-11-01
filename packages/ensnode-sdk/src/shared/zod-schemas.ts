@@ -247,7 +247,7 @@ export const makeEventRefSchema = <const EventNames extends string[]>(
 
       chainId: makeChainIdSchema(valueLabel),
 
-      blockRef: makeBlockRefSchema(valueLabel),
+      block: makeBlockRefSchema(valueLabel),
 
       contractAddress: makeLowercaseAddressSchema(valueLabel),
 

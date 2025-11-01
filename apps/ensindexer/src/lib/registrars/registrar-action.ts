@@ -78,7 +78,7 @@ export function getIncrementalDurationForRenewal(
 }
 
 export function buildSubregistryRegistrarAction(
-  eventRef: EventRef<RegistrarEventName>,
+  event: EventRef<RegistrarEventName>,
   {
     type,
     node,
@@ -125,6 +125,6 @@ export function buildSubregistryRegistrarAction(
     registrant,
     encodedReferrer,
     decodedReferrer,
-    eventRef,
+    event,
   };
 }

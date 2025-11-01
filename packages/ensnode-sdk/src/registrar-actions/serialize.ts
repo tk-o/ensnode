@@ -15,6 +15,6 @@ export function serializeRegistrarAction(
     decodedReferrer: registrarAction.decodedReferrer,
     registrant: registrarAction.registrant,
     incrementalDuration: registrarAction.incrementalDuration,
-    eventRef: registrarAction.eventRef,
+    event: registrarAction.event,
   };
 }
