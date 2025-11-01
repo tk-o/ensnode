@@ -2,14 +2,7 @@
  * Schema Definitions for tracking of ENS subregistries.
  */
 
-import {
-  index,
-  onchainEnum,
-  onchainTable,
-  type PgColumnsBuilders,
-  primaryKey,
-  relations,
-} from "ponder";
+import { index, onchainEnum, onchainTable, primaryKey, relations } from "ponder";
 
 /**
  * Registrar Controller Table
@@ -87,11 +80,24 @@ export const registration = onchainTable("registrations", (t) => ({
 }));
 
 /**
- * Shared Event Columns
+ * Registrar Event Name Enum
  *
- * Includes all columns that describe an EVM event.
+ * Names of Registrar Events.
  */
-const sharedEventColumns = (t: PgColumnsBuilders) => ({
+export const registrarEventName = onchainEnum("registrar_event_name", [
+  "NameRegistered",
+  "NameRenewed",
+  "ControllerAdded",
+  "ControllerRemoved",
+]);
+
+/**
+ * Registrar Event
+ *
+ * Identifies an onchain event that was emitted by
+ * Registrar contract, or Registrar Controller contract.
+ */
+export const registrarEvent = onchainTable("registrar_events", (t) => ({
   /**
    * Unique EVM event identifier for the registrar event.
    */
@@ -141,28 +147,6 @@ const sharedEventColumns = (t: PgColumnsBuilders) => ({
    * Guaranteed to be a non-negative integer.
    */
   logIndex: t.integer().notNull(),
-});
-
-/**
- * Registrar Event Name Enum
- *
- * Names of Registrar Events.
- */
-export const registrarEventName = onchainEnum("registrar_event_name", [
-  "NameRegistered",
-  "NameRenewed",
-  "ControllerAdded",
-  "ControllerRemoved",
-]);
-
-/**
- * Registrar Event
- *
- * Identifies an onchain event that was emitted by
- * Registrar contract, or Registrar Controller contract.
- */
-export const registrarEvent = onchainTable("registrar_events", (t) => ({
-  ...sharedEventColumns(t),
 
   /**
    * Name of registrar event.
