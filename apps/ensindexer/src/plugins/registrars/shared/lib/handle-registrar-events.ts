@@ -12,6 +12,8 @@ import type {
   UnixTimestamp,
 } from "@ensnode/ensnode-sdk";
 
+import type { Registration } from "@/lib/registrars/registration";
+
 import { addControllerToRegistrar, removedControllerFromRegistrar } from "./registrar-controller";
 import { makeEventRef } from "./registrar-event-ref";
 import {
@@ -27,17 +29,11 @@ import {
 export async function handleRegistration(
   context: Context,
   event: EventRef<typeof RegistrarEventNames.NameRegistered>,
-  {
-    node,
-    parentNode,
-    expiresAt,
-  }: {
-    node: Node;
-    parentNode: Node;
-    expiresAt: UnixTimestamp;
-  },
+  { node, parentNode, expiresAt }: Registration,
 ) {
-  // 0. Get the state of the registration for this node before this registration occurred.
+  // 0. Handle possible subsequent registration.
+  //    Get the state of a possibly indexed registration record for this node
+  //    before this registration occurred.
   const currentRegistration = await getCurrentRegistration(context, { node });
 
   if (currentRegistration !== null) {

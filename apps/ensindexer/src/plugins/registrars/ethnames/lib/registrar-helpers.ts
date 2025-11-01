@@ -5,7 +5,7 @@ import type { RegistrarManagedName } from "@/lib/types";
 
 /**
  * When direct subnames of Ethnames are registered through
- * the ETHRegistrarController contract,
+ * the Ethnames ETHRegistrarController contract,
  * an ERC721 NFT is minted that tokenizes ownership of the registration.
  * The minted NFT will be assigned a unique tokenId which is
  * uint256(labelhash(label)) where label is the direct subname of
