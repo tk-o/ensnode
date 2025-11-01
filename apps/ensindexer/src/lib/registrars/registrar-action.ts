@@ -4,15 +4,12 @@
  */
 
 import { decodeEncodedReferrer, type EncodedReferrer } from "@namehash/ens-referrals";
-import type { Address, Hash } from "viem";
+import type { Address } from "viem";
 
 import {
-  type BlockRef,
-  type ChainId,
   type CurrencyIds,
   type Duration,
   deserializeDuration,
-  type EventId,
   type EventRef,
   type Node,
   type RegistrarAction,
@@ -21,7 +18,7 @@ import {
   type UnixTimestamp,
 } from "@ensnode/ensnode-sdk";
 
-import type { SubregistryRegistration } from "@/lib/registrars/registration";
+import type { Registration } from "@/lib/registrars/registration";
 
 /**
  * Get the incremental duration for Registration action.
@@ -73,7 +70,7 @@ export function getIncrementalDurationForRegistration(
  * @throws if no related Registration was indexed before.
  */
 export function getIncrementalDurationForRenewal(
-  currentRegistration: SubregistryRegistration,
+  currentRegistration: Registration,
   registrationWillExpireAt: UnixTimestamp,
 ): Duration {
   // Calculate and return the incremental duration

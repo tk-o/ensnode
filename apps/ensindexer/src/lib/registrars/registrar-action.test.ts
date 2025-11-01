@@ -6,8 +6,8 @@ import { ETH_NODE, type UnixTimestamp } from "@ensnode/ensnode-sdk";
 import {
   getIncrementalDurationForRegistration,
   getIncrementalDurationForRenewal,
-} from "@/lib/registrars/registrar-action";
-import type { SubregistryRegistration } from "@/lib/registrars/registration";
+} from "./registrar-action";
+import type { Registration } from "./registration";
 
 describe("Registrars", () => {
   describe("Registration Action", () => {
@@ -32,7 +32,7 @@ describe("Registrars", () => {
         node: namehash("test.eth"),
         parentNode: ETH_NODE,
         expiresAt: 1234,
-      } satisfies SubregistryRegistration;
+      } satisfies Registration;
 
       const incrementalDuration = getIncrementalDurationForRenewal(
         currentRegistration,

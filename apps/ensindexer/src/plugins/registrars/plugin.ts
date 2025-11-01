@@ -36,7 +36,7 @@ export default createPlugin({
     );
 
     const ethnamesRegistrarContracts = {
-      [namespaceContract(pluginName, "Eth_BaseRegistrarOld")]: {
+      [namespaceContract(pluginName, "Ethnames_BaseRegistrarOld")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           ethnamesDatasource.chain.id,
@@ -45,7 +45,7 @@ export default createPlugin({
         abi: ethnamesDatasource.contracts.BaseRegistrarOld.abi,
       },
 
-      [namespaceContract(pluginName, "Eth_BaseRegistrar")]: {
+      [namespaceContract(pluginName, "Ethnames_BaseRegistrar")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           ethnamesDatasource.chain.id,
@@ -56,7 +56,7 @@ export default createPlugin({
     };
 
     const ethnamesRegistrarControllerContracts = {
-      [namespaceContract(pluginName, "Eth_LegacyEthRegistrarController")]: {
+      [namespaceContract(pluginName, "Ethnames_LegacyEthRegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           ethnamesDatasource.chain.id,
@@ -64,7 +64,7 @@ export default createPlugin({
         ),
         abi: ethnamesDatasource.contracts.LegacyEthRegistrarController.abi,
       },
-      [namespaceContract(pluginName, "Eth_WrappedEthRegistrarController")]: {
+      [namespaceContract(pluginName, "Ethnames_WrappedEthRegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           ethnamesDatasource.chain.id,
@@ -72,7 +72,7 @@ export default createPlugin({
         ),
         abi: ethnamesDatasource.contracts.WrappedEthRegistrarController.abi,
       },
-      [namespaceContract(pluginName, "Eth_UnwrappedEthRegistrarController")]: {
+      [namespaceContract(pluginName, "Ethnames_UnwrappedEthRegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           ethnamesDatasource.chain.id,
@@ -89,7 +89,7 @@ export default createPlugin({
     );
 
     const basenamesRegistrarContracts = {
-      [namespaceContract(pluginName, "BaseEth_BaseRegistrar")]: {
+      [namespaceContract(pluginName, "Basenames_BaseRegistrar")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           basenamesDatasource.chain.id,
@@ -100,7 +100,7 @@ export default createPlugin({
     };
 
     const basenamesRegistrarControllerContracts = {
-      [namespaceContract(pluginName, "BaseEth_EARegistrarController")]: {
+      [namespaceContract(pluginName, "Basenames_EARegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           basenamesDatasource.chain.id,
@@ -108,7 +108,7 @@ export default createPlugin({
         ),
         abi: basenamesDatasource.contracts.EARegistrarController.abi,
       },
-      [namespaceContract(pluginName, "BaseEth_RegistrarController")]: {
+      [namespaceContract(pluginName, "Basenames_RegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           basenamesDatasource.chain.id,
@@ -116,7 +116,7 @@ export default createPlugin({
         ),
         abi: basenamesDatasource.contracts.RegistrarController.abi,
       },
-      [namespaceContract(pluginName, "BaseEth_UpgradeableRegistrarController")]: {
+      [namespaceContract(pluginName, "Basenames_UpgradeableRegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           basenamesDatasource.chain.id,
@@ -133,7 +133,7 @@ export default createPlugin({
     );
 
     const lineanamesRegistrarContracts = {
-      [namespaceContract(pluginName, "LineaEth_BaseRegistrar")]: {
+      [namespaceContract(pluginName, "Lineanames_BaseRegistrar")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           linenamesDatasource.chain.id,
@@ -144,7 +144,7 @@ export default createPlugin({
     };
 
     const lineanamesRegistrarControllerContracts = {
-      [namespaceContract(pluginName, "LineaEth_EthRegistrarController")]: {
+      [namespaceContract(pluginName, "Lineanames_EthRegistrarController")]: {
         chain: chainConfigForContract(
           config.globalBlockrange,
           linenamesDatasource.chain.id,

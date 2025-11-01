@@ -13,6 +13,7 @@ import {
 } from "@ensnode/ensnode-sdk";
 
 import { namespaceContract } from "@/lib/plugin-helpers";
+import { buildEventRef } from "@/lib/registrars/event-ref";
 import {
   buildSubregistryRegistrarAction,
   getIncrementalDurationForRegistration,
@@ -31,11 +32,11 @@ export default function () {
   const parentNode = namehash(getRegistrarManagedName(config.namespace));
 
   /**
-   * Eth_LegacyEthRegistrarController Event Handlers
+   * Ethnames_LegacyEthRegistrarController Event Handlers
    */
 
   ponder.on(
-    namespaceContract(pluginName, "Eth_LegacyEthRegistrarController:NameRegistered"),
+    namespaceContract(pluginName, "Ethnames_LegacyEthRegistrarController:NameRegistered"),
     async ({ context, event }) => {
       const timestamp = event.block.timestamp;
       const type = RegistrarActionTypes.Registration;
@@ -43,12 +44,12 @@ export default function () {
       const node = makeSubdomainNode(labelHash, parentNode);
       const expiresAt = event.args.expires;
       const baseCost = event.args.cost;
-      // Eth_LegacyEthRegistrarController does not implement premiums or emit a premium
+      // Ethnames_LegacyEthRegistrarController does not implement premiums or emit a premium
       // in the NameRegistered event.
       const premium = 0n;
       // Transaction sender is registrant.
       const registrant = event.transaction.from;
-      // Eth_LegacyEthRegistrarController does not implement referrals or emit a referrer in
+      // Ethnames_LegacyEthRegistrarController does not implement referrals or emit a referrer in
       // the NameRegistered event.
       const encodedReferrer = zeroEncodedReferrer;
 
@@ -59,18 +60,11 @@ export default function () {
       );
 
       const registrarAction = buildSubregistryRegistrarAction(
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRegistered,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.NameRegistered,
+          ...event,
+        }),
         {
           type,
           node,
@@ -89,7 +83,7 @@ export default function () {
   );
 
   ponder.on(
-    namespaceContract(pluginName, "Eth_LegacyEthRegistrarController:NameRenewed"),
+    namespaceContract(pluginName, "Ethnames_LegacyEthRegistrarController:NameRenewed"),
     async ({ context, event }) => {
       const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.label; // this field is the labelhash, not the label
@@ -100,7 +94,7 @@ export default function () {
       const premium = 0n;
       // Transaction sender is registrant.
       const registrant = event.transaction.from;
-      // Eth_LegacyEthRegistrarController does not implement referrals or emit a referrer in
+      // Ethnames_LegacyEthRegistrarController does not implement referrals or emit a referrer in
       // the NameRenewed event.
       const encodedReferrer = zeroEncodedReferrer;
 
@@ -119,18 +113,11 @@ export default function () {
       );
 
       const registrarAction = buildSubregistryRegistrarAction(
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRenewed,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.NameRenewed,
+          ...event,
+        }),
         {
           type,
           node,
@@ -149,11 +136,11 @@ export default function () {
   );
 
   /**
-   * Eth_WrappedEthRegistrarController Event Handlers
+   * Ethnames_WrappedEthRegistrarController Event Handlers
    */
 
   ponder.on(
-    namespaceContract(pluginName, "Eth_WrappedEthRegistrarController:NameRegistered"),
+    namespaceContract(pluginName, "Ethnames_WrappedEthRegistrarController:NameRegistered"),
     async ({ context, event }) => {
       const timestamp = event.block.timestamp;
       const type = RegistrarActionTypes.Registration;
@@ -164,7 +151,7 @@ export default function () {
       const premium = event.args.premium;
       // Transaction sender is registrant.
       const registrant = event.transaction.from;
-      // Eth_WrappedEthRegistrarController does not implement referrals or emit a referrer in
+      // Ethnames_WrappedEthRegistrarController does not implement referrals or emit a referrer in
       // the NameRegistered event.
       const encodedReferrer = zeroEncodedReferrer;
 
@@ -175,18 +162,11 @@ export default function () {
       );
 
       const registrarAction = buildSubregistryRegistrarAction(
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRegistered,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.NameRegistered,
+          ...event,
+        }),
         {
           type,
           node,
@@ -205,7 +185,7 @@ export default function () {
   );
 
   ponder.on(
-    namespaceContract(pluginName, "Eth_WrappedEthRegistrarController:NameRenewed"),
+    namespaceContract(pluginName, "Ethnames_WrappedEthRegistrarController:NameRenewed"),
     async ({ context, event }) => {
       const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.label; // this field is the labelhash, not the label
@@ -216,7 +196,7 @@ export default function () {
       const premium = 0n;
       // Transaction sender is registrant.
       const registrant = event.transaction.from;
-      // Eth_WrappedEthRegistrarController does not implement referrals or emit a referrer in
+      // Ethnames_WrappedEthRegistrarController does not implement referrals or emit a referrer in
       // the NameRenewed event.
       const encodedReferrer = zeroEncodedReferrer;
 
@@ -235,18 +215,11 @@ export default function () {
       );
 
       const registrarAction = buildSubregistryRegistrarAction(
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRenewed,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.NameRenewed,
+          ...event,
+        }),
         {
           type,
           node,
@@ -265,11 +238,11 @@ export default function () {
   );
 
   /**
-   * Eth_UnwrappedEthRegistrarController Event Handlers
+   * Ethnames_UnwrappedEthRegistrarController Event Handlers
    */
 
   ponder.on(
-    namespaceContract(pluginName, "Eth_UnwrappedEthRegistrarController:NameRegistered"),
+    namespaceContract(pluginName, "Ethnames_UnwrappedEthRegistrarController:NameRegistered"),
     async ({ context, event }) => {
       const timestamp = event.block.timestamp;
       const type = RegistrarActionTypes.Registration;
@@ -289,18 +262,11 @@ export default function () {
       );
 
       const registrarAction = buildSubregistryRegistrarAction(
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRegistered,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.NameRegistered,
+          ...event,
+        }),
         {
           type,
           node,
@@ -319,7 +285,7 @@ export default function () {
   );
 
   ponder.on(
-    namespaceContract(pluginName, "Eth_UnwrappedEthRegistrarController:NameRenewed"),
+    namespaceContract(pluginName, "Ethnames_UnwrappedEthRegistrarController:NameRenewed"),
     async ({ context, event }) => {
       const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.labelhash;
@@ -347,18 +313,11 @@ export default function () {
       );
 
       const registrarAction = buildSubregistryRegistrarAction(
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRenewed,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.NameRenewed,
+          ...event,
+        }),
         {
           type,
           node,

@@ -7,10 +7,7 @@ import schema from "ponder:schema";
 
 import type { Node, UnixTimestamp } from "@ensnode/ensnode-sdk";
 
-import {
-  buildSubregistryRegistration,
-  type SubregistryRegistration,
-} from "@/lib/registrars/registration";
+import { buildRegistration, type Registration } from "@/lib/registrars/registration";
 
 /**
  * Make the very first Registration record in database for the `node` value.
@@ -114,7 +111,7 @@ export async function markRegistrationAsManagedByController(
 export async function getCurrentRegistration(
   context: Context,
   { node }: { node: Node },
-): Promise<SubregistryRegistration | null> {
+): Promise<Registration | null> {
   const currentRegistration = await context.db.find(schema.registration, {
     node,
   });
@@ -123,5 +120,5 @@ export async function getCurrentRegistration(
     return null;
   }
 
-  return buildSubregistryRegistration(currentRegistration);
+  return buildRegistration(currentRegistration);
 }

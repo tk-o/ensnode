@@ -43,11 +43,11 @@ export default function () {
   const premium = 0n;
 
   /**
-   * BaseEth_EARegistrarController Event Handlers
+   * Basenames_EARegistrarController Event Handlers
    */
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_EARegistrarController:NameRegistered"),
+    namespaceContract(pluginName, "Basenames_EARegistrarController:NameRegistered"),
     async ({ context, event }) => {
       const timestamp = event.block.timestamp;
       const type = RegistrarActionTypes.Registration;
@@ -94,11 +94,11 @@ export default function () {
   );
 
   /**
-   * BaseEth_RegistrarController Event Handlers
+   * Basenames_RegistrarController Event Handlers
    */
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_RegistrarController:NameRegistered"),
+    namespaceContract(pluginName, "Basenames_RegistrarController:NameRegistered"),
     async ({ context, event }) => {
       const timestamp = event.block.timestamp;
       const type = RegistrarActionTypes.Registration;
@@ -145,7 +145,7 @@ export default function () {
   );
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_RegistrarController:NameRenewed"),
+    namespaceContract(pluginName, "Basenames_RegistrarController:NameRenewed"),
     async ({ context, event }) => {
       const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.label; // this field is the labelhash, not the label
@@ -201,11 +201,11 @@ export default function () {
   );
 
   /**
-   * BaseEth_UpgradeableRegistrarController Event Handlers
+   * Basenames_UpgradeableRegistrarController Event Handlers
    */
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_UpgradeableRegistrarController:NameRegistered"),
+    namespaceContract(pluginName, "Basenames_UpgradeableRegistrarController:NameRegistered"),
     async ({ context, event }) => {
       const timestamp = event.block.timestamp;
       const type = RegistrarActionTypes.Registration;
@@ -252,7 +252,7 @@ export default function () {
   );
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_UpgradeableRegistrarController:NameRenewed"),
+    namespaceContract(pluginName, "Basenames_UpgradeableRegistrarController:NameRenewed"),
     async ({ context, event }) => {
       const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.label; // this field is the labelhash, not the label

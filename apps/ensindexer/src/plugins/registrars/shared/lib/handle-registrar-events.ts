@@ -1,5 +1,5 @@
 /**
- * This file contains handlers used in event handlers for Registrar contract.
+ * This file contains handlers used in event handlers for a Registrar contract.
  */
 import type { Context } from "ponder:registry";
 import type { Address } from "viem";

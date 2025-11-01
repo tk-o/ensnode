@@ -13,6 +13,7 @@ import {
 } from "@ensnode/ensnode-sdk";
 
 import { namespaceContract } from "@/lib/plugin-helpers";
+import { buildEventRef } from "@/lib/registrars/event-ref";
 import {
   buildSubregistryRegistrarAction,
   getIncrementalDurationForRegistration,
@@ -36,11 +37,11 @@ export default function () {
   const encodedReferrer = zeroEncodedReferrer;
 
   /**
-   * LineaEth_EthRegistrarController Event Handlers
+   * Lineanames_EthRegistrarController Event Handlers
    */
 
   ponder.on(
-    namespaceContract(pluginName, "LineaEth_EthRegistrarController:NameRegistered"),
+    namespaceContract(pluginName, "Lineanames_EthRegistrarController:NameRegistered"),
     async ({ context, event }) => {
       const timestamp = event.block.timestamp;
       const type = RegistrarActionTypes.Registration;
@@ -59,18 +60,11 @@ export default function () {
       );
 
       const registrarAction = buildSubregistryRegistrarAction(
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRegistered,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.NameRegistered,
+          ...event,
+        }),
         {
           type,
           node,
@@ -89,7 +83,7 @@ export default function () {
   );
 
   ponder.on(
-    namespaceContract(pluginName, "LineaEth_EthRegistrarController:NameRenewed"),
+    namespaceContract(pluginName, "Lineanames_EthRegistrarController:NameRenewed"),
     async ({ context, event }) => {
       const type = RegistrarActionTypes.Renewal;
       const labelHash = event.args.label; // this field is the labelhash, not the label
@@ -116,18 +110,99 @@ export default function () {
       );
 
       const registrarAction = buildSubregistryRegistrarAction(
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRenewed,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
+          name: RegistrarEventNames.NameRenewed,
+          ...event,
+        }),
+        {
+          type,
+          node,
+          expiresAt,
+          baseCost,
+          premium,
+          incrementalDuration,
+          registrant,
+          encodedReferrer,
         },
+        CurrencyIds.ETH,
+      );
+
+      await handleRegistrarAction(context, registrarAction);
+    },
+  );
+
+  ponder.on(
+    namespaceContract(pluginName, "Lineanames_EthRegistrarController:PohNameRegistered"),
+    async ({ context, event }) => {
+      const timestamp = event.block.timestamp;
+      const type = RegistrarActionTypes.Registration;
+      const labelHash = event.args.label; // this field is the labelhash, not the label
+      const node = makeSubdomainNode(labelHash, parentNode);
+      const expiresAt = event.args.expires;
+      // Lineanames_EthRegistrarController allows any wallet address holding
+      // a Proof of Humanity (Poh) to register one subname for free.
+      const baseCost = 0n;
+      const premium = 0n;
+      // Transaction sender is registrant.
+      const registrant = event.transaction.from;
+
+      // Get incremental duration for Registration Action
+      const incrementalDuration = getIncrementalDurationForRegistration(
+        Number(timestamp),
+        Number(expiresAt),
+      );
+
+      const registrarAction = buildSubregistryRegistrarAction(
+        buildEventRef({
+          chainId: context.chain.id,
+          name: RegistrarEventNames.NameRegistered,
+          ...event,
+        }),
+        {
+          type,
+          node,
+          expiresAt,
+          baseCost,
+          premium,
+          incrementalDuration,
+          registrant,
+          encodedReferrer,
+        },
+        CurrencyIds.ETH,
+      );
+
+      await handleRegistrarAction(context, registrarAction);
+    },
+  );
+
+  ponder.on(
+    namespaceContract(pluginName, "Lineanames_EthRegistrarController:OwnerNameRegistered"),
+    async ({ context, event }) => {
+      const timestamp = event.block.timestamp;
+      const type = RegistrarActionTypes.Registration;
+      const labelHash = event.args.label; // this field is the labelhash, not the label
+      const node = makeSubdomainNode(labelHash, parentNode);
+      const expiresAt = event.args.expires;
+      // The owner of the Lineanames_EthRegistrarController is allowed to
+      // register subnames for free.
+      const baseCost = 0n;
+      const premium = 0n;
+      // Transaction sender is registrant.
+      const registrant = event.transaction.from;
+
+      // Get incremental duration for Registration Action
+      const incrementalDuration = getIncrementalDurationForRegistration(
+        Number(timestamp),
+        Number(expiresAt),
+      );
+
+      const registrarAction = buildSubregistryRegistrarAction(
+        buildEventRef({
+          chainId: context.chain.id,
+          name: RegistrarEventNames.NameRegistered,
+          ...event,
+        }),
         {
           type,
           node,

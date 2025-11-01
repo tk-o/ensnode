@@ -12,6 +12,8 @@ import {
 } from "@ensnode/ensnode-sdk";
 
 import { namespaceContract } from "@/lib/plugin-helpers";
+import { buildEventRef } from "@/lib/registrars/event-ref";
+import { buildRegistration } from "@/lib/registrars/registration";
 
 import {
   handleControllerAddedToRegistrar,
@@ -29,22 +31,15 @@ export default function () {
   const parentNode = namehash(getRegistrarManagedName(config.namespace));
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_BaseRegistrar:ControllerAdded"),
+    namespaceContract(pluginName, "Basenames_BaseRegistrar:ControllerAdded"),
     async ({ context, event }) => {
       await handleControllerAddedToRegistrar(
         context,
-        {
-          id: event.id,
-          name: RegistrarEventNames.ControllerAdded,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.ControllerAdded,
+          ...event,
+        }),
         {
           chainId: context.chain.id,
           controllerAddress: event.args.controller,
@@ -55,22 +50,15 @@ export default function () {
   );
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_BaseRegistrar:ControllerRemoved"),
+    namespaceContract(pluginName, "Basenames_BaseRegistrar:ControllerRemoved"),
     async ({ context, event }) => {
       await handleControllerRemovedFromRegistrar(
         context,
-        {
-          id: event.id,
-          name: RegistrarEventNames.ControllerRemoved,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
+          name: RegistrarEventNames.ControllerRemoved,
+          ...event,
+        }),
         {
           chainId: context.chain.id,
           controllerAddress: event.args.controller,
@@ -81,87 +69,70 @@ export default function () {
 
   // support NameRegisteredWithRecord for BaseRegistrar as it used by Base's RegistrarControllers
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_BaseRegistrar:NameRegisteredWithRecord"),
+    namespaceContract(pluginName, "Basenames_BaseRegistrar:NameRegisteredWithRecord"),
     async ({ context, event }) => {
       const labelHash = tokenIdToLabelHash(event.args.id);
       const node = makeSubdomainNode(labelHash, parentNode);
-      const expiresAt = Number(event.args.expires);
+      const expiresAt = event.args.expires;
 
       await handleRegistration(
         context,
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRegistered,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
-        {
+          name: RegistrarEventNames.NameRegistered,
+          ...event,
+        }),
+        buildRegistration({
           node,
           parentNode,
           expiresAt,
-        },
+        }),
       );
     },
   );
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_BaseRegistrar:NameRegistered"),
+    namespaceContract(pluginName, "Basenames_BaseRegistrar:NameRegistered"),
     async ({ context, event }) => {
       const labelHash = tokenIdToLabelHash(event.args.id);
       const node = makeSubdomainNode(labelHash, parentNode);
-      const expiresAt = Number(event.args.expires);
+      const expiresAt = event.args.expires;
 
       await handleRegistration(
         context,
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRegistered,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
-        {
+          name: RegistrarEventNames.NameRegistered,
+          ...event,
+        }),
+        buildRegistration({
           node,
           parentNode,
           expiresAt,
-        },
+        }),
       );
     },
   );
 
   ponder.on(
-    namespaceContract(pluginName, "BaseEth_BaseRegistrar:NameRenewed"),
+    namespaceContract(pluginName, "Basenames_BaseRegistrar:NameRenewed"),
     async ({ context, event }) => {
       const labelHash = tokenIdToLabelHash(event.args.id);
       const node = makeSubdomainNode(labelHash, parentNode);
-      const expiresAt = Number(event.args.expires);
+      const expiresAt = event.args.expires;
 
       await handleRenewal(
         context,
-        {
-          id: event.id,
-          name: RegistrarEventNames.NameRenewed,
+        buildEventRef({
           chainId: context.chain.id,
-          blockRef: {
-            number: Number(event.block.number),
-            timestamp: Number(event.block.timestamp),
-          },
-          contractAddress: event.log.address,
-          transactionHash: event.transaction.hash,
-          logIndex: event.log.logIndex,
-        },
-        { node, expiresAt },
+          name: RegistrarEventNames.NameRenewed,
+          ...event,
+        }),
+        buildRegistration({
+          node,
+          parentNode,
+          expiresAt,
+        }),
       );
     },
   );

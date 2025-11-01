@@ -1,6 +1,6 @@
 import type { Node, UnixTimestamp } from "@ensnode/ensnode-sdk";
 
-export interface SubregistryRegistration {
+export interface Registration {
   node: Node;
 
   parentNode: Node;
@@ -8,7 +8,7 @@ export interface SubregistryRegistration {
   expiresAt: UnixTimestamp;
 }
 
-export function buildSubregistryRegistration({
+export function buildRegistration({
   node,
   parentNode,
   expiresAt,
@@ -16,7 +16,7 @@ export function buildSubregistryRegistration({
   node: Node;
   parentNode: Node;
   expiresAt: bigint;
-}): SubregistryRegistration {
+}): Registration {
   return {
     node,
     parentNode,

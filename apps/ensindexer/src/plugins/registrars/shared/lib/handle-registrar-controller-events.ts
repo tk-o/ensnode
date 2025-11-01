@@ -1,3 +1,6 @@
+/**
+ * This file contains handlers used in event handlers for a Registrar Controller contract.
+ */
 import type { Context } from "ponder:registry";
 
 import type { RegistrarAction, RegistrarActionType } from "@ensnode/ensnode-sdk";

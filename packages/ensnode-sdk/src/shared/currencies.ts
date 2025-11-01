@@ -12,7 +12,8 @@ export const CurrencyIds = {
 export type CurrencyId = (typeof CurrencyIds)[keyof typeof CurrencyIds];
 
 /**
- * The amount of the currency in the smallest unit of the currency.
+ * The amount of the currency in the smallest unit of the currency
+ * (see {@link CurrencyInfo.decimals} for the currency).
  *
  * Guaranteed to be non-negative.
  */
@@ -43,8 +44,8 @@ export interface SerializedPrice extends Omit<Price, "amount"> {
 
   /**
    * Serialized representation of a {@link Price.amount} which is the amount of
-   * the currency in the smallest unit of the currency as a string.
-   * (see decimals of the {@link CurrencyConfig} for the currency).
+   * the currency in the smallest unit of the currency as a string
+   * (see {@link CurrencyInfo.decimals} for the currency).
    */
   amount: string;
 }
