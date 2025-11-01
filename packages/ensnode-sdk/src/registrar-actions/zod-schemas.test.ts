@@ -1,7 +1,7 @@
 import { ENCODED_REFERRER_BYTE_LENGTH } from "@namehash/ens-referrals";
 import { type Address, namehash, pad, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
-import { number, prettifyError, type ZodSafeParseResult } from "zod/v4";
+import { prettifyError, type ZodSafeParseResult } from "zod/v4";
 
 import { CurrencyIds } from "../shared";
 import type { SerializedRegistrarAction } from "./serialized-types";

@@ -19,10 +19,8 @@ import {
   ChainIndexingConfigTypeIds,
   ChainIndexingStatusIds,
   CrossChainIndexingStrategyIds,
-  deserializeENSIndexerPublicConfig,
   OmnichainIndexingStatusIds,
   PluginName,
-  type SerializedENSIndexerPublicConfig,
   type SerializedOmnichainIndexingStatusSnapshotFollowing,
 } from "./ensindexer";
 import type { ResolverRecordsSelection } from "./resolution";

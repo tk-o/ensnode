@@ -4,14 +4,11 @@ import z from "zod/v4";
 import type { ParsePayload } from "zod/v4/core";
 
 import {
-  makeChainIdSchema,
   makeDurationSchema,
   makeEventRefSchema,
   makeHexStringSchema,
   makeLowercaseAddressSchema,
-  makeNonNegativeIntegerSchema,
   makePriceEthSchema,
-  makeUnixTimestampSchema,
 } from "../internal";
 import { CurrencyIds } from "../shared";
 import { type RegistrarAction, RegistrarActionTypes, RegistrarEventNames } from "./types";

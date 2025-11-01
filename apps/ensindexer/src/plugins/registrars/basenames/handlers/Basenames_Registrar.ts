@@ -1,15 +1,9 @@
 import config from "@/config";
 
 import { ponder } from "ponder:registry";
-import { getAddress } from "viem";
 import { namehash } from "viem/ens";
 
-import {
-  asLowerCaseAddress,
-  makeSubdomainNode,
-  PluginName,
-  RegistrarEventNames,
-} from "@ensnode/ensnode-sdk";
+import { makeSubdomainNode, PluginName, RegistrarEventNames } from "@ensnode/ensnode-sdk";
 
 import { namespaceContract } from "@/lib/plugin-helpers";
 import { buildEventRef } from "@/lib/registrars/event-ref";
