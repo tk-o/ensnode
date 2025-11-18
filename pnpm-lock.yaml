@@ -292,6 +292,9 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.7.2
         version: 0.7.4(hono@4.10.3)(zod@3.25.76)
+      '@namehash/ens-referrals':
+        specifier: workspace:*
+        version: link:../../packages/ens-referrals
       '@opentelemetry/api':
         specifier: ^1.9.0
         version: 1.9.0(patch_hash=4b2adeefaf7c22f9987d0a125d69cab900719bec7ed7636648bea6947107033a)
@@ -765,6 +768,9 @@ importers:
       caip:
         specifier: 'catalog:'
         version: 1.1.1
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
       zod:
         specifier: 'catalog:'
         version: 3.25.76
