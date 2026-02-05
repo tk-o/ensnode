@@ -17,8 +17,10 @@ import type { AddressConfig, ChainConfig, CreateConfigReturnType } from "ponder"
 import {
   type BlockNumber,
   type Blockrange,
+  type ChainId,
   deserializeBlockNumber,
   deserializeBlockrange,
+  deserializeChainId,
 } from "@ensnode/ensnode-sdk";
 
 /**
@@ -103,8 +105,8 @@ function isPonderDatasourceNested(
  * - some chains may include an endBlock,
  * - all present startBlock and endBlock values are valid {@link BlockNumber} values.
  */
-export function getChainsBlockrange(ponderConfig: PonderConfigType): Record<ChainName, Blockrange> {
-  const chainsBlockrange = {} as Record<ChainName, Blockrange>;
+export function getChainsBlockrange(ponderConfig: PonderConfigType): Map<ChainId, Blockrange> {
+  const chainsBlockrange = new Map<ChainId, Blockrange>();
 
   // 0. Get all ponder sources (includes chain + startBlock & endBlock)
   const ponderSources = [
@@ -166,10 +168,13 @@ export function getChainsBlockrange(ponderConfig: PonderConfigType): Record<Chai
 
     // 5. Assign a valid blockrange to the chain
 
-    chainsBlockrange[chainName] = deserializeBlockrange({
-      startBlock: chainLowestStartBlock,
-      endBlock: chainHighestEndBlock,
-    });
+    chainsBlockrange.set(
+      deserializeChainId(chainName),
+      deserializeBlockrange({
+        startBlock: chainLowestStartBlock,
+        endBlock: chainHighestEndBlock,
+      }),
+    );
   }
 
   return chainsBlockrange;

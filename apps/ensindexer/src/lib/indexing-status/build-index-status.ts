@@ -13,33 +13,35 @@
 import config from "@/config";
 
 import {
+  type ChainId,
   type CrossChainIndexingStatusSnapshotOmnichain,
   CrossChainIndexingStrategyIds,
+  deserializeChainId,
   deserializeOmnichainIndexingStatusSnapshot,
   type OmnichainIndexingStatusSnapshot,
   type UnixTimestamp,
 } from "@ensnode/ensnode-sdk";
+import type {
+  PonderClient,
+  PonderIndexingMetrics,
+  PonderIndexingStatus,
+} from "@ensnode/ponder-sdk";
 
 import ponderConfig from "@/ponder/config";
 
 import {
   type ChainBlockRefs,
-  type ChainName,
   createSerializedChainSnapshots,
   createSerializedOmnichainIndexingStatusSnapshot,
-  fetchPonderMetrics,
-  fetchPonderStatus,
   getChainsBlockRefs,
   getChainsBlockrange,
-  type PonderStatus,
-  type PrometheusMetrics,
   type PublicClient,
 } from "./ponder-metadata";
 
 /**
  * Names for each indexed chain
  */
-const chainNames = Object.keys(ponderConfig.chains) as string[];
+const chainIds = Object.keys(ponderConfig.chains).map((chainId) => deserializeChainId(chainId));
 
 /**
  * A {@link Blockrange} for each indexed chain.
@@ -58,7 +60,7 @@ const chainsBlockrange = getChainsBlockrange(ponderConfig);
  *
  * Note: works as cache for {@link getChainsBlockRefs}.
  */
-let chainsBlockRefs = new Map<ChainName, ChainBlockRefs>();
+let chainsBlockRefs = new Map<ChainId, ChainBlockRefs>();
 
 /**
  * Get cached {@link IndexedChainBlockRefs} for indexed chains.
@@ -69,34 +71,37 @@ let chainsBlockRefs = new Map<ChainName, ChainBlockRefs>();
  * re-use it for further `getChainsBlockRefs` calls.
  */
 async function getChainsBlockRefsCached(
-  metrics: PrometheusMetrics,
-  publicClients: Record<ChainName, PublicClient>,
-): Promise<Map<ChainName, ChainBlockRefs>> {
+  ponderIndexingMetrics: PonderIndexingMetrics,
+  publicClients: Map<ChainId, PublicClient>,
+): Promise<Map<ChainId, ChainBlockRefs>> {
   // early-return the cached chain block refs
   if (chainsBlockRefs.size > 0) {
     return chainsBlockRefs;
   }
 
-  chainsBlockRefs = await getChainsBlockRefs(chainNames, chainsBlockrange, metrics, publicClients);
+  chainsBlockRefs = await getChainsBlockRefs(
+    chainIds,
+    chainsBlockrange,
+    ponderIndexingMetrics,
+    publicClients,
+  );
 
   return chainsBlockRefs;
 }
 
 export async function buildOmnichainIndexingStatusSnapshot(
-  publicClients: Record<ChainName, PublicClient>,
+  ponderClient: PonderClient,
+  publicClients: Map<ChainId, PublicClient>,
 ): Promise<OmnichainIndexingStatusSnapshot> {
-  let metrics: PrometheusMetrics;
-  let status: PonderStatus;
+  let ponderIndexingMetrics: PonderIndexingMetrics;
+  let ponderIndexingStatus: PonderIndexingStatus;
 
   try {
     // Get current Ponder metadata (metrics, status)
-    const [ponderMetrics, ponderStatus] = await Promise.all([
-      fetchPonderMetrics(config.ensIndexerUrl),
-      fetchPonderStatus(config.ensIndexerUrl),
-    ]);
+    const responses = await Promise.all([ponderClient.metrics(), ponderClient.status()]);
 
-    metrics = ponderMetrics;
-    status = ponderStatus;
+    ponderIndexingMetrics = responses[0];
+    ponderIndexingStatus = responses[1];
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     throw new Error(
@@ -105,14 +110,14 @@ export async function buildOmnichainIndexingStatusSnapshot(
   }
 
   // get BlockRefs for relevant blocks
-  const chainsBlockRefs = await getChainsBlockRefsCached(metrics, publicClients);
+  const chainsBlockRefs = await getChainsBlockRefsCached(ponderIndexingMetrics, publicClients);
 
   // create serialized chain indexing snapshot for each indexed chain
   const serializedChainSnapshots = createSerializedChainSnapshots(
-    chainNames,
+    chainIds,
     chainsBlockRefs,
-    metrics,
-    status,
+    ponderIndexingMetrics,
+    ponderIndexingStatus,
   );
 
   const serializedOmnichainSnapshot =

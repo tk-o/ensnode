@@ -39,6 +39,7 @@ import {
   type SerializedOmnichainIndexingStatusSnapshotUnstarted,
 } from "@ensnode/ensnode-sdk";
 import type { PrometheusMetrics } from "@ensnode/ponder-metadata";
+import type { PonderIndexingMetrics, PonderIndexingStatus } from "@ensnode/ponder-sdk";
 
 import type { ChainBlockRefs } from "./block-refs";
 import type { ChainName } from "./config";
@@ -113,11 +114,7 @@ export interface ChainMetadata {
 /**
  * Unvalidated representation of {@link ChainMetadata}.
  */
-export interface UnvalidatedChainMetadata
-  extends DeepPartial<Omit<ChainMetadata, "isSyncComplete" | "isSyncRealtime">> {
-  isSyncComplete: number | undefined;
-  isSyncRealtime: number | undefined;
-}
+export type UnvalidatedChainMetadata = DeepPartial<ChainMetadata>;
 
 /**
  * Create {@link ChainIndexingStatusSnapshot} for the indexed chain metadata.
@@ -248,41 +245,38 @@ export function createSerializedOmnichainIndexingStatusSnapshot(
  * calling {@link createOmnichainIndexingSnapshot}.
  */
 export function createSerializedChainSnapshots(
-  chainNames: ChainName[],
-  chainsBlockRefs: Map<ChainName, ChainBlockRefs>,
-  metrics: PrometheusMetrics,
-  status: PonderStatus,
+  chainIds: ChainId[],
+  chainsBlockRefs: Map<ChainId, ChainBlockRefs>,
+  ponderIndexingMetrics: PonderIndexingMetrics,
+  ponderIndexingStatus: PonderIndexingStatus,
 ): Record<ChainIdString, SerializedChainIndexingStatusSnapshot> {
-  const chainsMetadata = new Map<ChainName, UnvalidatedChainMetadata>();
+  const chainsMetadata = new Map<ChainId, UnvalidatedChainMetadata>();
 
   // collect unvalidated chain metadata for each indexed chain
-  for (const chainName of chainNames) {
-    const chainBlockRefs = chainsBlockRefs.get(chainName);
+  for (const chainId of chainIds) {
+    const chainIndexingStatus = ponderIndexingStatus.chains.get(chainId)!;
+    const chainIndexingMetrics = ponderIndexingMetrics.chains.get(chainId)!;
+    const chainBlockRefs = chainsBlockRefs.get(chainId);
 
     const chainMetadata = {
-      chainId: status[chainName]?.id,
+      chainId,
       config: chainBlockRefs?.config,
       backfillEndBlock: chainBlockRefs?.backfillEndBlock,
-      historicalTotalBlocks: metrics.getValue("ponder_historical_total_blocks", {
-        chain: chainName,
-      }),
-      isSyncComplete: metrics.getValue("ponder_sync_is_complete", { chain: chainName }),
-      isSyncRealtime: metrics.getValue("ponder_sync_is_realtime", { chain: chainName }),
-      syncBlock: {
-        number: metrics.getValue("ponder_sync_block", { chain: chainName }),
-        timestamp: metrics.getValue("ponder_sync_block_timestamp", { chain: chainName }),
-      },
+      historicalTotalBlocks: chainIndexingMetrics.backfillSyncBlocksTotal,
+      isSyncComplete: chainIndexingMetrics.indexingCompleted,
+      isSyncRealtime: chainIndexingMetrics.indexingRealtime,
+      syncBlock: chainIndexingMetrics.latestSyncedBlock,
       statusBlock: {
-        number: status[chainName]?.block.number,
-        timestamp: status[chainName]?.block.timestamp,
+        number: chainIndexingStatus.number,
+        timestamp: chainIndexingStatus.timestamp,
       },
     } satisfies UnvalidatedChainMetadata;
 
-    chainsMetadata.set(chainName, chainMetadata);
+    chainsMetadata.set(chainId, chainMetadata);
   }
 
   // parse chain metadata for each indexed chain
-  const schema = makePonderChainMetadataSchema(chainNames);
+  const schema = makePonderChainMetadataSchema(chainIds);
   const parsed = schema.safeParse(chainsMetadata);
 
   if (!parsed.success) {
