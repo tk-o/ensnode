@@ -29,7 +29,7 @@ import { db } from "@/lib/db";
 function buildOrderByClause(order: RegistrarActionsOrder): SQL {
   switch (order) {
     case RegistrarActionsOrders.LatestRegistrarActions:
-      return desc(schema.registrarActions.timestamp);
+      return desc(schema.registrarActions.id);
   }
 }
 
