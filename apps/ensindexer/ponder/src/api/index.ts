@@ -5,15 +5,21 @@ import { cors } from "hono/cors";
 
 import type { ErrorResponse } from "@ensnode/ensnode-sdk";
 
+import { migrateEnsNodeDb } from "@/lib/ensdb/migrate-ensnode-db";
+import { ensDbClient } from "@/lib/ensdb/singleton";
 import { startEnsDbWriterWorker } from "@/lib/ensdb-writer-worker/singleton";
 
 import ensNodeApi from "./handlers/ensnode-api";
 
-// The entry point for the ENSDb Writer Worker. It must be placed inside
-// the `api` directory of the Ponder app to avoid the following build issue:
-// Error: Invalid dependency graph. Config, schema, and indexing function files
-// cannot import objects from the API function file "src/api/index.ts".
-startEnsDbWriterWorker();
+// Before starting the ENSDb Writer Worker, we need to ensure that
+// the ENSNode Schema in ENSDb is up to date by running any pending migrations.
+migrateEnsNodeDb(ensDbClient).then(() => {
+  // The entry point for the ENSDb Writer Worker. It must be placed inside
+  // the `api` directory of the Ponder app to avoid the following build issue:
+  // Error: Invalid dependency graph. Config, schema, and indexing function files
+  // cannot import objects from the API function file "src/api/index.ts".
+  startEnsDbWriterWorker();
+});
 
 const app = new Hono();
 

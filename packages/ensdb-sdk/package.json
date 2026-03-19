@@ -57,6 +57,7 @@
     "drizzle-kit:generate": "drizzle-kit generate"
   },
   "peerDependencies": {
+    "@ensnode/ensnode-sdk": "workspace:",
     "drizzle-orm": "catalog:",
     "ponder": "catalog:",
     "viem": "catalog:"
@@ -69,6 +70,7 @@
     "ponder": "catalog:",
     "tsup": "catalog:",
     "typescript": "catalog:",
-    "viem": "catalog:"
+    "viem": "catalog:",
+    "vitest": "catalog:"
   }
 }
