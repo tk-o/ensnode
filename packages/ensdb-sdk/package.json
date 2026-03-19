@@ -54,6 +54,8 @@
     "prepublish": "tsup",
     "lint": "biome check --write .",
     "lint:ci": "biome ci",
+    "test": "vitest",
+    "typecheck": "tsgo --noEmit",
     "drizzle-kit:generate": "drizzle-kit generate"
   },
   "peerDependencies": {
