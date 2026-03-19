@@ -183,11 +183,11 @@ describe("PublicConfigBuilder", () => {
       } as unknown as EnsRainbowApiClient;
 
       vi.mocked(getEnsIndexerVersion).mockReturnValue("2.0.0");
-      vi.mocked(getNodeJsVersion).mockReturnValue("v22.0.0");
+      vi.mocked(getNodeJsVersion).mockReturnValue("22.0.0");
       vi.mocked(getPackageVersion).mockReturnValue("1.0.0");
 
       const customVersionInfo: EnsIndexerVersionInfo = {
-        nodejs: "v22.0.0",
+        nodejs: "22.0.0",
         ponder: "1.0.0",
         ensDb: "2.0.0",
         ensIndexer: "2.0.0",

@@ -163,6 +163,8 @@ export class EnsDbReader implements EnsNodeDbQueries {
       return result[0].value as EnsNodeMetadataType["value"];
     }
 
-    throw new Error(`There must be exactly one ENSNodeMetadata record for '${metadata.key}' key`);
+    throw new Error(
+      `There must be exactly one ENSNodeMetadata record for ('${this.ensIndexerSchemaName}', '${metadata.key}') composite key`,
+    );
   }
 }
