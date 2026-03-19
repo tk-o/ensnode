@@ -6,15 +6,15 @@ import { makeDurationSchema } from "@ensnode/ensnode-sdk/internal";
 
 import { params } from "@/lib/handlers/params.schema";
 
-export const basePath = "/amirealtime";
+export const basePath = "/api/realtime";
 
-// Set default `maxWorstCaseDistance` for `GET /amirealtime` endpoint to one minute.
-export const AMIREALTIME_DEFAULT_MAX_WORST_CASE_DISTANCE: Duration = minutesToSeconds(1);
+// Set default `maxWorstCaseDistance` for `GET /api/realtime` endpoint to one minute.
+export const REALTIME_DEFAULT_MAX_WORST_CASE_DISTANCE: Duration = minutesToSeconds(1);
 
-export const amIRealtimeGetMeta = createRoute({
+export const realtimeGetMeta = createRoute({
   method: "get",
   path: "/",
-  operationId: "isRealtime",
+  operationId: "getRealtime",
   tags: ["Meta"],
   summary: "Check indexing progress",
   description:
@@ -23,7 +23,7 @@ export const amIRealtimeGetMeta = createRoute({
     query: z.object({
       maxWorstCaseDistance: params.queryParam
         .optional()
-        .default(AMIREALTIME_DEFAULT_MAX_WORST_CASE_DISTANCE)
+        .default(REALTIME_DEFAULT_MAX_WORST_CASE_DISTANCE)
         .pipe(
           z.coerce
             .number({
@@ -47,4 +47,4 @@ export const amIRealtimeGetMeta = createRoute({
   },
 });
 
-export const routes = [amIRealtimeGetMeta];
+export const routes = [realtimeGetMeta];
