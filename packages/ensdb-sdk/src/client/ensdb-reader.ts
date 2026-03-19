@@ -61,7 +61,7 @@ export class EnsDbReader implements EnsNodeDbQueries {
   }
 
   /**
-   * Bind a ENSIndexer Schema definition with a specific instance of
+   * Bind an ENSIndexer Schema definition with a specific instance of
    * ENSIndexer Schema in ENSDb.
    *
    * ENSIndexer Schema definition does not have a fixed database schema name,
