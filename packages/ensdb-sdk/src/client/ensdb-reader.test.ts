@@ -42,7 +42,7 @@ describe("EnsDbReader", () => {
     });
 
     // This scenario should be impossible due to the primary key constraint on
-    // the 'key' column of 'ensnode_metadata' table.
+    // the ('ensIndexerSchemaName', 'key') columns of the 'ensnode_metadata' table.
     it("throws when multiple records exist", async () => {
       selectResult.current = [{ value: "0.1.0" }, { value: "0.1.1" }];
 
