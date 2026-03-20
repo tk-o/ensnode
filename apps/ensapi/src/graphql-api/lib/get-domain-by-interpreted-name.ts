@@ -3,7 +3,6 @@ import config from "@/config";
 import { Param, sql } from "drizzle-orm";
 import { namehash } from "viem";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   type DomainId,
   type ENSv2DomainId,
@@ -16,7 +15,11 @@ import {
   type RegistryId,
 } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
+
 import { makeLogger } from "@/lib/logger";
 
 const ROOT_REGISTRY_ID = maybeGetENSv2RootRegistryId(config.namespace);

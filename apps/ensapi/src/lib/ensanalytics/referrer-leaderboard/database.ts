@@ -6,10 +6,13 @@ import {
 import { and, count, desc, eq, gte, isNotNull, lte, ne, sql, sum } from "drizzle-orm";
 import { type Address, zeroAddress } from "viem";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import { deserializeDuration, formatAccountId } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
+
 import logger from "@/lib/logger";
 
 /**

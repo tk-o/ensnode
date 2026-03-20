@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import type { Address } from "viem";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
 
 import { type BaseDomainSet, selectBase } from "./base-domain-set";
 

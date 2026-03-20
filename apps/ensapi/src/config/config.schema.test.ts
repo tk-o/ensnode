@@ -9,6 +9,12 @@ import {
 } from "@ensnode/ensnode-sdk";
 import type { RpcConfig } from "@ensnode/ensnode-sdk/internal";
 
+vi.mock("@/lib/ensdb/singleton", () => ({
+  ensDbReader: {
+    getEnsIndexerPublicConfig: vi.fn(() => ENSINDEXER_PUBLIC_CONFIG),
+  },
+}));
+
 import { buildConfigFromEnvironment, buildEnsApiPublicConfig } from "@/config/config.schema";
 import { ENSApi_DEFAULT_PORT } from "@/config/defaults";
 import type { EnsApiEnvironment } from "@/config/environment";
@@ -25,13 +31,13 @@ const VALID_RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/1234";
 
 const BASE_ENV = {
   DATABASE_URL: "postgresql://user:password@localhost:5432/mydb",
-  ENSINDEXER_URL: "http://localhost:42069",
+  DATABASE_SCHEMA: "ensindexer_0",
   RPC_URL_1: VALID_RPC_URL,
 } satisfies EnsApiEnvironment;
 
 const ENSINDEXER_PUBLIC_CONFIG = {
   namespace: "mainnet",
-  databaseSchemaName: "ensapi",
+  databaseSchemaName: "ensindexer_0",
   ensRainbowPublicConfig: {
     version: packageJson.version,
     labelSet: { labelSetId: "subgraph", highestLabelSetVersion: 0 },
@@ -67,9 +73,7 @@ describe("buildConfigFromEnvironment", () => {
     await expect(buildConfigFromEnvironment(BASE_ENV)).resolves.toStrictEqual({
       port: ENSApi_DEFAULT_PORT,
       databaseUrl: BASE_ENV.DATABASE_URL,
-      ensIndexerUrl: new URL(BASE_ENV.ENSINDEXER_URL),
       theGraphApiKey: undefined,
-
       ensIndexerPublicConfig: ENSINDEXER_PUBLIC_CONFIG,
       namespace: ENSINDEXER_PUBLIC_CONFIG.namespace,
       databaseSchemaName: ENSINDEXER_PUBLIC_CONFIG.databaseSchemaName,
@@ -116,7 +120,7 @@ describe("buildConfigFromEnvironment", () => {
 
     const TEST_ENV: EnsApiEnvironment = {
       DATABASE_URL: BASE_ENV.DATABASE_URL,
-      ENSINDEXER_URL: BASE_ENV.ENSINDEXER_URL,
+      DATABASE_SCHEMA: BASE_ENV.DATABASE_SCHEMA,
     };
 
     it("logs error and exits when CUSTOM_REFERRAL_PROGRAM_EDITIONS is not a valid URL", async () => {
@@ -183,7 +187,6 @@ describe("buildEnsApiPublicConfig", () => {
     const mockConfig = {
       port: ENSApi_DEFAULT_PORT,
       databaseUrl: BASE_ENV.DATABASE_URL,
-      ensIndexerUrl: new URL(BASE_ENV.ENSINDEXER_URL),
       ensIndexerPublicConfig: ENSINDEXER_PUBLIC_CONFIG,
       namespace: ENSINDEXER_PUBLIC_CONFIG.namespace,
       databaseSchemaName: ENSINDEXER_PUBLIC_CONFIG.databaseSchemaName,
@@ -215,7 +218,6 @@ describe("buildEnsApiPublicConfig", () => {
     const mockConfig = {
       port: ENSApi_DEFAULT_PORT,
       databaseUrl: BASE_ENV.DATABASE_URL,
-      ensIndexerUrl: new URL(BASE_ENV.ENSINDEXER_URL),
       ensIndexerPublicConfig: ENSINDEXER_PUBLIC_CONFIG,
       namespace: ENSINDEXER_PUBLIC_CONFIG.namespace,
       databaseSchemaName: ENSINDEXER_PUBLIC_CONFIG.databaseSchemaName,
@@ -245,7 +247,6 @@ describe("buildEnsApiPublicConfig", () => {
     const mockConfig = {
       port: ENSApi_DEFAULT_PORT,
       databaseUrl: BASE_ENV.DATABASE_URL,
-      ensIndexerUrl: new URL(BASE_ENV.ENSINDEXER_URL),
       ensIndexerPublicConfig: {
         ...ENSINDEXER_PUBLIC_CONFIG,
         plugins: ["subgraph"],

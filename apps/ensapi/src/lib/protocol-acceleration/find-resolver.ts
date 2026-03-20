@@ -25,7 +25,10 @@ import {
   type NormalizedName,
 } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+
 import { withActiveSpanAsync, withSpanAsync } from "@/lib/instrumentation/auto-span";
 
 type FindResolverResult =

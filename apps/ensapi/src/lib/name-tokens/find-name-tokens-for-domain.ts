@@ -2,7 +2,6 @@ import config from "@/config";
 
 import { eq } from "drizzle-orm/sql";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   type AccountId,
   bigIntToNumber,
@@ -17,7 +16,10 @@ import {
   type UnixTimestamp,
 } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 interface FindRegisteredNameTokensForDomainRecord {
   domains: typeof schema.subgraph_domain.$inferSelect;

@@ -1,7 +1,6 @@
 import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@pothos/plugin-relay";
 import { and, eq } from "drizzle-orm";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   makePermissionsId,
   makePermissionsResourceId,
@@ -20,7 +19,10 @@ import { AccountRef } from "@/graphql-api/schema/account";
 import { AccountIdRef } from "@/graphql-api/schema/account-id";
 import { ID_PAGINATED_CONNECTION_ARGS } from "@/graphql-api/schema/constants";
 import { EventRef, EventsWhereInput } from "@/graphql-api/schema/event";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 export const PermissionsRef = builder.loadableObjectRef("Permissions", {
   load: (ids: PermissionsId[]) =>

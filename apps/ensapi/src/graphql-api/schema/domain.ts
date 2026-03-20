@@ -1,7 +1,6 @@
 import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@pothos/plugin-relay";
 import { and, count, eq, getTableColumns } from "drizzle-orm";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   type DomainId,
   type ENSv1DomainId,
@@ -37,7 +36,10 @@ import { PermissionsUserRef } from "@/graphql-api/schema/permissions";
 import { RegistrationInterfaceRef } from "@/graphql-api/schema/registration";
 import { RegistryRef } from "@/graphql-api/schema/registry";
 import { ResolverRef } from "@/graphql-api/schema/resolver";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 const isENSv1Domain = (domain: Domain): domain is ENSv1Domain => "parentId" in domain;
 

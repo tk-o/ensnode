@@ -2,8 +2,6 @@ import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@poth
 import { and, count, eq, getTableColumns } from "drizzle-orm";
 import type { Address } from "viem";
 
-import * as schema from "@ensnode/ensdb-sdk";
-
 import { builder } from "@/graphql-api/builder";
 import { orderPaginationBy, paginateBy } from "@/graphql-api/lib/connection-helpers";
 import { resolveFindDomains } from "@/graphql-api/lib/find-domains/find-domains-resolver";
@@ -28,7 +26,10 @@ import { AccountEventsWhereInput, EventRef } from "@/graphql-api/schema/event";
 import { PermissionsUserRef } from "@/graphql-api/schema/permissions";
 import { RegistryPermissionsUserRef } from "@/graphql-api/schema/registry-permissions-user";
 import { ResolverPermissionsUserRef } from "@/graphql-api/schema/resolver-permissions-user";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 export const AccountRef = builder.loadableObjectRef("Account", {
   load: (ids: Address[]) =>

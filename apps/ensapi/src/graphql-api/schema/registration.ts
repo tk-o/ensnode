@@ -2,7 +2,6 @@ import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@poth
 import { and, eq } from "drizzle-orm";
 import { hexToBigInt } from "viem";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   type ENSv1DomainId,
   isRegistrationFullyExpired,
@@ -20,7 +19,10 @@ import { INDEX_PAGINATED_CONNECTION_ARGS } from "@/graphql-api/schema/constants"
 import { DomainInterfaceRef } from "@/graphql-api/schema/domain";
 import { EventRef } from "@/graphql-api/schema/event";
 import { RenewalRef } from "@/graphql-api/schema/renewal";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 export const RegistrationInterfaceRef = builder.loadableInterfaceRef("Registration", {
   load: (ids: RegistrationId[]) =>

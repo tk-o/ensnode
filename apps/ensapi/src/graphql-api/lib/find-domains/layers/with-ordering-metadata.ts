@@ -1,9 +1,11 @@
 import { and, eq, sql } from "drizzle-orm";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import type { DomainId } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 import type { BaseDomainSet } from "./base-domain-set";
 

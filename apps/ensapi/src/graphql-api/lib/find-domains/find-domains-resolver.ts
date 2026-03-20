@@ -20,7 +20,10 @@ import {
   type DomainsOrderBy,
 } from "@/graphql-api/schema/domain";
 import type { OrderDirection } from "@/graphql-api/schema/order-direction";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+
 import { makeLogger } from "@/lib/logger";
 
 import { DomainCursors } from "./domain-cursor";

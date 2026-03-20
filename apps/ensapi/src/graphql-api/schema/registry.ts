@@ -1,7 +1,6 @@
 import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@pothos/plugin-relay";
 import { and, eq } from "drizzle-orm";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import { makePermissionsId, type RegistryId } from "@ensnode/ensnode-sdk";
 
 import { builder } from "@/graphql-api/builder";
@@ -24,7 +23,10 @@ import {
   RegistryDomainsWhereInput,
 } from "@/graphql-api/schema/domain";
 import { PermissionsRef } from "@/graphql-api/schema/permissions";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 export const RegistryRef = builder.loadableObjectRef("Registry", {
   load: (ids: RegistryId[]) =>

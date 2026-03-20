@@ -1,6 +1,8 @@
 import { eq, isNotNull, isNull, or } from "drizzle-orm";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
 
 import { getCanonicalRegistriesCTE } from "../canonical-registries-cte";
 import { type BaseDomainSet, selectBase } from "./base-domain-set";

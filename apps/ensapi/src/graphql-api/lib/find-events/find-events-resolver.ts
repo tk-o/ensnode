@@ -2,12 +2,13 @@ import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@poth
 import { and, count, eq, getTableColumns, gte, inArray, lte, type SQL, sql } from "drizzle-orm";
 import type { Address, Hex } from "viem";
 
-import * as schema from "@ensnode/ensdb-sdk";
-
 import { orderPaginationBy, paginateBy } from "@/graphql-api/lib/connection-helpers";
 import { lazyConnection } from "@/graphql-api/lib/lazy-connection";
 import { ID_PAGINATED_CONNECTION_ARGS } from "@/graphql-api/schema/constants";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 /**
  * A join table that relates some entity to events via an `eventId` column.

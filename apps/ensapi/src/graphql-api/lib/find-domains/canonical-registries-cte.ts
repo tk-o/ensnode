@@ -2,10 +2,12 @@ import config from "@/config";
 
 import { sql } from "drizzle-orm";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import { maybeGetENSv2RootRegistryId } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 /**
  * The maximum depth to traverse the ENSv2 namegraph in order to construct the set of Canonical

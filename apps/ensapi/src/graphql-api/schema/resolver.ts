@@ -4,7 +4,6 @@ import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@poth
 import { and, eq } from "drizzle-orm";
 import { namehash } from "viem";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   makePermissionsId,
   makeResolverRecordsId,
@@ -26,7 +25,10 @@ import { EventRef, EventsWhereInput } from "@/graphql-api/schema/event";
 import { NameOrNodeInput } from "@/graphql-api/schema/name-or-node";
 import { PermissionsRef, type PermissionsUserResource } from "@/graphql-api/schema/permissions";
 import { ResolverRecordsRef } from "@/graphql-api/schema/resolver-records";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 /**
  * Note that this indexed Resolver entity represents not _all_ Resolver contracts that exist onchain,

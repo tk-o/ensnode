@@ -1,6 +1,8 @@
 import type { DomainId } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
 
 /**
  * Gets the latest Registration entity for Domain `domainId`.

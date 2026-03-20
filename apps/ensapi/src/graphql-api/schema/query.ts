@@ -2,7 +2,6 @@ import config from "@/config";
 
 import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@pothos/plugin-relay";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   makePermissionsId,
   makeRegistryId,
@@ -36,7 +35,10 @@ import { PermissionsRef } from "@/graphql-api/schema/permissions";
 import { RegistrationInterfaceRef } from "@/graphql-api/schema/registration";
 import { RegistryIdInput, RegistryRef } from "@/graphql-api/schema/registry";
 import { ResolverIdInput, ResolverRef } from "@/graphql-api/schema/resolver";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 // don't want them to get familiar/accustomed to these methods until their necessity is certain
 const INCLUDE_DEV_METHODS = process.env.NODE_ENV !== "production";

@@ -2,7 +2,6 @@ import config from "@/config";
 
 import { sql } from "drizzle-orm";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   type CanonicalPath,
   type DomainId,
@@ -13,7 +12,10 @@ import {
   ROOT_NODE,
 } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 const MAX_DEPTH = 16;
 const ENSv2_ROOT_REGISTRY_ID = maybeGetENSv2RootRegistryId(config.namespace);

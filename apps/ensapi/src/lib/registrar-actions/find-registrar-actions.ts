@@ -1,6 +1,5 @@
 import { and, count, desc, eq, gte, isNotNull, lte, not, type SQL } from "drizzle-orm/sql";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import {
   type BlockRef,
   bigIntToNumber,
@@ -21,7 +20,10 @@ import {
   ZERO_ENCODED_REFERRER,
 } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 /**
  * Build SQL for order clause from provided order param.

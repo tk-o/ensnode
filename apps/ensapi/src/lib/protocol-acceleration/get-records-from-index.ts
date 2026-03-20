@@ -8,7 +8,10 @@ import {
 } from "@ensnode/ensnode-sdk";
 import { staticResolverImplementsAddressRecordDefaulting } from "@ensnode/ensnode-sdk/internal";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+
 import type { IndexedResolverRecords } from "@/lib/resolution/make-records-response";
 
 const DEFAULT_EVM_COIN_TYPE_BIGINT = BigInt(DEFAULT_EVM_COIN_TYPE);

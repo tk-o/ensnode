@@ -8,7 +8,10 @@ import {
   type Name,
 } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+
 import { withSpanAsync } from "@/lib/instrumentation/auto-span";
 
 const tracer = trace.getTracer("get-primary-name");

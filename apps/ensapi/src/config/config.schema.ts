@@ -1,16 +1,13 @@
 import packageJson from "@/../package.json" with { type: "json" };
 
 import pRetry from "p-retry";
-import { parse as parseConnectionString } from "pg-connection-string";
 import { prettifyError, ZodError, z } from "zod/v4";
 
 import type { EnsApiPublicConfig } from "@ensnode/ensnode-sdk";
 import {
   buildRpcConfigsFromEnv,
   canFallbackToTheGraph,
-  DatabaseSchemaNameSchema,
   ENSNamespaceSchema,
-  EnsIndexerUrlSchema,
   invariant_rpcConfigsSpecifiedForRootChain,
   makeENSIndexerPublicConfigSchema,
   OptionalPortNumberSchema,
@@ -19,28 +16,11 @@ import {
 } from "@ensnode/ensnode-sdk/internal";
 
 import { ENSApi_DEFAULT_PORT } from "@/config/defaults";
+import { EnsDbConfigSchema } from "@/config/ensdb-config.schema";
 import type { EnsApiEnvironment } from "@/config/environment";
 import { invariant_ensIndexerPublicConfigVersionInfo } from "@/config/validations";
-import { fetchENSIndexerConfig } from "@/lib/fetch-ensindexer-config";
+import { ensDbReader } from "@/lib/ensdb/singleton";
 import logger from "@/lib/logger";
-
-export const DatabaseUrlSchema = z.string().refine(
-  (url) => {
-    try {
-      if (!url.startsWith("postgresql://") && !url.startsWith("postgres://")) {
-        return false;
-      }
-      const config = parseConnectionString(url);
-      return !!(config.host && config.port && config.database);
-    } catch {
-      return false;
-    }
-  },
-  {
-    error:
-      "Invalid PostgreSQL connection string. Expected format: postgresql://username:password@host:port/database",
-  },
-);
 
 /**
  * Schema for validating custom referral program edition config set URL.
@@ -63,15 +43,13 @@ const CustomReferralProgramEditionConfigSetUrlSchema = z
 const EnsApiConfigSchema = z
   .object({
     port: OptionalPortNumberSchema.default(ENSApi_DEFAULT_PORT),
-    databaseUrl: DatabaseUrlSchema,
-    databaseSchemaName: DatabaseSchemaNameSchema,
-    ensIndexerUrl: EnsIndexerUrlSchema,
     theGraphApiKey: TheGraphApiKeySchema,
     namespace: ENSNamespaceSchema,
     rpcConfigs: RpcConfigsSchema,
     ensIndexerPublicConfig: makeENSIndexerPublicConfigSchema("ensIndexerPublicConfig"),
     customReferralProgramEditionConfigSetUrl: CustomReferralProgramEditionConfigSetUrlSchema,
   })
+  .extend(EnsDbConfigSchema.shape)
   .check(invariant_rpcConfigsSpecifiedForRootChain)
   .check(invariant_ensIndexerPublicConfigVersionInfo);
 
@@ -85,23 +63,25 @@ export type EnsApiConfig = z.infer<typeof EnsApiConfigSchema>;
  */
 export async function buildConfigFromEnvironment(env: EnsApiEnvironment): Promise<EnsApiConfig> {
   try {
-    const ensIndexerUrl = EnsIndexerUrlSchema.parse(env.ENSINDEXER_URL);
-
-    const ensIndexerPublicConfig = await pRetry(() => fetchENSIndexerConfig(ensIndexerUrl), {
+    const ensIndexerPublicConfig = await pRetry(() => ensDbReader.getEnsIndexerPublicConfig(), {
       retries: 3,
       onFailedAttempt: ({ error, attemptNumber, retriesLeft }) => {
         logger.info(
-          `ENSIndexer Config fetch attempt ${attemptNumber} failed (${error.message}). ${retriesLeft} retries left.`,
+          `ENSIndexer Public Config fetch attempt ${attemptNumber} failed (${error.message}). ${retriesLeft} retries left.`,
         );
       },
     });
+
+    // Invariant: ENSIndexer Public Config must be present in ENSDb.
+    if (!ensIndexerPublicConfig) {
+      throw new Error(`ENSIndexer Public Config is missing in ENSDb.`);
+    }
 
     const rpcConfigs = buildRpcConfigsFromEnv(env, ensIndexerPublicConfig.namespace);
 
     return EnsApiConfigSchema.parse({
       port: env.PORT,
       databaseUrl: env.DATABASE_URL,
-      ensIndexerUrl: env.ENSINDEXER_URL,
       theGraphApiKey: env.THEGRAPH_API_KEY,
       ensIndexerPublicConfig,
       namespace: ensIndexerPublicConfig.namespace,

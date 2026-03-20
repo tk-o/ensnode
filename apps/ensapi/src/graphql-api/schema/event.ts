@@ -1,6 +1,8 @@
 import { builder } from "@/graphql-api/builder";
 import { getModelId } from "@/graphql-api/lib/get-model-id";
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
 
 export const EventRef = builder.loadableObjectRef("Event", {
   load: (ids: string[]) =>

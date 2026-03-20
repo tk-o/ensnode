@@ -1,7 +1,6 @@
 import { eq, like, Param, sql } from "drizzle-orm";
 import { alias, unionAll } from "drizzle-orm/pg-core";
 
-import * as schema from "@ensnode/ensdb-sdk";
 import type { ENSv1DomainId, ENSv2DomainId, LabelHashPath } from "@ensnode/ensnode-sdk";
 import {
   type DomainId,
@@ -9,7 +8,10 @@ import {
   parsePartialInterpretedName,
 } from "@ensnode/ensnode-sdk";
 
-import { db } from "@/lib/db";
+import { ensDbReader } from "@/lib/ensdb/singleton";
+
+const db = ensDbReader.client;
+const schema = ensDbReader.schema;
 
 import { type BaseDomainSet, selectBase } from "./base-domain-set";
 
