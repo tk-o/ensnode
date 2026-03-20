@@ -7,7 +7,6 @@ import {
   serializeEnsIndexerPublicConfig,
 } from "@ensnode/ensnode-sdk";
 
-import * as ensNodeSchema from "../ensnode";
 import { EnsDbReader } from "./ensdb-reader";
 import { EnsNodeMetadataKeys } from "./ensnode-metadata";
 import type { SerializedEnsNodeMetadata } from "./serialize/ensnode-metadata";
@@ -81,14 +80,14 @@ export class EnsDbWriter extends EnsDbReader {
    */
   private async upsertEnsNodeMetadata(metadata: SerializedEnsNodeMetadata): Promise<void> {
     await this.drizzleClient
-      .insert(ensNodeSchema.metadata)
+      .insert(this.ensDbSchema.metadata)
       .values({
         ensIndexerSchemaName: this.ensIndexerSchemaName,
         key: metadata.key,
         value: metadata.value,
       })
       .onConflictDoUpdate({
-        target: [ensNodeSchema.metadata.ensIndexerSchemaName, ensNodeSchema.metadata.key],
+        target: [this.ensDbSchema.metadata.ensIndexerSchemaName, this.ensDbSchema.metadata.key],
         set: { value: metadata.value },
       });
   }

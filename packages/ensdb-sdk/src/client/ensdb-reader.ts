@@ -1,5 +1,3 @@
-import { isTable, Table } from "drizzle-orm";
-import { isPgEnum } from "drizzle-orm/pg-core";
 import { and, eq } from "drizzle-orm/sql";
 
 import {
@@ -9,9 +7,7 @@ import {
   type EnsIndexerPublicConfig,
 } from "@ensnode/ensnode-sdk";
 
-import * as ensIndexerSchema from "../ensindexer";
-import * as ensNodeSchema from "../ensnode";
-import { buildEnsDbDrizzleClient, type EnsDbDrizzle } from "../lib/drizzle";
+import type { AbstractEnsIndexerSchema, EnsDbDrizzleClient, EnsDbSchema } from "../lib/drizzle";
 import { EnsNodeMetadataKeys } from "./ensnode-metadata";
 import type {
   SerializedEnsNodeMetadata,
@@ -23,13 +19,31 @@ import type {
 /**
  * ENSDb Reader
  *
- * Enables read-only querying of an ENSDb instance, including data spanning the ENSNode Schema and the specified ENSIndexer Schema.
+ * Enables read-only querying of an ENSDb instance, including data spanning
+ * the ENSNode Schema and the specified ENSIndexer Schema.
+ *
+ * Note: we use a parameter type `EnsIndexerSchemaType` to represent
+ * the "concrete" ENSIndexer Schema type within the ENSDb Schema and
+ * make sure that the Drizzle client used for querying is typed with
+ * the same "concrete" ENSIndexer Schema type.
  */
-export class EnsDbReader {
+export class EnsDbReader<
+  EnsIndexerSchemaType extends AbstractEnsIndexerSchema = AbstractEnsIndexerSchema,
+> {
   /**
    * Drizzle client for ENSDb.
+   *
+   * Uses the ENSDb Schema from {@link ensDbSchema}.
    */
-  protected drizzleClient: EnsDbDrizzle;
+  protected drizzleClient: EnsDbDrizzleClient<EnsIndexerSchemaType>;
+
+  /**
+   * ENSDb Schema definition for ENSDb.
+   *
+   * This is the "concrete" ENSDb Schema in which tables reference
+   * the ENSIndexer Schema name from {@link ensIndexerSchemaName}.
+   */
+  protected ensDbSchema: EnsDbSchema<EnsIndexerSchemaType>;
 
   /**
    * The name of the ENSIndexer schema to read from in ENSDb.
@@ -40,12 +54,17 @@ export class EnsDbReader {
   protected ensIndexerSchemaName: string;
 
   /**
-   * @param ensDbConnectionString connection string for ENSDb Postgres database
-   * @param ensIndexerSchemaName the name of the ENSIndexer Schema to read from in ENSDb
+   * @param ensDbDrizzleClient Drizzle client for ENSDb, typed with the "concrete" ENSIndexer Schema type.
+   * @param ensDbSchema ENSDb Schema definition for ENSDb used by the Drizzle client.
+   * @param ensIndexerSchemaName The name of the ENSIndexer schema to read from in ENSDb, used to identify which ENSNode metadata records to read.
    */
-  constructor(ensDbConnectionString: string, ensIndexerSchemaName: string) {
-    EnsDbReader.bindEnsIndexerSchemaWithName(ensIndexerSchemaName);
-    this.drizzleClient = buildEnsDbDrizzleClient(ensDbConnectionString);
+  constructor(
+    ensDbDrizzleClient: EnsDbDrizzleClient<EnsIndexerSchemaType>,
+    ensDbSchema: EnsDbSchema<EnsIndexerSchemaType>,
+    ensIndexerSchemaName: string,
+  ) {
+    this.drizzleClient = ensDbDrizzleClient;
+    this.ensDbSchema = ensDbSchema;
     this.ensIndexerSchemaName = ensIndexerSchemaName;
   }
 
@@ -54,41 +73,20 @@ export class EnsDbReader {
    *
    * Useful while working on complex queries for ENSDb.
    */
-  get client(): EnsDbDrizzle {
+  get client(): EnsDbDrizzleClient<EnsIndexerSchemaType> {
     return this.drizzleClient;
   }
 
   /**
-   * Bind an ENSIndexer Schema definition with a specific instance of
-   * ENSIndexer Schema in ENSDb.
+   * Getter for the  ENSDb Schema definition used in the Drizzle client
+   * for ENSDb instance.
    *
-   * ENSIndexer Schema definition does not have a fixed database schema name,
-   * as it is determined by Ponder when starting up the ENSIndexer instance.
-   *
-   * This function allows to bind the ENSIndexer Schema definition with
-   * the correct database schema name for the ENSIndexer instance we want to
-   * reference when interacting with ENSDb.
-   *
-   * @param ensIndexerSchemaName - The name of the ENSIndexer Schema instance in ENSDb.
-   *
-   * Note: this function is a replacement for `setDatabaseSchema` from `@ponder/client`.
+   * Useful while working on complex queries for ENSDb.
    */
-  static bindEnsIndexerSchemaWithName(ensIndexerSchemaName: string): void {
-    for (const dbObjectDef of Object.values(ensIndexerSchema)) {
-      if (isTable(dbObjectDef)) {
-        // @ts-expect-error - Drizzle's Table type for the schema symbol is
-        // not typed in a way that allows us to set it directly,
-        // but we know it exists and can be set.
-        dbObjectDef[Table.Symbol.Schema] = ensIndexerSchemaName;
-      } else if (isPgEnum(dbObjectDef)) {
-        // @ts-expect-error - Drizzle's PgEnum type for the schema symbol is
-        // typed as readonly, but we need to set it here so
-        // the output schema definition has the correct schema for
-        // all table and enum objects.
-        dbObjectDef.schema = ensIndexerSchemaName;
-      }
-    }
+  get schema(): EnsDbSchema<EnsIndexerSchemaType> {
+    return this.ensDbSchema;
   }
+
   /**
    * Get ENSDb Version
    *
@@ -151,11 +149,11 @@ export class EnsDbReader {
   ): Promise<EnsNodeMetadataType["value"] | undefined> {
     const result = await this.drizzleClient
       .select()
-      .from(ensNodeSchema.metadata)
+      .from(this.ensDbSchema.metadata)
       .where(
         and(
-          eq(ensNodeSchema.metadata.ensIndexerSchemaName, this.ensIndexerSchemaName),
-          eq(ensNodeSchema.metadata.key, metadata.key),
+          eq(this.ensDbSchema.metadata.ensIndexerSchemaName, this.ensIndexerSchemaName),
+          eq(this.ensDbSchema.metadata.key, metadata.key),
         ),
       );
 
