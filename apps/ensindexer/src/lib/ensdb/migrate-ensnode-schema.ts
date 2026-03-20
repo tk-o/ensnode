@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { join } from "node:path";
 
-import type { EnsNodeDbMigrations } from "@ensnode/ensdb-sdk";
+import { ensDbWriter } from "./singleton";
 
 // Resolve the path to the migrations directory within the ENSDb SDK package
 const migrationsDirPath = join(
@@ -10,11 +10,10 @@ const migrationsDirPath = join(
 );
 
 /**
- * Execute database migrations for ENSNode Schema in ENSDb, using the given ENSDb client.
- * @param ensDbClient - The ENSDb client to use for executing migrations.
+ * Execute database migrations for ENSNode Schema in ENSDb.
  */
-export async function migrateEnsNodeDb(ensDbClient: EnsNodeDbMigrations): Promise<void> {
+export async function migrateEnsNodeSchema(): Promise<void> {
   console.log(`Running database migrations for ENSNode Schema in ENSDb.`);
-  await ensDbClient.migrate(migrationsDirPath);
+  await ensDbWriter.migrateEnsNodeSchema(migrationsDirPath);
   console.log(`Database migrations for ENSNode Schema in ENSDb completed successfully.`);
 }

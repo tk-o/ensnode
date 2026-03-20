@@ -9,8 +9,6 @@ import {
 
 import * as ensNodeSchema from "../ensnode";
 import { EnsDbReader } from "./ensdb-reader";
-import type { EnsNodeDbMigrations } from "./ensnode-db-migrations";
-import type { EnsNodeDbMutations } from "./ensnode-db-mutations";
 import { EnsNodeMetadataKeys } from "./ensnode-metadata";
 import type { SerializedEnsNodeMetadata } from "./serialize/ensnode-metadata";
 
@@ -21,11 +19,15 @@ import type { SerializedEnsNodeMetadata } from "./serialize/ensnode-metadata";
  * - executing database migrations for ENSNode Schema,
  * - updating ENSNode Metadata records in ENSDb for the given ENSIndexer instance.
  */
-export class EnsDbWriter extends EnsDbReader implements EnsNodeDbMutations, EnsNodeDbMigrations {
+export class EnsDbWriter extends EnsDbReader {
   /**
-   * @inheritdoc
+   * Execute pending database migrations for ENSNode Schema in ENSDb.
+   *
+   * @param migrationsDirPath - The file path to the directory containing
+   *                            database migration files for ENSNode Schema.
+   * @throws error when migration execution fails.
    */
-  async migrate(migrationsDirPath: string): Promise<void> {
+  async migrateEnsNodeSchema(migrationsDirPath: string): Promise<void> {
     return migrate(this.drizzleClient, {
       migrationsFolder: migrationsDirPath,
       migrationsSchema: "ensnode",
@@ -33,7 +35,9 @@ export class EnsDbWriter extends EnsDbReader implements EnsNodeDbMutations, EnsN
   }
 
   /**
-   * @inheritdoc
+   * Upsert ENSDb Version
+   *
+   * @throws when upsert operation failed.
    */
   async upsertEnsDbVersion(ensDbVersion: string): Promise<void> {
     await this.upsertEnsNodeMetadata({
@@ -43,7 +47,9 @@ export class EnsDbWriter extends EnsDbReader implements EnsNodeDbMutations, EnsN
   }
 
   /**
-   * @inheritdoc
+   * Upsert ENSIndexer Public Config
+   *
+   * @throws when upsert operation failed.
    */
   async upsertEnsIndexerPublicConfig(
     ensIndexerPublicConfig: EnsIndexerPublicConfig,
@@ -55,7 +61,9 @@ export class EnsDbWriter extends EnsDbReader implements EnsNodeDbMutations, EnsN
   }
 
   /**
-   * @inheritdoc
+   * Upsert Indexing Status Snapshot
+   *
+   * @throws when upsert operation failed.
    */
   async upsertIndexingStatusSnapshot(
     indexingStatus: CrossChainIndexingStatusSnapshot,

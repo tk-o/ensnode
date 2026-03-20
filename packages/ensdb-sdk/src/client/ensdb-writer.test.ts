@@ -114,8 +114,8 @@ describe("EnsDbWriter", () => {
     });
   });
 
-  describe("migrate", () => {
-    it("calls drizzle-orm migrate with the correct parameters", async () => {
+  describe("migrateEnsNodeSchema", () => {
+    it("calls drizzle-orm migrateEnsNodeSchema with the correct parameters", async () => {
       // arrange
       const client = new EnsDbWriter(
         ensDbClientMock.ensDbUrl,
@@ -124,7 +124,7 @@ describe("EnsDbWriter", () => {
       const migrationsDirPath = "/path/to/migrations";
 
       // act
-      await client.migrate(migrationsDirPath);
+      await client.migrateEnsNodeSchema(migrationsDirPath);
 
       // assert
       expect(vi.mocked(migrate)).toHaveBeenCalledWith(dbMock, {
@@ -133,7 +133,7 @@ describe("EnsDbWriter", () => {
       });
     });
 
-    it("propagates errors from the migrate function", async () => {
+    it("propagates errors from the migrateEnsNodeSchema function", async () => {
       // arrange
       const client = new EnsDbWriter(
         ensDbClientMock.ensDbUrl,
@@ -144,7 +144,9 @@ describe("EnsDbWriter", () => {
       vi.mocked(migrate).mockRejectedValueOnce(error);
 
       // act & assert
-      await expect(client.migrate(migrationsDirPath)).rejects.toThrow("Migration failed");
+      await expect(client.migrateEnsNodeSchema(migrationsDirPath)).rejects.toThrow(
+        "Migration failed",
+      );
     });
   });
 });

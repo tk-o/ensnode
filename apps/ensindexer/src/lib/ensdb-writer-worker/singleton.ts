@@ -1,4 +1,4 @@
-import { ensDbClient } from "@/lib/ensdb/singleton";
+import { ensDbWriter } from "@/lib/ensdb/singleton";
 import { indexingStatusBuilder } from "@/lib/indexing-status-builder/singleton";
 import { publicConfigBuilder } from "@/lib/public-config-builder/singleton";
 
@@ -21,7 +21,7 @@ export function startEnsDbWriterWorker() {
   }
 
   ensDbWriterWorker = new EnsDbWriterWorker(
-    ensDbClient,
+    ensDbWriter,
     publicConfigBuilder,
     indexingStatusBuilder,
   );

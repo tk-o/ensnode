@@ -12,7 +12,6 @@ import {
 import * as ensIndexerSchema from "../ensindexer";
 import * as ensNodeSchema from "../ensnode";
 import { buildEnsDbDrizzleClient, type EnsDbDrizzle } from "../lib/drizzle";
-import type { EnsNodeDbQueries } from "./ensnode-db-queries";
 import { EnsNodeMetadataKeys } from "./ensnode-metadata";
 import type {
   SerializedEnsNodeMetadata,
@@ -26,7 +25,7 @@ import type {
  *
  * Enables read-only querying of an ENSDb instance, including data spanning the ENSNode Schema and the specified ENSIndexer Schema.
  */
-export class EnsDbReader implements EnsNodeDbQueries {
+export class EnsDbReader {
   /**
    * Drizzle client for ENSDb.
    */
@@ -91,7 +90,9 @@ export class EnsDbReader implements EnsNodeDbQueries {
     }
   }
   /**
-   * @inheritdoc
+   * Get ENSDb Version
+   *
+   * @returns the existing record, or `undefined`.
    */
   async getEnsDbVersion(): Promise<string | undefined> {
     const record = await this.getEnsNodeMetadata<SerializedEnsNodeMetadataEnsDbVersion>({
@@ -102,7 +103,9 @@ export class EnsDbReader implements EnsNodeDbQueries {
   }
 
   /**
-   * @inheritdoc
+   * Get ENSIndexer Public Config
+   *
+   * @returns the existing record, or `undefined`.
    */
   async getEnsIndexerPublicConfig(): Promise<EnsIndexerPublicConfig | undefined> {
     const record = await this.getEnsNodeMetadata<SerializedEnsNodeMetadataEnsIndexerPublicConfig>({
@@ -117,7 +120,9 @@ export class EnsDbReader implements EnsNodeDbQueries {
   }
 
   /**
-   * @inheritdoc
+   * Get Indexing Status Snapshot
+   *
+   * @returns the existing record, or `undefined`.
    */
   async getIndexingStatusSnapshot(): Promise<CrossChainIndexingStatusSnapshot | undefined> {
     const record = await this.getEnsNodeMetadata<SerializedEnsNodeMetadataEnsIndexerIndexingStatus>(

@@ -7,4 +7,4 @@ const { databaseUrl: ensDbUrl, databaseSchemaName: ensIndexerSchemaName } = conf
 /**
  * Singleton instance of ENSDbWriter for the ENSIndexer application.
  */
-export const ensDbClient = new EnsDbWriter(ensDbUrl, ensIndexerSchemaName);
+export const ensDbWriter = new EnsDbWriter(ensDbUrl, ensIndexerSchemaName);

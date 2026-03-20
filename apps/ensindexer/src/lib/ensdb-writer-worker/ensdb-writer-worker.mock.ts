@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-import type { EnsNodeDbMutations, EnsNodeDbQueries } from "@ensnode/ensdb-sdk";
+import type { EnsDbWriter } from "@ensnode/ensdb-sdk";
 import {
   type CrossChainIndexingStatusSnapshot,
   CrossChainIndexingStrategyIds,
@@ -15,9 +15,6 @@ import {
 
 import type { IndexingStatusBuilder } from "@/lib/indexing-status-builder";
 import type { PublicConfigBuilder } from "@/lib/public-config-builder";
-
-// Helper type for the combined client interface used by EnsDbWriterWorker
-type EnsDbClientForWorker = EnsNodeDbMutations & EnsNodeDbQueries;
 
 // Test fixture for EnsRainbowPublicConfig
 export const mockEnsRainbowPublicConfig: EnsRainbowPublicConfig = {
@@ -48,16 +45,16 @@ export const mockPublicConfig: EnsIndexerPublicConfig = {
 };
 
 // Helper to create mock objects with consistent typing
-export function createMockEnsDbClient(
-  overrides: Partial<ReturnType<typeof baseEnsDbClient>> = {},
-): EnsDbClientForWorker {
+export function createMockEnsDbWriter(
+  overrides: Partial<ReturnType<typeof baseEnsDbWriter>> = {},
+): EnsDbWriter {
   return {
-    ...baseEnsDbClient(),
+    ...baseEnsDbWriter(),
     ...overrides,
-  } as unknown as EnsDbClientForWorker;
+  } as unknown as EnsDbWriter;
 }
 
-export function baseEnsDbClient() {
+export function baseEnsDbWriter() {
   return {
     getEnsDbVersion: vi.fn().mockResolvedValue(undefined),
     getEnsIndexerPublicConfig: vi.fn().mockResolvedValue(undefined),
