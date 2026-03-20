@@ -24,8 +24,7 @@ import type {
 /**
  * ENSDb Reader
  *
- * Allows querying an ENSDb instance, including ENSNode Metadata records,
- * as well as complex queries across multiple database schemas in ENSDb.
+ * Enables read-only querying of an ENSDb instance, including data spanning the ENSNode Schema and the specified ENSIndexer Schema.
  */
 export class EnsDbReader implements EnsNodeDbQueries {
   /**
@@ -34,16 +33,16 @@ export class EnsDbReader implements EnsNodeDbQueries {
   protected drizzleClient: EnsDbDrizzle;
 
   /**
-   * References the ENSIndexer instance's database schema in ENSDb.
+   * The name of the ENSIndexer schema to read from in ENSDb.
    *
-   * It is required to scope the ENSNode metadata records to
-   * a specific ENSIndexer instance in ENSDb.
+   * This also identifies which ENSNode metadata records to read from the ENSNode Schema
+   * as the ENSNode Schema is multi-tenant across ENSIndexer instances / ENSIndexer Schemas in an ENSDb.
    */
   protected ensIndexerSchemaName: string;
 
   /**
    * @param ensDbConnectionString connection string for ENSDb Postgres database
-   * @param ensIndexerSchemaName reference string for ENSIndexer instance
+   * @param ensIndexerSchemaName the name of the ENSIndexer Schema to read from in ENSDb
    */
   constructor(ensDbConnectionString: string, ensIndexerSchemaName: string) {
     EnsDbReader.bindEnsIndexerSchemaWithName(ensIndexerSchemaName);
