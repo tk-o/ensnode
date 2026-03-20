@@ -3,35 +3,130 @@
  */
 import type { Logger as DrizzleLogger } from "drizzle-orm/logger";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { isPgEnum } from "drizzle-orm/pg-core";
+import { isTable, Table } from "drizzle-orm/table";
 
-import * as ensIndexerSchema from "../ensindexer";
+// Import the "abstract" ENSIndexer Schema.
+// It's called "abstract" here because tables defined in this schema do not
+// reference the specific ENSIndexer Schema name, and therefore cannot be used
+// directly to build a Drizzle client for ENSDb.
+import * as abstractEnsIndexerSchema from "../ensindexer";
 import * as ensNodeSchema from "../ensnode";
 
 /**
- * ENSDb Schema
+ * Abstract ENSIndexer Schema
  *
- * Represents the combined database schema for ENSDb,
- * including both the ENSIndexer Schema and the ENSNode Schema.
+ * Represents the "abstract" ENSIndexer Schema definition, where tables do not reference
+ * the specific ENSIndexer Schema name.
  */
-export const ensDbSchema = { ...ensIndexerSchema, ...ensNodeSchema };
-
-export type EnsDbSchema = typeof ensDbSchema;
+export type AbstractEnsIndexerSchema = typeof abstractEnsIndexerSchema;
 
 /**
- * Drizzle client for ENSDb.
+ * Build a "concrete" ENSIndexer Schema definition for ENSDb.
+ *
+ * This function uses the "abstract" ENSIndexer Schema definition
+ * to create a "concrete" ENSIndexer Schema definition referencing the provided
+ * ENSIndexer Schema name. The "concrete" ENSIndexer Schema definition can then
+ * be used to build the ENSDb Schema for a Drizzle client for ENSDb.
+ *
+ * @param ensIndexerSchemaName - The name of the ENSIndexer Schema instance in ENSDb.
+ *
+ * Note: this function is a replacement for `setDatabaseSchema` from `@ponder/client`.
  */
-export type EnsDbDrizzle = NodePgDatabase<EnsDbSchema>;
+function buildEnsIndexerSchema<EnsIndexerSchemaType extends AbstractEnsIndexerSchema>(
+  ensIndexerSchemaName: string,
+): EnsIndexerSchemaType {
+  const ensIndexerSchema = {} as EnsIndexerSchemaType;
+
+  for (const [key, abstractSchemaObject] of Object.entries(abstractEnsIndexerSchema)) {
+    if (isTable(abstractSchemaObject)) {
+      const concreteSchemaObject = { ...abstractSchemaObject };
+      // @ts-expect-error - Drizzle's Table type for the schema symbol is
+      // not typed in a way that allows us to set it directly,
+      // but we know it exists and can be set.
+      concreteSchemaObject[Table.Symbol.Schema] = ensIndexerSchemaName;
+      (ensIndexerSchema as any)[key] = concreteSchemaObject;
+    } else if (isPgEnum(abstractSchemaObject)) {
+      // Enums are functions; clone by copying properties onto a new function.
+      const concreteSchemaObject = Object.assign(
+        (...args: any[]) => abstractSchemaObject(...args),
+        abstractSchemaObject,
+      );
+      // @ts-expect-error - Drizzle's PgEnum type for the schema symbol is
+      // typed as readonly, but we need to set it here so
+      // the output schema definition has the correct schema for
+      // all table and enum objects.
+      concreteSchemaObject.schema = ensIndexerSchemaName;
+      (ensIndexerSchema as any)[key] = concreteSchemaObject;
+    } else {
+      (ensIndexerSchema as any)[key] = abstractSchemaObject;
+    }
+  }
+
+  return ensIndexerSchema;
+}
+
+/**
+ * ENSNode Schema
+ *
+ * Represents the ENSNode Schema definition for ENSDb.
+ */
+type EnsNodeSchema = typeof ensNodeSchema;
+
+/**
+ * ENSDb Schema type
+ *
+ * Represents the combined database schema for ENSDb,
+ * including both the "concrete" ENSIndexer Schema and the ENSNode Schema.
+ */
+export type EnsDbSchema<EnsIndexerSchemaType extends AbstractEnsIndexerSchema> =
+  EnsIndexerSchemaType & EnsNodeSchema;
+
+/**
+ * Build ENSDb Schema for Drizzle client
+ *
+ * Uses the provided ENSIndexer Schema name to build
+ * the "concrete" ENSIndexer Schema definition within the ENSDb Schema.
+ *
+ * @param ensIndexerSchemaName - The name of the ENSIndexer Schema instance
+ *                               in ENSDb.
+ * @returns The ENSDb Schema definition for use in building
+ *          a Drizzle client for ENSDb.
+ */
+export function buildEnsDbSchema<EnsIndexerSchemaType extends AbstractEnsIndexerSchema>(
+  ensIndexerSchemaName: string,
+): EnsDbSchema<EnsIndexerSchemaType> {
+  const ensIndexerSchema = buildEnsIndexerSchema<EnsIndexerSchemaType>(ensIndexerSchemaName);
+
+  return {
+    ...ensIndexerSchema,
+    ...ensNodeSchema,
+  };
+}
+
+/**
+ * Drizzle client type for ENSDb.
+ *
+ * The `EnsIndexerSchemaType` type parameter allows for typing
+ * the Drizzle client with a "concrete" ENSIndexer Schema definition
+ * where tables reference the specific ENSIndexer Schema name.
+ */
+export type EnsDbDrizzleClient<EnsIndexerSchemaType extends AbstractEnsIndexerSchema> =
+  NodePgDatabase<EnsDbSchema<EnsIndexerSchemaType>>;
 
 /**
  * Build a Drizzle client for ENSDb.
+ *
  * @param connectionString - The connection string for the ENSDb.
+ * @param ensDbSchema - The ENSDb Schema definition for the Drizzle client.
  * @param logger - Optional Drizzle logger for query logging.
  * @returns A Drizzle client for ENSDb.
  */
-export function buildEnsDbDrizzleClient(
+export function buildEnsDbDrizzleClient<EnsIndexerSchemaType extends AbstractEnsIndexerSchema>(
   connectionString: string,
+  ensDbSchema: EnsDbSchema<EnsIndexerSchemaType>,
   logger?: DrizzleLogger,
-): EnsDbDrizzle {
+): EnsDbDrizzleClient<EnsIndexerSchemaType> {
   return drizzle({
     connection: connectionString,
     schema: ensDbSchema,
