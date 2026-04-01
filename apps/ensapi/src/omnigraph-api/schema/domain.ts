@@ -1,3 +1,4 @@
+import { trace } from "@opentelemetry/api";
 import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@pothos/plugin-relay";
 import { and, count, eq, getTableColumns } from "drizzle-orm";
 
@@ -9,6 +10,7 @@ import {
 } from "@ensnode/ensnode-sdk";
 
 import { ensDb, ensIndexerSchema } from "@/lib/ensdb/singleton";
+import { withSpanAsync } from "@/lib/instrumentation/auto-span";
 import { builder } from "@/omnigraph-api/builder";
 import {
   orderPaginationBy,
@@ -41,6 +43,7 @@ import { RegistrationInterfaceRef } from "@/omnigraph-api/schema/registration";
 import { RegistryRef } from "@/omnigraph-api/schema/registry";
 import { ResolverRef } from "@/omnigraph-api/schema/resolver";
 
+const tracer = trace.getTracer("schema/Domain");
 const isENSv1Domain = (domain: Domain): domain is ENSv1Domain => "parentId" in domain;
 
 /////////////////////////////
@@ -49,10 +52,12 @@ const isENSv1Domain = (domain: Domain): domain is ENSv1Domain => "parentId" in d
 
 export const ENSv1DomainRef = builder.loadableObjectRef("ENSv1Domain", {
   load: (ids: ENSv1DomainId[]) =>
-    ensDb.query.v1Domain.findMany({
-      where: (t, { inArray }) => inArray(t.id, ids),
-      with: { label: true },
-    }),
+    withSpanAsync(tracer, "ENSv1Domain.load", { count: ids.length }, () =>
+      ensDb.query.v1Domain.findMany({
+        where: (t, { inArray }) => inArray(t.id, ids),
+        with: { label: true },
+      }),
+    ),
   toKey: getModelId,
   cacheResolved: true,
   sort: true,
@@ -60,10 +65,12 @@ export const ENSv1DomainRef = builder.loadableObjectRef("ENSv1Domain", {
 
 export const ENSv2DomainRef = builder.loadableObjectRef("ENSv2Domain", {
   load: (ids: ENSv2DomainId[]) =>
-    ensDb.query.v2Domain.findMany({
-      where: (t, { inArray }) => inArray(t.id, ids),
-      with: { label: true },
-    }),
+    withSpanAsync(tracer, "ENSv2Domain.load", { count: ids.length }, () =>
+      ensDb.query.v2Domain.findMany({
+        where: (t, { inArray }) => inArray(t.id, ids),
+        with: { label: true },
+      }),
+    ),
   toKey: getModelId,
   cacheResolved: true,
   sort: true,
@@ -126,6 +133,7 @@ DomainInterfaceRef.implement({
     name: t.field({
       description:
         "The Canonical Name for this Domain. If the Domain is not Canonical, then `name` will be null.",
+      tracing: true,
       type: "Name",
       nullable: true,
       resolve: async (domain, args, context) => {
@@ -161,6 +169,7 @@ DomainInterfaceRef.implement({
     path: t.field({
       description:
         "The Canonical Path from the ENS Root to this Domain. `path` is null if the Domain is not Canonical.",
+      tracing: true,
       type: [DomainInterfaceRef],
       nullable: true,
       resolve: async (domain, args, context) => {

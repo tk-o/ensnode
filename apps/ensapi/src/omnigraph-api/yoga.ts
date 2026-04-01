@@ -8,7 +8,7 @@ import { makeLogger } from "@/lib/logger";
 import { context } from "@/omnigraph-api/context";
 import { schema } from "@/omnigraph-api/schema";
 
-const logger = makeLogger("ensnode-graphql");
+const logger = makeLogger("omnigraph");
 
 export const yoga = createYoga({
   graphqlEndpoint: "*",
@@ -40,10 +40,10 @@ export const yoga = createYoga({
   // integrate logging with pino
   logging: logger,
 
-  // TODO: plugins
-  // plugins: [
-  //   maxTokensPlugin({ n: maxOperationTokens }),
-  //   maxDepthPlugin({ n: maxOperationDepth, ignoreIntrospection: false }),
-  //   maxAliasesPlugin({ n: maxOperationAliases, allowList: [] }),
-  // ],
+  plugins: [
+    // TODO: plugins
+    // maxTokensPlugin({ n: maxOperationTokens }),
+    // maxDepthPlugin({ n: maxOperationDepth, ignoreIntrospection: false }),
+    // maxAliasesPlugin({ n: maxOperationAliases, allowList: [] }),
+  ],
 });

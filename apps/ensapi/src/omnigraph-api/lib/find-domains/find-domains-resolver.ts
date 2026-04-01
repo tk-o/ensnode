@@ -1,7 +1,9 @@
+import { trace } from "@opentelemetry/api";
 import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@pothos/plugin-relay";
 import { and, count } from "drizzle-orm";
 
 import { ensDb } from "@/lib/ensdb/singleton";
+import { withActiveSpanAsync } from "@/lib/instrumentation/auto-span";
 import { makeLogger } from "@/lib/logger";
 import type { context as createContext } from "@/omnigraph-api/context";
 import type {
@@ -44,6 +46,7 @@ interface FindDomainsOrderArg {
  */
 type DomainWithOrderValue = Domain & { __orderValue: DomainOrderValue };
 
+const tracer = trace.getTracer("find-domains");
 const logger = makeLogger("find-domains-resolver");
 
 /**
@@ -97,11 +100,10 @@ export function resolveFindDomains(
 
   return lazyConnection({
     totalCount: () =>
-      ensDb
-        .with(domains)
-        .select({ count: count() })
-        .from(domains)
-        .then((rows) => rows[0].count),
+      withActiveSpanAsync(tracer, "find-domains.totalCount", {}, async () => {
+        const rows = await ensDb.with(domains).select({ count: count() }).from(domains);
+        return rows[0].count;
+      }),
 
     connection: () =>
       resolveCursorConnection(
@@ -146,12 +148,25 @@ export function resolveFindDomains(
           // log the generated SQL for debugging
           logger.debug({ sql: query.toSQL() });
 
-          // execute query
-          const results = await query;
+          // execute paginated query
+          const results = await withActiveSpanAsync(
+            tracer,
+            "find-domains.connection",
+            { orderBy, orderDir, limit },
+            () => query.execute(),
+          );
 
           // load Domain entities via dataloader
-          const loadedDomains = await rejectAnyErrors(
-            DomainInterfaceRef.getDataloader(context).loadMany(results.map((result) => result.id)),
+          const loadedDomains = await withActiveSpanAsync(
+            tracer,
+            "find-domains.dataloader",
+            { count: results.length },
+            () =>
+              rejectAnyErrors(
+                DomainInterfaceRef.getDataloader(context).loadMany(
+                  results.map((result) => result.id),
+                ),
+              ),
           );
 
           // map results by id for faster order value lookup
