@@ -19,7 +19,7 @@ const MOCK_ENSAPI_PUBLIC_CONFIG = {
   },
   ensIndexerPublicConfig: {
     namespace: ENSNamespaceIds.Mainnet,
-    databaseSchemaName: "ensapi",
+    ensIndexerSchemaName: "ensindexer_0",
     ensRainbowPublicConfig: {
       version: "0.36.0",
       labelSet: { labelSetId: "subgraph", highestLabelSetVersion: 0 },
@@ -56,7 +56,7 @@ describe("ENSApi Config Serialization/Deserialization", () => {
         },
         ensIndexerPublicConfig: {
           namespace: ENSNamespaceIds.Mainnet,
-          databaseSchemaName: "ensapi",
+          ensIndexerSchemaName: "ensindexer_0",
           ensRainbowPublicConfig: {
             version: "0.36.0",
             labelSet: { labelSetId: "subgraph", highestLabelSetVersion: 0 },

@@ -46,7 +46,7 @@
                     "ensIndexerPublicConfig": {
                       "type": "object",
                       "properties": {
-                        "databaseSchemaName": { "type": "string", "minLength": 1 },
+                        "ensIndexerSchemaName": { "type": "string", "minLength": 1 },
                         "ensRainbowPublicConfig": {
                           "type": "object",
                           "properties": {
@@ -108,7 +108,7 @@
                         }
                       },
                       "required": [
-                        "databaseSchemaName",
+                        "ensIndexerSchemaName",
                         "ensRainbowPublicConfig",
                         "indexedChainIds",
                         "isSubgraphCompatible",

@@ -81,14 +81,14 @@ export interface EnsIndexerPublicConfig {
   labelSet: Required<EnsRainbowClientLabelSet>;
 
   /**
-   * A Postgres database schema name. This instance of ENSIndexer will write
-   * indexed data to the tables in this schema.
+   * The name of the ENSIndexer Schema in the ENSDb instance,
+   * where the ENSIndexer instance writes indexed data.
    *
    * Invariants:
    * - Must be a non-empty string that is a valid Postgres database schema
    *   identifier.
    */
-  databaseSchemaName: string;
+  ensIndexerSchemaName: string;
 
   /**
    * ENSRainbow public config
