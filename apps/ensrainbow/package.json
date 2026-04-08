@@ -33,6 +33,7 @@
     "@ensnode/ensrainbow-sdk": "workspace:*",
     "@ensnode/ensnode-sdk": "workspace:*",
     "@hono/node-server": "catalog:",
+    "enssdk": "workspace:*",
     "classic-level": "^1.4.1",
     "hono": "catalog:",
     "pino": "catalog:",
