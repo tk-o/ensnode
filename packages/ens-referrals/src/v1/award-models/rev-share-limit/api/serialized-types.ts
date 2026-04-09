@@ -20,10 +20,11 @@ import type { ReferralProgramRulesRevShareLimit } from "../rules";
 export interface SerializedReferralProgramRulesRevShareLimit
   extends Omit<
     ReferralProgramRulesRevShareLimit,
-    "totalAwardPoolValue" | "minQualifiedRevenueContribution" | "rulesUrl"
+    "awardPool" | "minBaseRevenueContribution" | "baseAnnualRevenueContribution" | "rulesUrl"
   > {
-  totalAwardPoolValue: SerializedPriceUsdc;
-  minQualifiedRevenueContribution: SerializedPriceUsdc;
+  awardPool: SerializedPriceUsdc;
+  minBaseRevenueContribution: SerializedPriceUsdc;
+  baseAnnualRevenueContribution: SerializedPriceUsdc;
   rulesUrl: string;
 }
 
@@ -45,15 +46,12 @@ export interface SerializedAggregatedReferrerMetricsRevShareLimit
 export interface SerializedAwardedReferrerMetricsRevShareLimit
   extends Omit<
     AwardedReferrerMetricsRevShareLimit,
-    | "totalRevenueContribution"
-    | "totalBaseRevenueContribution"
-    | "standardAwardValue"
-    | "awardPoolApproxValue"
+    "totalRevenueContribution" | "totalBaseRevenueContribution" | "uncappedAward" | "cappedAward"
   > {
   totalRevenueContribution: SerializedPriceEth;
   totalBaseRevenueContribution: SerializedPriceUsdc;
-  standardAwardValue: SerializedPriceUsdc;
-  awardPoolApproxValue: SerializedPriceUsdc;
+  uncappedAward: SerializedPriceUsdc;
+  cappedAward: SerializedPriceUsdc;
 }
 
 /**
@@ -62,15 +60,12 @@ export interface SerializedAwardedReferrerMetricsRevShareLimit
 export interface SerializedUnrankedReferrerMetricsRevShareLimit
   extends Omit<
     UnrankedReferrerMetricsRevShareLimit,
-    | "totalRevenueContribution"
-    | "totalBaseRevenueContribution"
-    | "standardAwardValue"
-    | "awardPoolApproxValue"
+    "totalRevenueContribution" | "totalBaseRevenueContribution" | "uncappedAward" | "cappedAward"
   > {
   totalRevenueContribution: SerializedPriceEth;
   totalBaseRevenueContribution: SerializedPriceUsdc;
-  standardAwardValue: SerializedPriceUsdc;
-  awardPoolApproxValue: SerializedPriceUsdc;
+  uncappedAward: SerializedPriceUsdc;
+  cappedAward: SerializedPriceUsdc;
 }
 
 /**

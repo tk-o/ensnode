@@ -34,9 +34,10 @@ export function serializeReferralProgramRulesRevShareLimit(
 ): SerializedReferralProgramRulesRevShareLimit {
   return {
     awardModel: rules.awardModel,
-    totalAwardPoolValue: serializePriceUsdc(rules.totalAwardPoolValue),
-    minQualifiedRevenueContribution: serializePriceUsdc(rules.minQualifiedRevenueContribution),
-    qualifiedRevenueShare: rules.qualifiedRevenueShare,
+    awardPool: serializePriceUsdc(rules.awardPool),
+    minBaseRevenueContribution: serializePriceUsdc(rules.minBaseRevenueContribution),
+    baseAnnualRevenueContribution: serializePriceUsdc(rules.baseAnnualRevenueContribution),
+    maxBaseRevenueShare: rules.maxBaseRevenueShare,
     startTime: rules.startTime,
     endTime: rules.endTime,
     subregistryId: rules.subregistryId,
@@ -74,8 +75,8 @@ export function serializeAwardedReferrerMetricsRevShareLimit(
     totalBaseRevenueContribution: serializePriceUsdc(metrics.totalBaseRevenueContribution),
     rank: metrics.rank,
     isQualified: metrics.isQualified,
-    standardAwardValue: serializePriceUsdc(metrics.standardAwardValue),
-    awardPoolApproxValue: serializePriceUsdc(metrics.awardPoolApproxValue),
+    uncappedAward: serializePriceUsdc(metrics.uncappedAward),
+    cappedAward: serializePriceUsdc(metrics.cappedAward),
     isAdminDisqualified: metrics.isAdminDisqualified,
     adminDisqualificationReason: metrics.adminDisqualificationReason,
   };
@@ -95,8 +96,8 @@ export function serializeUnrankedReferrerMetricsRevShareLimit(
     totalBaseRevenueContribution: serializePriceUsdc(metrics.totalBaseRevenueContribution),
     rank: metrics.rank,
     isQualified: metrics.isQualified,
-    standardAwardValue: serializePriceUsdc(metrics.standardAwardValue),
-    awardPoolApproxValue: serializePriceUsdc(metrics.awardPoolApproxValue),
+    uncappedAward: serializePriceUsdc(metrics.uncappedAward),
+    cappedAward: serializePriceUsdc(metrics.cappedAward),
     isAdminDisqualified: metrics.isAdminDisqualified,
     adminDisqualificationReason: metrics.adminDisqualificationReason,
   };

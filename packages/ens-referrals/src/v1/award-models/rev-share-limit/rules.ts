@@ -1,6 +1,6 @@
 import type { AccountId, Address, UnixTimestamp } from "enssdk";
 
-import { type PriceUsdc, parseUsdc } from "@ensnode/ensnode-sdk";
+import type { PriceUsdc } from "@ensnode/ensnode-sdk";
 import { makePriceUsdcSchema } from "@ensnode/ensnode-sdk/internal";
 
 import { normalizeAddress, validateLowercaseAddress } from "../../address";
@@ -29,40 +29,41 @@ export interface ReferralProgramEditionDisqualification {
   reason: string;
 }
 
-/**
- * Base revenue contribution per year of incremental duration.
- *
- * Used in `rev-share-limit` qualification and award calculations:
- * 1 year of incremental duration = $5 in base revenue (base-fee-only, excluding premiums).
- */
-export const BASE_REVENUE_CONTRIBUTION_PER_YEAR: PriceUsdc = parseUsdc("5");
-
 export interface ReferralProgramRulesRevShareLimit extends BaseReferralProgramRules {
   /**
    * Discriminant: identifies this as a "rev-share-limit" award model edition.
    *
    * In rev-share-limit, each qualified referrer receives a share of their base revenue
-   * contribution (base-fee-only: $5 × years of incremental duration), subject to a
-   * pool cap and a minimum qualification threshold.
+   * contribution (base-fee-only: `baseAnnualRevenueContribution` × years of incremental duration),
+   * subject to the award pool cap and a minimum qualification threshold.
    */
   awardModel: typeof ReferralProgramAwardModels.RevShareLimit;
 
   /**
-   * The total value of the award pool in USDC (acts as a cap on total payouts).
+   * The award pool in USDC (acts as a cap on total payouts).
    */
-  totalAwardPoolValue: PriceUsdc;
+  awardPool: PriceUsdc;
 
   /**
-   * The minimum base revenue contribution required for a referrer to qualify.
+   * The minimum base revenue contribution required for a referrer to qualify for awards.
    */
-  minQualifiedRevenueContribution: PriceUsdc;
+  minBaseRevenueContribution: PriceUsdc;
 
   /**
-   * The fraction of the referrer's base revenue contribution that constitutes their potential award.
+   * Base revenue contribution in USDC per year of incremental duration from referred registrations and renewals.
+   *
+   * Used in `rev-share-limit` qualification and award calculations:
+   * 1 year of incremental duration → this many USDC of base revenue (base-fee-only, excluding premiums).
+   */
+  baseAnnualRevenueContribution: PriceUsdc;
+
+  /**
+   * The fraction of the referrer's base revenue contribution that constitutes their max potential award for each referral.
+   * This is the max for a referral that ignores the possibility of the referrer not having achieved qualification for awards yet, the referrer being disqualified from awards, or the award pool being exhausted.
    *
    * @invariant Guaranteed to be a number between 0 and 1 (inclusive)
    */
-  qualifiedRevenueShare: number;
+  maxBaseRevenueShare: number;
 
   /**
    * Admin-imposed disqualifications for this edition.
@@ -76,21 +77,23 @@ export interface ReferralProgramRulesRevShareLimit extends BaseReferralProgramRu
 export const validateReferralProgramRulesRevShareLimit = (
   rules: ReferralProgramRulesRevShareLimit,
 ): void => {
-  makePriceUsdcSchema("ReferralProgramRulesRevShareLimit.totalAwardPoolValue").parse(
-    rules.totalAwardPoolValue,
+  makePriceUsdcSchema("ReferralProgramRulesRevShareLimit.awardPool").parse(rules.awardPool);
+
+  makePriceUsdcSchema("ReferralProgramRulesRevShareLimit.minBaseRevenueContribution").parse(
+    rules.minBaseRevenueContribution,
   );
 
-  makePriceUsdcSchema("ReferralProgramRulesRevShareLimit.minQualifiedRevenueContribution").parse(
-    rules.minQualifiedRevenueContribution,
+  makePriceUsdcSchema("ReferralProgramRulesRevShareLimit.baseAnnualRevenueContribution").parse(
+    rules.baseAnnualRevenueContribution,
   );
 
   if (
-    !Number.isFinite(rules.qualifiedRevenueShare) ||
-    rules.qualifiedRevenueShare < 0 ||
-    rules.qualifiedRevenueShare > 1
+    !Number.isFinite(rules.maxBaseRevenueShare) ||
+    rules.maxBaseRevenueShare < 0 ||
+    rules.maxBaseRevenueShare > 1
   ) {
     throw new Error(
-      `ReferralProgramRulesRevShareLimit: qualifiedRevenueShare must be between 0 and 1 (inclusive), got ${rules.qualifiedRevenueShare}.`,
+      `ReferralProgramRulesRevShareLimit: maxBaseRevenueShare must be between 0 and 1 (inclusive), got ${rules.maxBaseRevenueShare}.`,
     );
   }
 
@@ -115,9 +118,10 @@ export const validateReferralProgramRulesRevShareLimit = (
 };
 
 export const buildReferralProgramRulesRevShareLimit = (
-  totalAwardPoolValue: PriceUsdc,
-  minQualifiedRevenueContribution: PriceUsdc,
-  qualifiedRevenueShare: number,
+  awardPool: PriceUsdc,
+  minBaseRevenueContribution: PriceUsdc,
+  baseAnnualRevenueContribution: PriceUsdc,
+  maxBaseRevenueShare: number,
   startTime: UnixTimestamp,
   endTime: UnixTimestamp,
   subregistryId: AccountId,
@@ -127,9 +131,10 @@ export const buildReferralProgramRulesRevShareLimit = (
 ): ReferralProgramRulesRevShareLimit => {
   const result = {
     awardModel: ReferralProgramAwardModels.RevShareLimit,
-    totalAwardPoolValue,
-    minQualifiedRevenueContribution,
-    qualifiedRevenueShare,
+    awardPool,
+    minBaseRevenueContribution,
+    baseAnnualRevenueContribution,
+    maxBaseRevenueShare,
     startTime,
     endTime,
     subregistryId,
@@ -162,7 +167,7 @@ export function isReferrerQualifiedRevShareLimit(
     (d) => d.referrer === normalizedReferrer,
   );
   return (
-    totalBaseRevenueContribution.amount >= rules.minQualifiedRevenueContribution.amount &&
+    totalBaseRevenueContribution.amount >= rules.minBaseRevenueContribution.amount &&
     !isAdminDisqualified
   );
 }
