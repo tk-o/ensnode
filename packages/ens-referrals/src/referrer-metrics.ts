@@ -1,8 +1,6 @@
-import type { Address } from "enssdk";
+import type { Duration, NormalizedAddress } from "enssdk";
 
-import type { Duration } from "@ensnode/ensnode-sdk";
-
-import { normalizeAddress, validateLowercaseAddress } from "./address";
+import { validateAddress } from "./address";
 import type { AggregatedReferrerMetrics } from "./aggregations";
 import type { USDQuantity } from "./currency";
 import { validateNonNegativeInteger } from "./number";
@@ -25,11 +23,9 @@ import { validateDuration } from "./time";
  */
 export interface ReferrerMetrics {
   /**
-   * The fully lowercase Ethereum address of the referrer.
-   *
-   * @invariant Guaranteed to be a valid EVM address in lowercase format
+   * The Ethereum address of the referrer, as a {@link NormalizedAddress}.
    */
-  referrer: Address;
+  referrer: NormalizedAddress;
 
   /**
    * The total number of referrals made by the referrer within the {@link ReferralProgramRules}.
@@ -57,13 +53,13 @@ export interface ReferrerMetrics {
 }
 
 export const buildReferrerMetrics = (
-  referrer: Address,
+  referrer: NormalizedAddress,
   totalReferrals: number,
   totalIncrementalDuration: Duration,
   totalRevenueContribution: RevenueContribution,
 ): ReferrerMetrics => {
   const result = {
-    referrer: normalizeAddress(referrer),
+    referrer,
     totalReferrals,
     totalIncrementalDuration,
     totalRevenueContribution,
@@ -74,7 +70,7 @@ export const buildReferrerMetrics = (
 };
 
 export const validateReferrerMetrics = (metrics: ReferrerMetrics): void => {
-  validateLowercaseAddress(metrics.referrer);
+  validateAddress(metrics.referrer);
   validateNonNegativeInteger(metrics.totalReferrals);
   validateDuration(metrics.totalIncrementalDuration);
   validateRevenueContribution(metrics.totalRevenueContribution);
@@ -373,7 +369,9 @@ export const validateUnrankedReferrerMetrics = (metrics: UnrankedReferrerMetrics
  * @param referrer - The referrer address
  * @returns An {@link UnrankedReferrerMetrics} with zero values for all metrics and null rank
  */
-export const buildUnrankedReferrerMetrics = (referrer: Address): UnrankedReferrerMetrics => {
+export const buildUnrankedReferrerMetrics = (
+  referrer: NormalizedAddress,
+): UnrankedReferrerMetrics => {
   const baseMetrics = buildReferrerMetrics(referrer, 0, 0, 0n);
   const scoredMetrics = buildScoredReferrerMetrics(baseMetrics);
 
