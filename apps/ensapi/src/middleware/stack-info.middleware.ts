@@ -1,3 +1,5 @@
+import type { Context } from "hono";
+
 import type { EnsNodeStackInfo } from "@ensnode/ensnode-sdk";
 
 import { stackInfoCache } from "@/cache/stack-info.cache";
@@ -52,3 +54,20 @@ export const stackInfoMiddleware = producing(
     await next();
   }),
 );
+
+/**
+ * Ensures that the ENSNode Stack Info is available in the Hono context.
+ * If the Stack Info is not available, an error is thrown.
+ *
+ * This is a type guard that narrows the type of `c.var.stackInfo` to {@link EnsNodeStackInfo} in all downstream middlewares and handlers.
+ * We leverage the fact that {@link stackInfoMiddleware} is the first middleware for all ENSApi routes.
+ *
+ * @param c The Hono context
+ */
+export function ensureEnsNodeStackInfoAvailable<T extends Context>(
+  c: T,
+): asserts c is T & { var: T["var"] & { stackInfo: EnsNodeStackInfo } } {
+  if (c.var.stackInfo instanceof Error) {
+    throw new Error(`ENSNode Stack Info is not available: ${c.var.stackInfo.message}`);
+  }
+}

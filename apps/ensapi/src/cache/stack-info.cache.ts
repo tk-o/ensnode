@@ -28,10 +28,22 @@ async function loadEnsNodeStackInfo(
     return cachedResult.result;
   }
 
-  const ensApiPublicConfig = buildEnsApiPublicConfig(config);
-  const ensDbPublicConfig = await ensDbClient.buildEnsDbPublicConfig();
+  const ensIndexerPublicConfig = await ensDbClient.getEnsIndexerPublicConfig();
 
-  return buildEnsNodeStackInfo(ensApiPublicConfig, ensDbPublicConfig);
+  if (!ensIndexerPublicConfig) {
+    throw new Error("EnsIndexerPublicConfig is not available in ENSDb");
+  }
+
+  const ensApiPublicConfig = buildEnsApiPublicConfig(config, ensIndexerPublicConfig);
+  const ensDbPublicConfig = await ensDbClient.buildEnsDbPublicConfig();
+  const ensRainbowPublicConfig = ensIndexerPublicConfig.ensRainbowPublicConfig;
+
+  return buildEnsNodeStackInfo(
+    ensApiPublicConfig,
+    ensDbPublicConfig,
+    ensIndexerPublicConfig,
+    ensRainbowPublicConfig,
+  );
 }
 
 // lazyProxy defers construction until first use so that this module can be
