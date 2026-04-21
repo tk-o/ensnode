@@ -1,10 +1,6 @@
 import { z } from "zod/v4";
 
 import {
-  makeEnsIndexerPublicConfigSchema,
-  makeSerializedEnsIndexerPublicConfigSchema,
-} from "../../ensindexer/config/zod-schemas";
-import {
   TheGraphCannotFallbackReasonSchema,
   TheGraphFallbackSchema,
 } from "../../shared/config/thegraph";
@@ -27,7 +23,6 @@ export function makeEnsApiPublicConfigSchema(valueLabel?: string) {
 
   return z.object({
     theGraphFallback: TheGraphFallbackSchema,
-    ensIndexerPublicConfig: makeEnsIndexerPublicConfigSchema(`${label}.ensIndexerPublicConfig`),
     versionInfo: makeEnsApiVersionInfoSchema(`${label}.versionInfo`),
   });
 }
@@ -43,9 +38,6 @@ export function makeSerializedEnsApiPublicConfigSchema(valueLabel?: string) {
   const label = valueLabel ?? "ENSApiPublicConfig";
 
   return z.object({
-    ensIndexerPublicConfig: makeSerializedEnsIndexerPublicConfigSchema(
-      `${label}.ensIndexerPublicConfig`,
-    ),
     theGraphFallback: TheGraphFallbackSchema,
     versionInfo: makeEnsApiVersionInfoSchema(`${label}.versionInfo`),
   });

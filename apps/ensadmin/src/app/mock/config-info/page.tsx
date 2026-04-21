@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 
 import {
   buildEnsNodeStackInfo,
-  deserializeENSApiPublicConfig,
+  deserializeEnsApiPublicConfig,
+  deserializeEnsIndexerPublicConfig,
   type EnsDbPublicConfig,
   SerializedENSApiPublicConfig,
 } from "@ensnode/ensnode-sdk";
@@ -41,14 +42,23 @@ export default function MockConfigPage() {
 
       default:
         try {
-          const ensApiPublicConfig = deserializeENSApiPublicConfig(mockConfigData[selectedConfig]);
+          const ensApiPublicConfig = deserializeEnsApiPublicConfig(mockConfigData[selectedConfig]);
+          const ensIndexerPublicConfig = deserializeEnsIndexerPublicConfig(
+            mockConfigData[selectedConfig],
+          );
+          const ensRainbowPublicConfig = ensIndexerPublicConfig.ensRainbowPublicConfig;
           const ensDbPublicConfig = {
             versionInfo: {
               postgresql: "18.1",
             },
           } satisfies EnsDbPublicConfig;
           return {
-            ensNodeStackInfo: buildEnsNodeStackInfo(ensApiPublicConfig, ensDbPublicConfig),
+            ensNodeStackInfo: buildEnsNodeStackInfo(
+              ensApiPublicConfig,
+              ensDbPublicConfig,
+              ensIndexerPublicConfig,
+              ensRainbowPublicConfig,
+            ),
           } satisfies ENSNodeConfigInfoViewProps;
         } catch (error) {
           const errorMessage =
