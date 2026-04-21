@@ -1,3 +1,4 @@
+import { replaceBigInts } from "@ponder/utils";
 import type { Duration } from "enssdk";
 
 import type {
@@ -64,7 +65,11 @@ app.openapi(resolveRecordsRoute, async (c) => {
     ...(showTrace && { trace }),
   } satisfies ResolveRecordsResponse<typeof selection>;
 
-  return c.json(response, 200);
+  // serialize bigints (e.g. `records.version`, `records.abi.contentType`) as strings
+  // NOTE: this matches the openapi wire format
+  // NOTE: the ts client, which uses the ResolverRecordsResponse type, must parse the bigint fields
+  // into native bigints (see packages/ensnode-sdk/src/ensnode/client.ts)
+  return c.json(replaceBigInts(response, String), 200);
 });
 
 /**

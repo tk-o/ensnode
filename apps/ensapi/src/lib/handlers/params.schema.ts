@@ -1,5 +1,12 @@
 import { z } from "@hono/zod-openapi";
-import { DEFAULT_EVM_CHAIN_ID, isNormalizedName, type Name } from "enssdk";
+import {
+  type ContentType,
+  DEFAULT_EVM_CHAIN_ID,
+  type InterfaceId,
+  isInterfaceId,
+  isNormalizedName,
+  type Name,
+} from "enssdk";
 
 import { isSelectionEmpty, type ResolverRecordsSelection } from "@ensnode/ensnode-sdk";
 import {
@@ -74,6 +81,30 @@ const nameParamDescription =
   "to be represented as the primary name for an address. " +
   "More details here: https://docs.ens.domains/web/reverse";
 
+const contentTypeBitmask = z
+  .string()
+  .transform((val, ctx) => {
+    try {
+      const n = BigInt(val);
+      if (n <= 0n) throw new Error("nope");
+      return n as ContentType;
+    } catch {
+      ctx.issues.push({
+        code: "custom",
+        message: "Must be a valid positive integer string.",
+        input: val,
+      });
+
+      return z.NEVER;
+    }
+  })
+  .openapi({ type: "string", example: "1" });
+
+const interfaceId = z
+  .string()
+  .refine(isInterfaceId, "Must be a 4-byte hex (0x + 8 hex chars)")
+  .transform((val) => val.toLowerCase() as InterfaceId);
+
 const rawSelectionParams = z.object({
   name: z
     .string()
@@ -94,12 +125,24 @@ const rawSelectionParams = z.object({
     .describe(
       "Comma-separated list of text record keys to resolve (e.g. 'avatar,description,url').",
     ),
+  contenthash: z.string().optional(),
+  pubkey: z.string().optional(),
+  dnszonehash: z.string().optional(),
+  version: z.string().optional(),
+  abi: z.string().optional(),
+  interfaces: z.string().optional(),
 });
 
 const selectionFields = z.object({
   name: z.optional(boolstring),
   addresses: z.optional(stringarray.pipe(z.array(coinType))),
   texts: z.optional(stringarray),
+  contenthash: z.optional(boolstring),
+  pubkey: z.optional(boolstring),
+  dnszonehash: z.optional(boolstring),
+  version: z.optional(boolstring),
+  abi: z.optional(contentTypeBitmask),
+  interfaces: z.optional(stringarray.pipe(z.array(interfaceId))),
 });
 
 type SelectionFields = z.output<typeof selectionFields>;
@@ -112,6 +155,12 @@ function toSelection(
     ...(fields.name && { name: true }),
     ...(fields.addresses && { addresses: fields.addresses }),
     ...(fields.texts && { texts: fields.texts }),
+    ...(fields.contenthash && { contenthash: true }),
+    ...(fields.pubkey && { pubkey: true }),
+    ...(fields.dnszonehash && { dnszonehash: true }),
+    ...(fields.version && { version: true }),
+    ...(fields.abi !== undefined && { abi: fields.abi }),
+    ...(fields.interfaces && { interfaces: fields.interfaces }),
   };
 
   if (isSelectionEmpty(sel)) {
