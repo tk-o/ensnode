@@ -117,11 +117,10 @@ const context = {
    * Sets the {@link EnsNodeStackInfo} in the context. Can only be set once.
    *
    * @param stackInfo - The {@link EnsNodeStackInfo} to set in the context.
-   * @throws {Error} If {@link EnsNodeStackInfo} is already set in the context.
    */
   set stackInfo(stackInfo: EnsNodeStackInfo) {
     if (typeof instances.stackInfo !== "undefined") {
-      throw new Error(`Invariant: EnsNodeStackInfo can only be set once.`);
+      return;
     }
 
     instances.stackInfo = stackInfo;

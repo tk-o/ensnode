@@ -22,17 +22,18 @@ const server = serve(
     },
   },
   async (info) => {
-    const { ensApiConfig, indexingStatusCache } = ensApiContext;
     logger.info(
-      { config: redactEnsApiConfig(ensApiConfig) },
+      { config: redactEnsApiConfig(ensApiContext.ensApiConfig) },
       `ENSApi listening on port ${info.port}`,
     );
 
     // Write the generated graphql schema in the background
     void writeGraphQLSchema();
 
-    // proactively read the indexing status to warm cache
-    void indexingStatusCache.read();
+    // initialize cache instances
+    void ensApiContext.indexingStatusCache;
+    void ensApiContext.referralProgramEditionConfigSetCache;
+    void ensApiContext.stackInfoCache;
   },
 );
 

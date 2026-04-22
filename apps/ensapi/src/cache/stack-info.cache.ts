@@ -9,6 +9,9 @@ import {
 } from "@ensnode/ensnode-sdk";
 
 import { buildEnsApiPublicConfig, type EnsApiConfig } from "@/config/config.schema";
+import { makeLogger } from "@/lib/logger";
+
+const logger = makeLogger("stack-info.cache");
 
 export type EnsNodeStackInfoCache = SWRCache<EnsNodeStackInfo>;
 
@@ -54,12 +57,16 @@ export function buildEnsNodeStackInfoCache(
       const ensDbPublicConfig = await ensDbClient.buildEnsDbPublicConfig();
       const ensRainbowPublicConfig = ensIndexerPublicConfig.ensRainbowPublicConfig;
 
-      return buildEnsNodeStackInfo(
+      const stackInfo = buildEnsNodeStackInfo(
         ensApiPublicConfig,
         ensDbPublicConfig,
         ensIndexerPublicConfig,
         ensRainbowPublicConfig,
       );
+
+      logger.info(`Successfully loaded 'EnsNodeStackInfo' into cache`);
+
+      return stackInfo;
     },
     ttl: Number.POSITIVE_INFINITY,
     errorTtl: minutesToSeconds(1),

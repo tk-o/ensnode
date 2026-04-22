@@ -9,7 +9,7 @@ export type IndexingStatusCache = SWRCache<CrossChainIndexingStatusSnapshot>;
 
 export function buildIndexingStatusCache(ensDbClient: EnsDbReader): IndexingStatusCache {
   return new SWRCache<CrossChainIndexingStatusSnapshot>({
-    fn: async (_cachedResult) =>
+    fn: async (cachedResult) =>
       ensDbClient
         .getIndexingStatusSnapshot() // get the latest indexing status snapshot
         .then((snapshot) => {
@@ -19,6 +19,10 @@ export function buildIndexingStatusCache(ensDbClient: EnsDbReader): IndexingStat
             // has not yet been populated with the first snapshot.
             // Therefore, throw an error to trigger the subsequent `.catch` handler.
             throw new Error("Indexing Status snapshot not found in ENSDb yet.");
+          }
+
+          if (!cachedResult || cachedResult.result instanceof Error) {
+            logger.info(`Successfully loaded Indexing Status snapshot into cache.`);
           }
 
           // The indexing status snapshot has been fetched and successfully validated for caching.
