@@ -4,7 +4,6 @@ import type { ResolverRecordsSelection } from "@ensnode/ensnode-sdk";
 import { staticResolverImplementsAddressRecordDefaulting } from "@ensnode/ensnode-sdk/internal";
 
 import ensApiContext from "@/context";
-import type { IndexedResolverRecords } from "@/lib/resolution/make-records-response";
 
 const DEFAULT_EVM_COIN_TYPE_BIGINT = BigInt(DEFAULT_EVM_COIN_TYPE);
 
@@ -16,47 +15,50 @@ export async function getRecordsFromIndex<SELECTION extends ResolverRecordsSelec
   resolver: AccountId;
   node: Node;
   selection: SELECTION;
-}): Promise<IndexedResolverRecords | null> {
+}) {
   const { ensDb } = ensApiContext;
-
-  const records = (await ensDb.query.resolverRecords.findFirst({
+  const row = await ensDb.query.resolverRecords.findFirst({
     where: (t, { and, eq }) =>
       and(
-        // filter by specific resolver
+        // by (chainId, address, node)
         eq(t.chainId, resolver.chainId),
         eq(t.address, resolver.address),
-        // filter by specific node
         eq(t.node, node),
       ),
-    columns: { name: true },
+    columns: {
+      name: true,
+      contenthash: true,
+      pubkeyX: true,
+      pubkeyY: true,
+      dnszonehash: true,
+      version: true,
+    },
     with: { addressRecords: true, textRecords: true },
-  })) as IndexedResolverRecords | undefined;
+  });
 
-  // no records found
-  if (!records) return null;
+  // coalesce undefined to null
+  if (!row) return null;
 
   const { namespace } = ensApiContext.stackInfo.ensIndexer;
+  const implementsAddressRecordDefaulting = staticResolverImplementsAddressRecordDefaulting(
+    namespace,
+    resolver,
+  );
 
-  // if the resolver doesn't implement address record defaulting, return records as-is
-  if (!staticResolverImplementsAddressRecordDefaulting(namespace, resolver)) return records;
-
-  // otherwise, materialize all selected address records that do not yet exist
-  if (selection.addresses) {
-    const defaultRecord = records.addressRecords.find(
+  if (implementsAddressRecordDefaulting && selection.addresses) {
+    // materialize any selected address record that isn't yet in the index, defaulting
+    // to the DEFAULT_EVM_COIN_TYPE record's value, if exists
+    const defaultRecord = row.addressRecords.find(
       (record) => record.coinType === DEFAULT_EVM_COIN_TYPE_BIGINT,
     );
-
-    for (const coinType of selection.addresses) {
-      const _coinType = BigInt(coinType);
-      const existing = records.addressRecords.find((record) => record.coinType === _coinType);
-      if (!existing && defaultRecord) {
-        records.addressRecords.push({
-          value: defaultRecord.value,
-          coinType: _coinType,
-        });
+    if (defaultRecord) {
+      for (const coinType of selection.addresses) {
+        const _coinType = BigInt(coinType);
+        const existing = row.addressRecords.find((record) => record.coinType === _coinType);
+        if (!existing) row.addressRecords.push({ ...defaultRecord, coinType: _coinType });
       }
     }
   }
 
-  return records;
+  return row;
 }

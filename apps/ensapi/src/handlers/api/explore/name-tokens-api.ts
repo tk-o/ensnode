@@ -9,7 +9,9 @@ import {
   type NameTokensRequest,
   NameTokensResponseCodes,
   NameTokensResponseErrorCodes,
+  type NameTokensResponseErrorIndexingStatusUnsupported,
   type NameTokensResponseErrorNameTokensNotIndexed,
+  type NameTokensResponseOk,
   serializeNameTokensResponse,
 } from "@ensnode/ensnode-sdk";
 
@@ -52,7 +54,7 @@ app.openapi(getNameTokensRoute, async (c) => {
           details:
             "Indexing status has not yet reached the required state to enable the Name Tokens API.",
         },
-      }),
+      } satisfies NameTokensResponseErrorIndexingStatusUnsupported),
       503,
     );
   }
@@ -71,7 +73,7 @@ app.openapi(getNameTokensRoute, async (c) => {
           makeNameTokensNotIndexedResponse(
             `The 'name' param must not be ENS Root, no tokens exist for it.`,
           ),
-        ),
+        ) satisfies NameTokensResponseErrorNameTokensNotIndexed,
         404,
       );
     }
@@ -90,7 +92,7 @@ app.openapi(getNameTokensRoute, async (c) => {
           makeNameTokensNotIndexedResponse(
             `This ENSNode instance has not been configured to index tokens for the requested name: '${name}'`,
           ),
-        ),
+        ) satisfies NameTokensResponseErrorNameTokensNotIndexed,
         404,
       );
     }
@@ -120,7 +122,7 @@ app.openapi(getNameTokensRoute, async (c) => {
         makeNameTokensNotIndexedResponse(
           `No Name Tokens were indexed by this ENSNode instance for the requested ${errorMessageSubject}.`,
         ),
-      ),
+      ) satisfies NameTokensResponseErrorNameTokensNotIndexed,
       404,
     );
   }
@@ -129,7 +131,7 @@ app.openapi(getNameTokensRoute, async (c) => {
     serializeNameTokensResponse({
       responseCode: NameTokensResponseCodes.Ok,
       registeredNameTokens,
-    }),
+    } satisfies NameTokensResponseOk),
     200,
   );
 });
