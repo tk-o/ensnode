@@ -10,7 +10,7 @@ import { zeroAddress } from "viem";
 
 import { deserializeDuration, priceEth } from "@ensnode/ensnode-sdk";
 
-import { ensDb, ensIndexerSchema } from "@/lib/ensdb/singleton";
+import ensApiContext from "@/context";
 import logger from "@/lib/logger";
 
 /**
@@ -23,6 +23,7 @@ import logger from "@/lib/logger";
 export const getReferrerMetrics = async (
   rules: ReferralProgramRules,
 ): Promise<ReferrerMetrics[]> => {
+  const { ensDb, ensIndexerSchema } = ensApiContext;
   /**
    * Step 1: Filter for referrals matching the provided rules:
    * - timestamp is between startDate and endDate (inclusive)
@@ -108,6 +109,7 @@ export const getReferrerMetrics = async (
  * @throws Error if the database query fails.
  */
 export const getReferralEvents = async (rules: ReferralProgramRules): Promise<ReferralEvent[]> => {
+  const { ensDb, ensIndexerSchema } = ensApiContext;
   try {
     const records = await ensDb
       .select({

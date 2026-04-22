@@ -1,6 +1,6 @@
 import { makeRegistryId } from "enssdk";
 
-import type { ensIndexerSchema } from "@/lib/ensdb/singleton";
+import type ensApiContext from "@/context";
 import { builder } from "@/omnigraph-api/builder";
 import { AccountRef } from "@/omnigraph-api/schema/account";
 import { RegistryRef } from "@/omnigraph-api/schema/registry";
@@ -9,7 +9,7 @@ import { RegistryRef } from "@/omnigraph-api/schema/registry";
  * Represents a PermissionsUser whose contract is a Registry, providing a semantic `registry` field.
  */
 export const RegistryPermissionsUserRef =
-  builder.objectRef<typeof ensIndexerSchema.permissionsUser.$inferSelect>(
+  builder.objectRef<typeof ensApiContext.ensIndexerSchema.permissionsUser.$inferSelect>(
     "RegistryPermissionsUser",
   );
 

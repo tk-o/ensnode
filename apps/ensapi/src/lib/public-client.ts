@@ -1,35 +1,40 @@
-import config from "@/config";
-
-import type { ChainId } from "enssdk";
 import { createPublicClient, fallback, http, type PublicClient } from "viem";
 
-const _cache = new Map<ChainId, PublicClient>();
+import { getENSRootChainId } from "@ensnode/datasources";
+import { buildRpcConfigsFromEnv, RpcConfigsSchema } from "@ensnode/ensnode-sdk/internal";
+
+import ensApiContext from "@/context";
+
+let publicClientImmutable: PublicClient | undefined;
 
 /**
- * Gets a viem#PublicClient for the specified `chainId` using the ENSApiConfig's RPCConfig. Caches
- * the instance itself to minimize unnecessary allocations.
+ * Build a viem#PublicClient for the root chain of the ENS namespace.
  */
-export function getPublicClient(chainId: ChainId): PublicClient {
-  // Invariant: ENSApi must have an rpcConfig for the requested `chainId`
-  const rpcConfig = config.rpcConfigs.get(chainId);
+function buildPublicClientForRootChain(): PublicClient {
+  const { namespace } = ensApiContext.stackInfo.ensIndexer;
+  const rootChainId = getENSRootChainId(namespace);
+
+  const unvalidatedRpcConfigs = buildRpcConfigsFromEnv(process.env, namespace);
+  const rpcConfigs = RpcConfigsSchema.parse(unvalidatedRpcConfigs);
+  const rpcConfig = rpcConfigs.get(rootChainId);
+
   if (!rpcConfig) {
-    throw new Error(`Invariant: ENSApi does not have an RPC to chain id '${chainId}'.`);
+    throw new Error(`Invariant: ENSApi does not have an RPC to chain id '${rootChainId}'.`);
   }
 
-  if (!_cache.has(chainId)) {
-    _cache.set(
-      chainId,
-      // Create an viem#PublicClient that uses a fallback() transport with all specified HTTP RPCs
-      createPublicClient({
-        transport: fallback(rpcConfig.httpRPCs.map((url) => http(url.toString()))),
-      }),
-    );
+  // Create an viem#PublicClient that uses a fallback() transport with all specified HTTP RPCs
+  return createPublicClient({
+    transport: fallback(rpcConfig.httpRPCs.map((url) => http(url.toString()))),
+  });
+}
+
+/**
+ * Get the cached viem#PublicClient for the root chain of the ENS namespace.
+ */
+export function getPublicClientForRootChain(): PublicClient {
+  if (typeof publicClientImmutable === "undefined") {
+    publicClientImmutable = buildPublicClientForRootChain();
   }
 
-  const publicClient = _cache.get(chainId);
-
-  // publicClient guaranteed to exist due to cache-setting logic above
-  if (!publicClient) throw new Error("never");
-
-  return publicClient;
+  return publicClientImmutable;
 }

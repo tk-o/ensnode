@@ -22,7 +22,7 @@ import {
 } from "enssdk";
 import { describe, expect, it } from "vitest";
 
-import { getPublicClient } from "@/lib/public-client";
+import { getPublicClientForRootChain } from "@/lib/public-client";
 import { makeResolveCalls } from "@/lib/resolution/resolve-calls-and-results";
 
 import { executeResolveCallsWithUniversalResolver } from "./resolve-with-universal-resolver";
@@ -35,7 +35,7 @@ const NAME_WITH_ENCODED_LABELHASHES = interpretedLabelsToInterpretedName([
 
 const EXPECTED_DESCRIPTION = "example.eth";
 
-const publicClient = getPublicClient(ensTestEnvChain.id);
+const publicClient = getPublicClientForRootChain();
 
 describe("executeResolveCallsWithUniversalResolver", () => {
   it("should resolve interpreted name without encoded labelhashes", async () => {

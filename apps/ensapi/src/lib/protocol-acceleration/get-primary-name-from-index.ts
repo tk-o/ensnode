@@ -7,7 +7,7 @@ import {
   type NormalizedAddress,
 } from "enssdk";
 
-import { ensDb } from "@/lib/ensdb/singleton";
+import ensApiContext from "@/context";
 import { withSpanAsync } from "@/lib/instrumentation/auto-span";
 
 const tracer = trace.getTracer("get-primary-name");
@@ -19,6 +19,7 @@ export async function getENSIP19ReverseNameRecordFromIndex(
   coinType: CoinType,
 ): Promise<Name | null> {
   const _coinType = BigInt(coinType);
+  const { ensDb } = ensApiContext;
 
   // retrieve from index
   const records = await withSpanAsync(

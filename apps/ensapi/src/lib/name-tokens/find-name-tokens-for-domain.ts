@@ -1,5 +1,3 @@
-import config from "@/config";
-
 import { eq } from "drizzle-orm/sql";
 import { type AccountId, asInterpretedName, type Node, type UnixTimestamp } from "enssdk";
 
@@ -13,12 +11,12 @@ import {
   type RegisteredNameTokens,
 } from "@ensnode/ensnode-sdk";
 
-import { ensDb, ensIndexerSchema } from "@/lib/ensdb/singleton";
+import ensApiContext from "@/context";
 
 interface FindRegisteredNameTokensForDomainRecord {
-  domains: typeof ensIndexerSchema.subgraph_domain.$inferSelect;
-  nameTokens: typeof ensIndexerSchema.nameTokens.$inferSelect;
-  registrationLifecycles: typeof ensIndexerSchema.registrationLifecycles.$inferSelect;
+  domains: typeof ensApiContext.ensIndexerSchema.subgraph_domain.$inferSelect;
+  nameTokens: typeof ensApiContext.ensIndexerSchema.nameTokens.$inferSelect;
+  registrationLifecycles: typeof ensApiContext.ensIndexerSchema.registrationLifecycles.$inferSelect;
 }
 
 /**
@@ -28,6 +26,7 @@ interface FindRegisteredNameTokensForDomainRecord {
 async function _findRegisteredNameTokensForDomain(
   domainId: Node,
 ): Promise<FindRegisteredNameTokensForDomainRecord[]> {
+  const { ensDb, ensIndexerSchema } = ensApiContext;
   const query = ensDb
     .select({
       nameTokens: ensIndexerSchema.nameTokens,
@@ -93,6 +92,7 @@ function _recordsToRegisteredNameTokens(
     throw new Error(`All record must be associated with the '${domainId}' domain ID.`);
   }
 
+  const { namespace } = ensApiContext.stackInfo.ensIndexer;
   let registeredNameTokens: RegisteredNameTokens | null = null;
 
   // Group nameTokens records as RegisteredNameTokens by domain ID
@@ -103,7 +103,7 @@ function _recordsToRegisteredNameTokens(
     } satisfies AccountId;
     // biome-ignore lint/style/noNonNullAssertion: domain.name guaranteed to exist
     const name = asInterpretedName(record.domains.name!);
-    const ownership = getNameTokenOwnership(config.namespace, name, owner);
+    const ownership = getNameTokenOwnership(namespace, name, owner);
     const token = _recordToNameToken(record, ownership);
     const expiresAt = bigIntToNumber(record.registrationLifecycles.expiresAt);
 

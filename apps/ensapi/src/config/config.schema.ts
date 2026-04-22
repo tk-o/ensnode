@@ -8,7 +8,6 @@ import {
 } from "@ensnode/ensnode-sdk/internal";
 
 import { ENSApi_DEFAULT_PORT } from "@/config/defaults";
-import ensDbConfig from "@/config/ensdb-config";
 import type { EnsApiEnvironment } from "@/config/environment";
 import logger from "@/lib/logger";
 import { ensApiVersionInfo } from "@/lib/version-info";
@@ -44,20 +43,20 @@ const EnsApiConfigSchema = z.object({
 export type EnsApiConfig = z.infer<typeof EnsApiConfigSchema>;
 
 /**
- * Builds the EnsApiConfig from an EnsApiEnvironment object, fetching the EnsIndexerPublicConfig.
+ * Builds the EnsApiConfig from an EnsApiEnvironment object.
  *
  * @returns A validated EnsApiConfig object
  * @throws Error with formatted validation messages if environment parsing fails
  */
-export async function buildConfigFromEnvironment(env: EnsApiEnvironment): Promise<EnsApiConfig> {
+export function buildConfigFromEnvironment(env: EnsApiEnvironment): EnsApiConfig {
   try {
     return EnsApiConfigSchema.parse({
       port: env.PORT,
       theGraphApiKey: env.THEGRAPH_API_KEY,
       referralProgramEditionConfigSetUrl: env.REFERRAL_PROGRAM_EDITIONS,
       // include the validated ENSDb config values in the parsed EnsApiConfig
-      ensDbUrl: ensDbConfig.ensDbUrl,
-      ensIndexerSchemaName: ensDbConfig.ensIndexerSchemaName,
+      ensDbUrl: env.ENSDB_URL,
+      ensIndexerSchemaName: env.ENSINDEXER_SCHEMA_NAME,
     });
   } catch (error) {
     if (error instanceof ZodError) {

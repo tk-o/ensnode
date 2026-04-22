@@ -1,18 +1,13 @@
-import config, { initEnvConfig } from "@/config";
-
 import { serve } from "@hono/node-server";
 
-import { indexingStatusCache } from "@/cache/indexing-status.cache";
 import { getReferralLeaderboardEditionsCaches } from "@/cache/referral-leaderboard-editions.cache";
-import { referralProgramEditionConfigSetCache } from "@/cache/referral-program-edition-set.cache";
 import { redactEnsApiConfig } from "@/config/redact";
 import { sdk } from "@/lib/instrumentation";
 import logger from "@/lib/logger";
 import { writeGraphQLSchema } from "@/omnigraph-api/lib/write-graphql-schema";
 
 import app from "./app";
-
-await initEnvConfig(process.env);
+import ensApiContext from "./context";
 
 // start ENSNode API OpenTelemetry SDK
 sdk.start();
@@ -21,10 +16,17 @@ sdk.start();
 const server = serve(
   {
     fetch: app.fetch,
-    port: config.port,
+    get port() {
+      const { port } = ensApiContext.ensApiConfig;
+      return port;
+    },
   },
   async (info) => {
-    logger.info({ config: redactEnsApiConfig(config) }, `ENSApi listening on port ${info.port}`);
+    const { ensApiConfig, indexingStatusCache } = ensApiContext;
+    logger.info(
+      { config: redactEnsApiConfig(ensApiConfig) },
+      `ENSApi listening on port ${info.port}`,
+    );
 
     // Write the generated graphql schema in the background
     void writeGraphQLSchema();
@@ -46,6 +48,8 @@ const closeServer = () =>
 // perform graceful shutdown
 const gracefulShutdown = async () => {
   try {
+    const { referralProgramEditionConfigSetCache, indexingStatusCache } = ensApiContext;
+
     await sdk.shutdown();
     logger.info("Destroyed tracing instrumentation");
 

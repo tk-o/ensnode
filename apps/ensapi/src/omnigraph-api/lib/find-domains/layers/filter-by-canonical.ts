@@ -1,6 +1,6 @@
 import { eq, isNotNull, isNull, or } from "drizzle-orm";
 
-import { ensDb } from "@/lib/ensdb/singleton";
+import ensApiContext from "@/context";
 
 import { getCanonicalRegistriesCTE } from "../canonical-registries-cte";
 import { type BaseDomainSet, selectBase } from "./base-domain-set";
@@ -16,6 +16,7 @@ import { type BaseDomainSet, selectBase } from "./base-domain-set";
  */
 export function filterByCanonical(base: BaseDomainSet) {
   const canonicalRegistries = getCanonicalRegistriesCTE();
+  const { ensDb } = ensApiContext;
 
   return ensDb
     .select(selectBase(base))

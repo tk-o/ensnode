@@ -2,7 +2,7 @@ import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@poth
 import { and, count, eq, getTableColumns, gte, inArray, lte, type SQL, sql } from "drizzle-orm";
 import type { Address, Hex } from "enssdk";
 
-import { ensDb, ensIndexerSchema } from "@/lib/ensdb/singleton";
+import ensApiContext from "@/context";
 import { orderPaginationBy, paginateBy } from "@/omnigraph-api/lib/connection-helpers";
 import { lazyConnection } from "@/omnigraph-api/lib/lazy-connection";
 import { ID_PAGINATED_CONNECTION_ARGS } from "@/omnigraph-api/schema/constants";
@@ -11,9 +11,9 @@ import { ID_PAGINATED_CONNECTION_ARGS } from "@/omnigraph-api/schema/constants";
  * A join table that relates some entity to events via an `eventId` column.
  */
 type EventJoinTable =
-  | typeof ensIndexerSchema.domainEvent
-  | typeof ensIndexerSchema.resolverEvent
-  | typeof ensIndexerSchema.permissionsEvent;
+  | typeof ensApiContext.ensIndexerSchema.domainEvent
+  | typeof ensApiContext.ensIndexerSchema.resolverEvent
+  | typeof ensApiContext.ensIndexerSchema.permissionsEvent;
 
 /**
  * Available filter options for find-events queries.
@@ -33,6 +33,8 @@ interface EventsWhere {
  * Build SQL conditions from EventsWhere filters.
  */
 function eventsWhereConditions(where?: EventsWhere | null): SQL | undefined {
+  const { ensIndexerSchema } = ensApiContext;
+
   if (!where) return undefined;
 
   return and(
@@ -75,6 +77,7 @@ export function resolveFindEvents(
     through?: { table: EventJoinTable; scope: SQL };
   },
 ) {
+  const { ensDb, ensIndexerSchema } = ensApiContext;
   const through = options?.through;
   const whereConditions = eventsWhereConditions(where);
 

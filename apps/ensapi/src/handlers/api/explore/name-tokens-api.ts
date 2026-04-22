@@ -1,5 +1,3 @@
-import config from "@/config";
-
 import {
   asInterpretedName,
   getParentInterpretedName,
@@ -12,12 +10,11 @@ import {
   NameTokensResponseCodes,
   NameTokensResponseErrorCodes,
   type NameTokensResponseErrorNameTokensNotIndexed,
-  type PluginName,
   serializeNameTokensResponse,
 } from "@ensnode/ensnode-sdk";
 
+import ensApiContext from "@/context";
 import { createApp } from "@/lib/hono-factory";
-import { lazyProxy } from "@/lib/lazy";
 import { findRegisteredNameTokensForDomain } from "@/lib/name-tokens/find-name-tokens-for-domain";
 import { getIndexedSubregistries } from "@/lib/name-tokens/get-indexed-subregistries";
 import { indexingStatusMiddleware } from "@/middleware/indexing-status.middleware";
@@ -25,13 +22,9 @@ import { nameTokensApiMiddleware } from "@/middleware/name-tokens.middleware";
 
 import { getNameTokensRoute } from "./name-tokens-api.routes";
 
-const app = createApp({ middlewares: [indexingStatusMiddleware, nameTokensApiMiddleware] });
-
-// lazyProxy defers construction until first use so that this module can be
-// imported without env vars being present (e.g. during OpenAPI generation).
-const indexedSubregistries = lazyProxy(() =>
-  getIndexedSubregistries(config.namespace, config.ensIndexerPublicConfig.plugins as PluginName[]),
-);
+const app = createApp({
+  middlewares: [indexingStatusMiddleware, nameTokensApiMiddleware],
+});
 
 /**
  * Factory function for creating a 404 Name Tokens Not Indexed error response
@@ -84,6 +77,8 @@ app.openapi(getNameTokensRoute, async (c) => {
     }
 
     const parentNode = namehashInterpretedName(parentName);
+    const { namespace, plugins } = ensApiContext.stackInfo.ensIndexer;
+    const indexedSubregistries = getIndexedSubregistries(namespace, plugins);
     const subregistry = indexedSubregistries.find((s) => s.node === parentNode);
 
     // Return 404 response with error code for Name Tokens Not Indexed when

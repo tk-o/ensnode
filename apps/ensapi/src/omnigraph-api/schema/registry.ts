@@ -2,7 +2,7 @@ import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@poth
 import { and, eq } from "drizzle-orm";
 import { makePermissionsId, type RegistryId } from "enssdk";
 
-import { ensDb, ensIndexerSchema } from "@/lib/ensdb/singleton";
+import ensApiContext from "@/context";
 import { builder } from "@/omnigraph-api/builder";
 import { orderPaginationBy, paginateBy } from "@/omnigraph-api/lib/connection-helpers";
 import { resolveFindDomains } from "@/omnigraph-api/lib/find-domains/find-domains-resolver";
@@ -25,8 +25,10 @@ import {
 import { PermissionsRef } from "@/omnigraph-api/schema/permissions";
 
 export const RegistryRef = builder.loadableObjectRef("Registry", {
-  load: (ids: RegistryId[]) =>
-    ensDb.query.registry.findMany({ where: (t, { inArray }) => inArray(t.id, ids) }),
+  load: (ids: RegistryId[]) => {
+    const { ensDb } = ensApiContext;
+    return ensDb.query.registry.findMany({ where: (t, { inArray }) => inArray(t.id, ids) });
+  },
   toKey: getModelId,
   cacheResolved: true,
   sort: true,
@@ -54,6 +56,7 @@ RegistryRef.implement({
       description: "The Domains for which this Registry is a Subregistry.",
       type: ENSv2DomainRef,
       resolve: (parent, args) => {
+        const { ensDb, ensIndexerSchema } = ensApiContext;
         const scope = eq(ensIndexerSchema.v2Domain.subregistryId, parent.id);
 
         return lazyConnection({

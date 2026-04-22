@@ -22,7 +22,9 @@ describe("ensdb singleton bootstrap", () => {
   });
 
   it("constructs EnsDbReader from real env wiring without errors", async () => {
-    const { ensDbClient, ensDb, ensIndexerSchema } = await import("@/lib/ensdb/singleton");
+    const { ensDbClient, ensDb, ensIndexerSchema } = await import("@/context/index").then(
+      (mod) => mod.default,
+    );
 
     // ensDbClient is a lazyProxy — construction is deferred until first property access.
     // Accessing a property triggers EnsDbReader construction; verify it succeeds.
@@ -40,7 +42,7 @@ describe("ensdb singleton bootstrap", () => {
     vi.stubEnv("ENSDB_URL", "");
     // ensDbClient is a lazyProxy — import succeeds but first property access triggers construction,
     // which calls buildEnsDbConfigFromEnvironment and exits on invalid config.
-    const { ensDbClient } = await import("@/lib/ensdb/singleton");
+    const { ensDbClient } = await import("@/context/index").then((mod) => mod.default);
     expect(() => ensDbClient.ensDb).toThrow("process.exit");
 
     expect(logger.error).toHaveBeenCalled();
@@ -57,7 +59,7 @@ describe("ensdb singleton bootstrap", () => {
     vi.stubEnv("ENSINDEXER_SCHEMA_NAME", "");
     // ensDbClient is a lazyProxy — import succeeds but first property access triggers construction,
     // which calls buildEnsDbConfigFromEnvironment and exits on invalid config.
-    const { ensDbClient } = await import("@/lib/ensdb/singleton");
+    const { ensDbClient } = await import("@/context/index").then((mod) => mod.default);
     expect(() => ensDbClient.ensDb).toThrow("process.exit");
 
     expect(logger.error).toHaveBeenCalled();

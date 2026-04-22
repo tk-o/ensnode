@@ -1,5 +1,3 @@
-import config from "@/config";
-
 import { trace } from "@opentelemetry/api";
 import { replaceBigInts } from "@ponder/utils";
 import {
@@ -31,13 +29,14 @@ import {
   isStaticResolver,
 } from "@ensnode/ensnode-sdk/internal";
 
+import ensApiContext from "@/context";
 import { withActiveSpanAsync, withSpanAsync } from "@/lib/instrumentation/auto-span";
 import { makeLogger } from "@/lib/logger";
 import { findResolver } from "@/lib/protocol-acceleration/find-resolver";
 import { getENSIP19ReverseNameRecordFromIndex } from "@/lib/protocol-acceleration/get-primary-name-from-index";
 import { getRecordsFromIndex } from "@/lib/protocol-acceleration/get-records-from-index";
 import { areResolverRecordsIndexedByProtocolAccelerationPluginOnChainId } from "@/lib/protocol-acceleration/resolver-records-indexed-on-chain";
-import { getPublicClient } from "@/lib/public-client";
+import { getPublicClientForRootChain } from "@/lib/public-client";
 import {
   makeEmptyResolverRecordsResponse,
   makeRecordsResponseFromIndexedRecords,
@@ -99,7 +98,7 @@ export async function resolveForward<SELECTION extends ResolverRecordsSelection>
   // initially be ENS Root Registry: see `_resolveForward` for additional context.
   return _resolveForward(interpretedName, selection, {
     ...options,
-    registry: getENSv1Registry(config.namespace),
+    registry: getENSv1Registry(ensApiContext.stackInfo.ensIndexer.namespace),
   });
 }
 
@@ -175,13 +174,14 @@ async function _resolveForward<SELECTION extends ResolverRecordsSelection>(
             );
           }
 
-          const publicClient = getPublicClient(chainId);
+          const publicClient = getPublicClientForRootChain();
+          const { namespace, plugins } = ensApiContext.stackInfo.ensIndexer;
 
           ////////////////////////////
           /// Temporary ENSv2 Bailout
           ////////////////////////////
           // TODO: re-enable protocol acceleration for ENSv2
-          if (config.ensIndexerPublicConfig.plugins.includes(PluginName.ENSv2)) {
+          if (plugins.includes(PluginName.ENSv2)) {
             // execute each record's call against the UniversalResolverV2
             const rawResults = await withEnsProtocolStep(
               TraceableENSProtocol.ForwardResolution,
@@ -267,7 +267,7 @@ async function _resolveForward<SELECTION extends ResolverRecordsSelection>(
             //   If the activeResolver is a Known ENSIP-19 Reverse Resolver,
             //   then we can just read the name record value directly from the index.
             //////////////////////////////////////////////////
-            if (isKnownENSIP19ReverseResolver(config.namespace, resolver)) {
+            if (isKnownENSIP19ReverseResolver(namespace, resolver)) {
               return withEnsProtocolStep(
                 TraceableENSProtocol.ForwardResolution,
                 ForwardResolutionProtocolStep.AccelerateENSIP19ReverseResolver,
@@ -314,7 +314,7 @@ async function _resolveForward<SELECTION extends ResolverRecordsSelection>(
             //   If the activeResolver is a Bridged Resolver,
             //   then we can short-circuit the CCIP-Read and defer resolution to the indicated (shadow)Registry.
             //////////////////////////////////////////////////
-            const bridgesTo = isBridgedResolver(config.namespace, resolver);
+            const bridgesTo = isBridgedResolver(namespace, resolver);
             if (bridgesTo) {
               return withEnsProtocolStep(
                 TraceableENSProtocol.ForwardResolution,
@@ -340,12 +340,9 @@ async function _resolveForward<SELECTION extends ResolverRecordsSelection>(
             //   then we can retrieve records directly from the database.
             //////////////////////////////////////////////////
             const resolverRecordsAreIndexed =
-              areResolverRecordsIndexedByProtocolAccelerationPluginOnChainId(
-                config.namespace,
-                chainId,
-              );
+              areResolverRecordsIndexedByProtocolAccelerationPluginOnChainId(namespace, chainId);
 
-            if (resolverRecordsAreIndexed && isStaticResolver(config.namespace, resolver)) {
+            if (resolverRecordsAreIndexed && isStaticResolver(namespace, resolver)) {
               return withEnsProtocolStep(
                 TraceableENSProtocol.ForwardResolution,
                 ForwardResolutionProtocolStep.AccelerateKnownOnchainStaticResolver,

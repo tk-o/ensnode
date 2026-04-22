@@ -1,5 +1,3 @@
-import config from "@/config";
-
 import {
   hasRegistrarActionsConfigSupport,
   hasRegistrarActionsIndexingStatusSupport,
@@ -7,6 +5,7 @@ import {
   serializeRegistrarActionsResponse,
 } from "@ensnode/ensnode-sdk";
 
+import ensApiContext from "@/context";
 import { factory } from "@/lib/hono-factory";
 import { makeLogger } from "@/lib/logger";
 
@@ -35,7 +34,8 @@ export const registrarActionsApiMiddleware = factory.createMiddleware(
       throw new Error(`Invariant(registrar-actions.middleware): indexingStatusMiddleware required`);
     }
 
-    const configSupport = hasRegistrarActionsConfigSupport(config.ensIndexerPublicConfig);
+    const ensIndexerPublicConfig = ensApiContext.stackInfo.ensIndexer;
+    const configSupport = hasRegistrarActionsConfigSupport(ensIndexerPublicConfig);
     if (!configSupport.supported) {
       return c.json(
         serializeRegistrarActionsResponse({
