@@ -16,7 +16,7 @@ import {
   type SerializedEnsDbPublicConfig,
   type SerializedEnsIndexerPublicConfig,
   type SerializedEnsNodeStackInfo,
-  SerializedEnsRainbowPublicConfig,
+  type SerializedEnsRainbowPublicConfig,
   type SerializedOmnichainIndexingStatusSnapshotBackfill,
   type SerializedOmnichainIndexingStatusSnapshotCompleted,
   type SerializedOmnichainIndexingStatusSnapshotFollowing,
@@ -30,14 +30,6 @@ const serializedEnsIndexerPublicConfig = {
   },
   indexedChainIds: [1, 8453, 59144, 10, 42161, 534352, 567],
   ensIndexerSchemaName: "alphaSchema0.34.0",
-  ensRainbowPublicConfig: {
-    version: "0.34.0",
-    labelSet: {
-      labelSetId: "subgraph",
-      highestLabelSetVersion: 0,
-    },
-    recordsCount: 100,
-  },
   isSubgraphCompatible: false,
   namespace: "mainnet",
   plugins: [
@@ -74,8 +66,13 @@ const serializedEnsDbPublicConfig = {
   },
 } satisfies SerializedEnsDbPublicConfig;
 
-const serializedEnsRainbowPublicConfig =
-  serializedEnsIndexerPublicConfig.ensRainbowPublicConfig satisfies SerializedEnsRainbowPublicConfig;
+const serializedEnsRainbowPublicConfig = {
+  version: "0.34.0",
+  labelSet: {
+    labelSetId: "subgraph",
+    highestLabelSetVersion: 0,
+  },
+} satisfies SerializedEnsRainbowPublicConfig;
 
 const serializedStackInfo = {
   ensApi: serializedEnsApiPublicConfig,

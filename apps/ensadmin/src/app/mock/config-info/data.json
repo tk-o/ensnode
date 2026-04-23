@@ -20,8 +20,7 @@
         "labelSet": {
           "labelSetId": "subgraph",
           "highestLabelSetVersion": 0
-        },
-        "recordsCount": 100
+        }
       },
       "isSubgraphCompatible": false,
       "namespace": "mainnet",
@@ -80,8 +79,7 @@
         "labelSet": {
           "labelSetId": "subgraph",
           "highestLabelSetVersion": 0
-        },
-        "recordsCount": 100
+        }
       },
       "isSubgraphCompatible": false
     }
@@ -116,8 +114,7 @@
         "labelSet": {
           "labelSetId": "subgraph",
           "highestLabelSetVersion": 0
-        },
-        "recordsCount": 100
+        }
       },
       "isSubgraphCompatible": true
     }
@@ -152,8 +149,7 @@
         "labelSet": {
           "labelSetId": "subgraph",
           "highestLabelSetVersion": 0
-        },
-        "recordsCount": 100
+        }
       },
       "isSubgraphCompatible": true
     }
@@ -188,8 +184,7 @@
         "labelSet": {
           "labelSetId": "",
           "highestLabelSetVersion": -1
-        },
-        "recordsCount": -1
+        }
       },
       "isSubgraphCompatible": true
     }
