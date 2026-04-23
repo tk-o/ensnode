@@ -24,11 +24,8 @@ export interface EnsNodeStackInfo {
 
   /**
    * ENSRainbow Public Config
-   *
-   * If undefined, represents that ENSRainbow is currently undergoing
-   * a cold start and may take up to an hour to become ready.
    */
-  ensRainbow?: EnsRainbowPublicConfig;
+  ensRainbow: EnsRainbowPublicConfig;
 }
 
 /**
@@ -39,7 +36,7 @@ export function buildEnsNodeStackInfo(
   ensApiPublicConfig: EnsApiPublicConfig,
   ensDbPublicConfig: EnsDbPublicConfig,
   ensIndexerPublicConfig: EnsIndexerPublicConfig,
-  ensRainbowPublicConfig?: EnsRainbowPublicConfig,
+  ensRainbowPublicConfig: EnsRainbowPublicConfig,
 ): EnsNodeStackInfo {
   return {
     ensApi: ensApiPublicConfig,
