@@ -14,7 +14,7 @@ import {
 
 import { maybeGetENSv2RootRegistryId } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { withActiveSpanAsync } from "@/lib/instrumentation/auto-span";
 import { makeLogger } from "@/lib/logger";
 
@@ -61,9 +61,7 @@ export async function getDomainIdByInterpretedName(
 ): Promise<DomainId | null> {
   return withActiveSpanAsync(tracer, "getDomainIdByInterpretedName", { name }, async () => {
     // Domains addressable in v2 are preferred, but v1 lookups are cheap, so just do them both ahead of time
-    const rootRegistryId = maybeGetENSv2RootRegistryId(
-      ensApiContext.stackInfo.ensIndexer.namespace,
-    );
+    const rootRegistryId = maybeGetENSv2RootRegistryId(di.context.stackInfo.ensIndexer.namespace);
 
     const [v1DomainId, v2DomainId] = await Promise.all([
       withActiveSpanAsync(tracer, "v1_getDomainId", {}, () =>
@@ -90,7 +88,7 @@ export async function getDomainIdByInterpretedName(
 async function v1_getDomainIdByInterpretedName(name: InterpretedName): Promise<DomainId | null> {
   const domainId = makeENSv1DomainId(namehashInterpretedName(name));
 
-  const { ensDb } = ensApiContext;
+  const { ensDb } = di.context;
   const domain = await ensDb.query.v1Domain.findFirst({ where: (t, { eq }) => eq(t.id, domainId) });
   const exists = domain !== undefined;
 
@@ -112,7 +110,7 @@ async function v2_getDomainIdByInterpretedName(
   // https://github.com/drizzle-team/drizzle-orm/issues/1289#issuecomment-2688581070
   const rawLabelHashPathArray = sql`${new Param(labelHashPath)}::text[]`;
 
-  const { ensDb, ensIndexerSchema } = ensApiContext;
+  const { ensDb, ensIndexerSchema } = di.context;
   // TODO: need to join latest registration and confirm that it's not expired, if expired should treat the domain as not existing
   const result = await ensDb.execute(sql`
     WITH RECURSIVE path AS (

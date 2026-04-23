@@ -3,7 +3,7 @@ import { type AccountId, DEFAULT_EVM_COIN_TYPE, type Node } from "enssdk";
 import type { ResolverRecordsSelection } from "@ensnode/ensnode-sdk";
 import { staticResolverImplementsAddressRecordDefaulting } from "@ensnode/ensnode-sdk/internal";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 const DEFAULT_EVM_COIN_TYPE_BIGINT = BigInt(DEFAULT_EVM_COIN_TYPE);
 
@@ -16,7 +16,7 @@ export async function getRecordsFromIndex<SELECTION extends ResolverRecordsSelec
   node: Node;
   selection: SELECTION;
 }) {
-  const { ensDb } = ensApiContext;
+  const { ensDb } = di.context;
   const row = await ensDb.query.resolverRecords.findFirst({
     where: (t, { and, eq }) =>
       and(
@@ -39,7 +39,7 @@ export async function getRecordsFromIndex<SELECTION extends ResolverRecordsSelec
   // coalesce undefined to null
   if (!row) return null;
 
-  const { namespace } = ensApiContext.stackInfo.ensIndexer;
+  const { namespace } = di.context.stackInfo.ensIndexer;
   const implementsAddressRecordDefaulting = staticResolverImplementsAddressRecordDefaulting(
     namespace,
     resolver,

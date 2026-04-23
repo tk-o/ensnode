@@ -1,8 +1,8 @@
-import type ensApiContext from "@/context";
+import type di from "@/di";
 import { builder } from "@/omnigraph-api/builder";
 
 export const LabelRef =
-  builder.objectRef<typeof ensApiContext.ensIndexerSchema.label.$inferSelect>("Label");
+  builder.objectRef<typeof di.context.ensIndexerSchema.label.$inferSelect>("Label");
 LabelRef.implement({
   description: "Represents a Label within ENS, providing its hash and interpreted representation.",
   fields: (t) => ({

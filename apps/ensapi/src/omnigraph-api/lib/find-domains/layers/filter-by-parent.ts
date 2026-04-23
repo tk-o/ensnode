@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { DomainId } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 import { type BaseDomainSet, selectBase } from "./base-domain-set";
 
@@ -12,7 +12,7 @@ import { type BaseDomainSet, selectBase } from "./base-domain-set";
  * parentId for both: v1 from the parentId column, v2 via canonical registry traversal.
  */
 export function filterByParent(base: BaseDomainSet, parentId: DomainId) {
-  const { ensDb } = ensApiContext;
+  const { ensDb } = di.context;
 
   return ensDb
     .select(selectBase(base))

@@ -29,12 +29,11 @@ import {
   isStaticResolver,
 } from "@ensnode/ensnode-sdk/internal";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { withActiveSpanAsync, withSpanAsync } from "@/lib/instrumentation/auto-span";
 import { makeLogger } from "@/lib/logger";
 import { findResolver } from "@/lib/protocol-acceleration/find-resolver";
 import { areResolverRecordsIndexedByProtocolAccelerationPluginOnChainId } from "@/lib/protocol-acceleration/resolver-records-indexed-on-chain";
-import { getPublicClientForRootChain } from "@/lib/public-client";
 import { accelerateENSIP19ReverseResolver } from "@/lib/resolution/accelerate-ensip19-reverse-resolver";
 import { accelerateKnownOnchainStaticResolver } from "@/lib/resolution/accelerate-known-onchain-static-resolver";
 import { executeOperations } from "@/lib/resolution/execute-operations";
@@ -89,7 +88,7 @@ export async function resolveForward<SELECTION extends ResolverRecordsSelection>
   // initially be ENS Root Registry: see `_resolveForward` for additional context.
   return _resolveForward(interpretedName, selection, {
     ...options,
-    registry: getENSv1Registry(ensApiContext.stackInfo.ensIndexer.namespace),
+    registry: getENSv1Registry(di.context.stackInfo.ensIndexer.namespace),
   });
 }
 
@@ -159,8 +158,8 @@ async function _resolveForward<SELECTION extends ResolverRecordsSelection>(
           // if no operations were generated, this was an empty selection; give them what they asked for
           if (operations.length === 0) return makeRecordsResponse<SELECTION>(operations);
 
-          const publicClient = getPublicClientForRootChain();
-          const { namespace, plugins } = ensApiContext.stackInfo.ensIndexer;
+          const { stackInfo, publicClientRootChain: publicClient } = di.context;
+          const { namespace, plugins } = stackInfo.ensIndexer;
 
           ////////////////////////////
           /// 0. Temporary ENSv2 Bailout

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { NormalizedAddress } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 import { type BaseDomainSet, selectBase } from "./base-domain-set";
 
@@ -9,7 +9,7 @@ import { type BaseDomainSet, selectBase } from "./base-domain-set";
  * Filter a base domain set by owner address.
  */
 export function filterByOwner(base: BaseDomainSet, owner: NormalizedAddress) {
-  const { ensDb } = ensApiContext;
+  const { ensDb } = di.context;
   return ensDb //
     .select(selectBase(base))
     .from(base)

@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import type { DomainId } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 import type { BaseDomainSet } from "./base-domain-set";
 
@@ -31,7 +31,7 @@ export type DomainsWithOrderingMetadataResult = {
  * @param base - A base domain set (output of any filter layer)
  */
 export function withOrderingMetadata(base: BaseDomainSet) {
-  const { ensDb, ensIndexerSchema } = ensApiContext;
+  const { ensDb, ensIndexerSchema } = di.context;
   const domains = ensDb
     .select({
       id: sql<DomainId>`${base.domainId}`.as("id"),

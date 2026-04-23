@@ -2,7 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { alias, unionAll } from "drizzle-orm/pg-core";
 import type { DomainId, NormalizedAddress } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 /**
  * The type of the base domain set subquery.
@@ -24,7 +24,7 @@ export type BaseDomainSet = ReturnType<typeof domainsBase>;
  * All downstream filters (owner, parent, registry, name, canonical) operate on this shape.
  */
 export function domainsBase() {
-  const { ensDb, ensIndexerSchema } = ensApiContext;
+  const { ensDb, ensIndexerSchema } = di.context;
   const v2ParentDomain = alias(ensIndexerSchema.v2Domain, "v2ParentDomain");
 
   return unionAll(

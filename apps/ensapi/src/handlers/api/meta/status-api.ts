@@ -5,7 +5,7 @@ import {
   serializeEnsApiIndexingStatusResponse,
 } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { createApp } from "@/lib/hono-factory";
 import { indexingStatusMiddleware } from "@/middleware/indexing-status.middleware";
 import { stackInfoMiddleware } from "@/middleware/stack-info.middleware";
@@ -24,7 +24,7 @@ app.openapi(getIndexingStatusRoute, async (c) => {
     );
   }
 
-  const { stackInfo } = ensApiContext;
+  const { stackInfo } = di.context;
 
   // return successful response using the indexing status projection from the middleware context
   return c.json(

@@ -1,7 +1,7 @@
 import { ChainIndexingStatusIds, getENSRootChainId } from "@ensnode/ensnode-sdk";
 import type { SubgraphMeta } from "@ensnode/ponder-subgraph";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import type { IndexingStatusMiddlewareVariables } from "@/middleware/indexing-status.middleware";
 
 /**
@@ -22,7 +22,7 @@ export function indexingContextToSubgraphMeta(
   // for the lifetime of this service instance.
   if (indexingStatus instanceof Error) return null;
 
-  const { namespace, versionInfo } = ensApiContext.stackInfo.ensIndexer;
+  const { namespace, versionInfo } = di.context.stackInfo.ensIndexer;
   const rootChain = indexingStatus.snapshot.omnichainSnapshot.chains.get(
     getENSRootChainId(namespace),
   );

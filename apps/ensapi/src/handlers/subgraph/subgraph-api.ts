@@ -4,7 +4,7 @@ import { createDocumentationMiddleware } from "ponder-enrich-gql-docs-middleware
 import { hasSubgraphApiConfigSupport } from "@ensnode/ensnode-sdk";
 import { subgraphGraphQLMiddleware } from "@ensnode/ponder-subgraph";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { createApp } from "@/lib/hono-factory";
 import { makeSubgraphApiDocumentation } from "@/lib/subgraph/api-documentation";
 import { filterSchemaByPrefix } from "@/lib/subgraph/filter-schema-by-prefix";
@@ -20,7 +20,7 @@ const app = createApp();
 
 // 503 if subgraph plugin not available
 app.use(async (c, next) => {
-  const ensIndexerPublicConfig = ensApiContext.stackInfo.ensIndexer;
+  const ensIndexerPublicConfig = di.context.stackInfo.ensIndexer;
   const prerequisite = hasSubgraphApiConfigSupport(ensIndexerPublicConfig);
   if (!prerequisite.supported) {
     return c.text(`Service Unavailable: ${prerequisite.reason}`, 503);
@@ -51,11 +51,11 @@ app.use(
   subgraphGraphQLMiddleware({
     getYogaOptions() {
       // generate a subgraph-specific subset of the schema
-      const subgraphSchema = filterSchemaByPrefix("subgraph_", ensApiContext.ensIndexerSchema);
+      const subgraphSchema = filterSchemaByPrefix("subgraph_", di.context.ensIndexerSchema);
 
       return {
-        databaseUrl: ensApiContext.ensApiConfig.ensDbUrl,
-        databaseSchema: ensApiContext.ensApiConfig.ensIndexerSchemaName,
+        databaseUrl: di.context.ensApiConfig.ensDbUrl,
+        databaseSchema: di.context.ensApiConfig.ensIndexerSchemaName,
         schema: subgraphSchema,
         // describes the polymorphic (interface) relationships in the schema
         polymorphicConfig: {

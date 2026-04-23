@@ -11,12 +11,12 @@ import {
   type RegisteredNameTokens,
 } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 interface FindRegisteredNameTokensForDomainRecord {
-  domains: typeof ensApiContext.ensIndexerSchema.subgraph_domain.$inferSelect;
-  nameTokens: typeof ensApiContext.ensIndexerSchema.nameTokens.$inferSelect;
-  registrationLifecycles: typeof ensApiContext.ensIndexerSchema.registrationLifecycles.$inferSelect;
+  domains: typeof di.context.ensIndexerSchema.subgraph_domain.$inferSelect;
+  nameTokens: typeof di.context.ensIndexerSchema.nameTokens.$inferSelect;
+  registrationLifecycles: typeof di.context.ensIndexerSchema.registrationLifecycles.$inferSelect;
 }
 
 /**
@@ -26,7 +26,7 @@ interface FindRegisteredNameTokensForDomainRecord {
 async function _findRegisteredNameTokensForDomain(
   domainId: Node,
 ): Promise<FindRegisteredNameTokensForDomainRecord[]> {
-  const { ensDb, ensIndexerSchema } = ensApiContext;
+  const { ensDb, ensIndexerSchema } = di.context;
   const query = ensDb
     .select({
       nameTokens: ensIndexerSchema.nameTokens,
@@ -92,7 +92,7 @@ function _recordsToRegisteredNameTokens(
     throw new Error(`All record must be associated with the '${domainId}' domain ID.`);
   }
 
-  const { namespace } = ensApiContext.stackInfo.ensIndexer;
+  const { namespace } = di.context.stackInfo.ensIndexer;
   let registeredNameTokens: RegisteredNameTokens | null = null;
 
   // Group nameTokens records as RegisteredNameTokens by domain ID

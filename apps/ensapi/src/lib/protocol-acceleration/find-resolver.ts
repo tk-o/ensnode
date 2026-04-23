@@ -15,7 +15,7 @@ import { packetToBytes } from "viem/ens";
 import { DatasourceNames, getDatasource } from "@ensnode/datasources";
 import { accountIdEqual, getDatasourceContract, isENSv1Registry } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { withActiveSpanAsync, withSpanAsync } from "@/lib/instrumentation/auto-span";
 
 type FindResolverResult =
@@ -67,7 +67,7 @@ export async function findResolver({
     return findResolverWithIndex(registry, name);
   }
 
-  const { namespace } = ensApiContext.stackInfo.ensIndexer;
+  const { namespace } = di.context.stackInfo.ensIndexer;
 
   // Invariant: UniversalResolver#findResolver only works for ENS Root Registry
   if (!isENSv1Registry(namespace, registry)) {
@@ -92,7 +92,7 @@ async function findResolverWithUniversalResolver(
     "findResolverWithUniversalResolver",
     { name },
     async (span) => {
-      const { namespace } = ensApiContext.stackInfo.ensIndexer;
+      const { namespace } = di.context.stackInfo.ensIndexer;
       // 1. Retrieve the UniversalResolver's address/abi in the configured namespace
       const {
         contracts: {
@@ -189,7 +189,7 @@ async function findResolverWithIndex(
       // NOTE: this is currently ENSv1-specific
       const nodes = names.map((name) => namehashInterpretedName(name));
       const domainIds = nodes as DomainId[];
-      const { namespace } = ensApiContext.stackInfo.ensIndexer;
+      const { namespace } = di.context.stackInfo.ensIndexer;
       const ensv1RegistryOld = getDatasourceContract(
         namespace,
         DatasourceNames.ENSRoot,
@@ -202,7 +202,7 @@ async function findResolverWithIndex(
         "domainResolverRelation.findMany",
         {},
         async () => {
-          const { ensDb } = ensApiContext;
+          const { ensDb } = di.context;
           // the current ENS Root Chain Registry is actually ENSRegistryWithFallback: if a node
           // doesn't exist in its own storage, it directs the lookup to RegistryOld. We must encode
           // this logic here, so that the active resolver of unmigrated nodes can be correctly identified.

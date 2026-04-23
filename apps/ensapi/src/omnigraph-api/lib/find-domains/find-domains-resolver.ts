@@ -2,7 +2,7 @@ import { trace } from "@opentelemetry/api";
 import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@pothos/plugin-relay";
 import { and, count } from "drizzle-orm";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { withActiveSpanAsync } from "@/lib/instrumentation/auto-span";
 import { makeLogger } from "@/lib/logger";
 import type { context as createContext } from "@/omnigraph-api/context";
@@ -101,7 +101,7 @@ export function resolveFindDomains(
   return lazyConnection({
     totalCount: () =>
       withActiveSpanAsync(tracer, "find-domains.totalCount", {}, async () => {
-        const { ensDb } = ensApiContext;
+        const { ensDb } = di.context;
         const rows = await ensDb.with(domains).select({ count: count() }).from(domains);
         return rows[0].count;
       }),
@@ -127,7 +127,7 @@ export function resolveFindDomains(
           // decode cursors for keyset pagination
           const beforeCursor = before ? DomainCursors.decode(before) : undefined;
           const afterCursor = after ? DomainCursors.decode(after) : undefined;
-          const { ensDb } = ensApiContext;
+          const { ensDb } = di.context;
 
           // build query with pagination constraints
           const query = ensDb

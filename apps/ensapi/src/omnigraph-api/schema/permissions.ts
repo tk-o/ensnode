@@ -9,7 +9,7 @@ import {
   ROOT_RESOURCE,
 } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { builder } from "@/omnigraph-api/builder";
 import { orderPaginationBy, paginateBy } from "@/omnigraph-api/lib/connection-helpers";
 import { resolveFindEvents } from "@/omnigraph-api/lib/find-events/find-events-resolver";
@@ -22,7 +22,7 @@ import { EventRef, EventsWhereInput } from "@/omnigraph-api/schema/event";
 
 export const PermissionsRef = builder.loadableObjectRef("Permissions", {
   load: (ids: PermissionsId[]) => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     return ensDb.query.permissions.findMany({ where: (t, { inArray }) => inArray(t.id, ids) });
   },
   toKey: getModelId,
@@ -32,7 +32,7 @@ export const PermissionsRef = builder.loadableObjectRef("Permissions", {
 
 export const PermissionsResourceRef = builder.loadableObjectRef("PermissionsResource", {
   load: (ids: PermissionsResourceId[]) => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     return ensDb.query.permissionsResource.findMany({
       where: (t, { inArray }) => inArray(t.id, ids),
     });
@@ -44,7 +44,7 @@ export const PermissionsResourceRef = builder.loadableObjectRef("PermissionsReso
 
 export const PermissionsUserRef = builder.loadableObjectRef("PermissionsUser", {
   load: (ids: PermissionsUserId[]) => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     return ensDb.query.permissionsUser.findMany({ where: (t, { inArray }) => inArray(t.id, ids) });
   },
   toKey: getModelId,
@@ -106,7 +106,7 @@ PermissionsRef.implement({
       description: "All PermissionResources managed by this contract.",
       type: PermissionsResourceRef,
       resolve: (parent, args) => {
-        const { ensDb, ensIndexerSchema } = ensApiContext;
+        const { ensDb, ensIndexerSchema } = di.context;
         const scope = and(
           eq(ensIndexerSchema.permissionsResource.chainId, parent.chainId),
           eq(ensIndexerSchema.permissionsResource.address, parent.address),
@@ -141,7 +141,7 @@ PermissionsRef.implement({
         where: t.arg({ type: EventsWhereInput }),
       },
       resolve: (parent, args) => {
-        const { ensIndexerSchema } = ensApiContext;
+        const { ensIndexerSchema } = di.context;
         return resolveFindEvents(args, {
           through: {
             table: ensIndexerSchema.permissionsEvent,
@@ -206,7 +206,7 @@ PermissionsResourceRef.implement({
       description: "The PermissionUsers who have Roles within this Resource.",
       type: PermissionsUserRef,
       resolve: (parent, args) => {
-        const { ensDb, ensIndexerSchema } = ensApiContext;
+        const { ensDb, ensIndexerSchema } = di.context;
         const scope = and(
           eq(ensIndexerSchema.permissionsUser.chainId, parent.chainId),
           eq(ensIndexerSchema.permissionsUser.address, parent.address),

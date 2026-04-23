@@ -7,7 +7,7 @@ import logger from "@/lib/logger";
 import { writeGraphQLSchema } from "@/omnigraph-api/lib/write-graphql-schema";
 
 import app from "./app";
-import ensApiContext from "./context";
+import di from "./di";
 
 // start ENSNode API OpenTelemetry SDK
 sdk.start();
@@ -17,23 +17,26 @@ const server = serve(
   {
     fetch: app.fetch,
     get port() {
-      const { port } = ensApiContext.ensApiConfig;
+      const { port } = di.context.ensApiConfig;
       return port;
     },
   },
   async (info) => {
     logger.info(
-      { config: redactEnsApiConfig(ensApiContext.ensApiConfig) },
+      { config: redactEnsApiConfig(di.context.ensApiConfig) },
       `ENSApi listening on port ${info.port}`,
     );
 
     // Write the generated graphql schema in the background
     void writeGraphQLSchema();
 
+    // initialize ENSDb client
+    di.context.ensDbClient;
+
     // initialize cache instances
-    void ensApiContext.indexingStatusCache;
-    void ensApiContext.referralProgramEditionConfigSetCache;
-    void ensApiContext.stackInfoCache;
+    di.context.indexingStatusCache;
+    di.context.referralProgramEditionConfigSetCache;
+    di.context.stackInfoCache;
   },
 );
 
@@ -49,7 +52,7 @@ const closeServer = () =>
 // perform graceful shutdown
 const gracefulShutdown = async () => {
   try {
-    const { referralProgramEditionConfigSetCache, indexingStatusCache } = ensApiContext;
+    const { referralProgramEditionConfigSetCache, indexingStatusCache } = di.context;
 
     await sdk.shutdown();
     logger.info("Destroyed tracing instrumentation");

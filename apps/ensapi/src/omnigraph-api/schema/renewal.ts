@@ -1,13 +1,13 @@
 import type { RenewalId } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { builder } from "@/omnigraph-api/builder";
 import { getModelId } from "@/omnigraph-api/lib/get-model-id";
 import { EventRef } from "@/omnigraph-api/schema/event";
 
 export const RenewalRef = builder.loadableObjectRef("Renewal", {
   load: (ids: RenewalId[]) => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     return ensDb.query.renewal.findMany({
       where: (t, { inArray }) => inArray(t.id, ids),
     });

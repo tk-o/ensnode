@@ -15,7 +15,7 @@ import {
   serializeNameTokensResponse,
 } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { createApp } from "@/lib/hono-factory";
 import { findRegisteredNameTokensForDomain } from "@/lib/name-tokens/find-name-tokens-for-domain";
 import { getIndexedSubregistries } from "@/lib/name-tokens/get-indexed-subregistries";
@@ -79,7 +79,7 @@ app.openapi(getNameTokensRoute, async (c) => {
     }
 
     const parentNode = namehashInterpretedName(parentName);
-    const { namespace, plugins } = ensApiContext.stackInfo.ensIndexer;
+    const { namespace, plugins } = di.context.stackInfo.ensIndexer;
     const indexedSubregistries = getIndexedSubregistries(namespace, plugins);
     const subregistry = indexedSubregistries.find((s) => s.node === parentNode);
 

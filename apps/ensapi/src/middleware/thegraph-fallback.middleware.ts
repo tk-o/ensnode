@@ -2,7 +2,7 @@ import { proxy } from "hono/proxy";
 
 import { canFallbackToTheGraph } from "@ensnode/ensnode-sdk/internal";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { factory } from "@/lib/hono-factory";
 import { makeLogger } from "@/lib/logger";
 
@@ -24,7 +24,7 @@ export const thegraphFallbackMiddleware = factory.createMiddleware(async (c, nex
     throw new Error(`Invariant(thegraphFallbackMiddleware): isRealtimeMiddleware expected`);
   }
 
-  const { ensApiConfig, stackInfo } = ensApiContext;
+  const { ensApiConfig, stackInfo } = di.context;
   const { theGraphApiKey } = ensApiConfig;
   const { namespace, isSubgraphCompatible } = stackInfo.ensIndexer;
 

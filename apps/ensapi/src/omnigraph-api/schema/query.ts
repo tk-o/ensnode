@@ -3,7 +3,7 @@ import { makePermissionsId, makeRegistryId, makeResolverId } from "enssdk";
 
 import { maybeGetENSv2RootRegistryId } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { builder } from "@/omnigraph-api/builder";
 import { orderPaginationBy, paginateBy } from "@/omnigraph-api/lib/connection-helpers";
 import { resolveFindDomains } from "@/omnigraph-api/lib/find-domains/find-domains-resolver";
@@ -35,7 +35,7 @@ const INCLUDE_DEV_METHODS = process.env.NODE_ENV !== "production";
 
 builder.queryType({
   fields: (t) => {
-    const { ensDb, ensIndexerSchema } = ensApiContext;
+    const { ensDb, ensIndexerSchema } = di.context;
     return {
       ...(INCLUDE_DEV_METHODS && {
         /////////////////////////////
@@ -223,7 +223,7 @@ builder.queryType({
         // TODO: make this nullable: false after all namespaces define ENSv2Root
         nullable: true,
         resolve: () => {
-          const { namespace } = ensApiContext.stackInfo.ensIndexer;
+          const { namespace } = di.context.stackInfo.ensIndexer;
           return maybeGetENSv2RootRegistryId(namespace);
         },
       }),

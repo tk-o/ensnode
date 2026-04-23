@@ -5,7 +5,7 @@ import {
   serializeNameTokensResponse,
 } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { factory } from "@/lib/hono-factory";
 import { makeLogger } from "@/lib/logger";
 
@@ -35,7 +35,7 @@ export const nameTokensApiMiddleware = factory.createMiddleware(
       throw new Error(`Invariant(name-tokens.middleware): indexingStatusMiddleware required`);
     }
 
-    const ensIndexerPublicConfig = ensApiContext.stackInfo.ensIndexer;
+    const ensIndexerPublicConfig = di.context.stackInfo.ensIndexer;
     if (!nameTokensPrerequisites.hasEnsIndexerConfigSupport(ensIndexerPublicConfig)) {
       return c.json(
         serializeNameTokensResponse({

@@ -1,10 +1,10 @@
-import ensApiContext from "@/context";
+import di from "@/di";
 import { builder } from "@/omnigraph-api/builder";
 import { getModelId } from "@/omnigraph-api/lib/get-model-id";
 
 export const EventRef = builder.loadableObjectRef("Event", {
   load: (ids: string[]) => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     return ensDb.query.event.findMany({
       where: (t, { inArray }) => inArray(t.id, ids),
     });

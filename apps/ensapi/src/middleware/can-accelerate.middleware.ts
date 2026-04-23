@@ -1,6 +1,6 @@
 import { PluginName } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { factory, producing } from "@/lib/hono-factory";
 import { makeLogger } from "@/lib/logger";
 
@@ -30,7 +30,7 @@ export const canAccelerateMiddleware = producing(
       throw new Error(`Invariant(canAccelerateMiddleware): isRealtime middleware required`);
     }
 
-    const ensIndexerPublicConfig = ensApiContext.stackInfo.ensIndexer;
+    const ensIndexerPublicConfig = di.context.stackInfo.ensIndexer;
 
     ////////////////////////////
     /// Temporary ENSv2 Bailout

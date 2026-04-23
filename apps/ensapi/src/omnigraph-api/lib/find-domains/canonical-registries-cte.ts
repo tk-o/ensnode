@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 
 import { maybeGetENSv2RootRegistryId } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 /**
  * The maximum depth to traverse the ENSv2 namegraph in order to construct the set of Canonical
@@ -27,8 +27,8 @@ const CANONICAL_REGISTRIES_MAX_DEPTH = 16;
  * TODO: could this be optimized further, perhaps as a materialized view?
  */
 export const getCanonicalRegistriesCTE = () => {
-  const rootRegistryId = maybeGetENSv2RootRegistryId(ensApiContext.stackInfo.ensIndexer.namespace);
-  const { ensDb, ensIndexerSchema } = ensApiContext;
+  const rootRegistryId = maybeGetENSv2RootRegistryId(di.context.stackInfo.ensIndexer.namespace);
+  const { ensDb, ensIndexerSchema } = di.context;
   // if ENSv2 is not defined, return an empty set with identical structure to below
   if (!rootRegistryId) {
     return ensDb

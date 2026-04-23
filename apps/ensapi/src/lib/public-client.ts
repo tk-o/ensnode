@@ -1,17 +1,12 @@
 import { createPublicClient, fallback, http, type PublicClient } from "viem";
 
-import { getENSRootChainId } from "@ensnode/datasources";
+import { type ENSNamespaceId, getENSRootChainId } from "@ensnode/datasources";
 import { buildRpcConfigsFromEnv, RpcConfigsSchema } from "@ensnode/ensnode-sdk/internal";
-
-import ensApiContext from "@/context";
-
-let publicClientImmutable: PublicClient | undefined;
 
 /**
  * Build a viem#PublicClient for the root chain of the ENS namespace.
  */
-function buildPublicClientForRootChain(): PublicClient {
-  const { namespace } = ensApiContext.stackInfo.ensIndexer;
+export function buildPublicClientForRootChain(namespace: ENSNamespaceId): PublicClient {
   const rootChainId = getENSRootChainId(namespace);
 
   const unvalidatedRpcConfigs = buildRpcConfigsFromEnv(process.env, namespace);
@@ -26,15 +21,4 @@ function buildPublicClientForRootChain(): PublicClient {
   return createPublicClient({
     transport: fallback(rpcConfig.httpRPCs.map((url) => http(url.toString()))),
   });
-}
-
-/**
- * Get the cached viem#PublicClient for the root chain of the ENS namespace.
- */
-export function getPublicClientForRootChain(): PublicClient {
-  if (typeof publicClientImmutable === "undefined") {
-    publicClientImmutable = buildPublicClientForRootChain();
-  }
-
-  return publicClientImmutable;
 }

@@ -8,14 +8,14 @@ import {
   uniq,
 } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { withActiveSpanAsync } from "@/lib/instrumentation/auto-span";
 import { resolveReverse } from "@/lib/resolution/reverse-resolution";
 
 const tracer = trace.getTracer("multichain-primary-name-resolution");
 
 const getENSIP19SupportedChainIds = () => {
-  const { namespace } = ensApiContext.stackInfo.ensIndexer;
+  const { namespace } = di.context.stackInfo.ensIndexer;
   return [
     // always include Mainnet, because its chainId corresponds to the ENS Root Chain's coinType,
     // regardless of the current namespace

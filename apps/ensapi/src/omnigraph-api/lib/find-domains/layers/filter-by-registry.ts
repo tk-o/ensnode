@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { RegistryId } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 import { type BaseDomainSet, selectBase } from "./base-domain-set";
 
@@ -12,7 +12,7 @@ import { type BaseDomainSet, selectBase } from "./base-domain-set";
  * in the given registry.
  */
 export function filterByRegistry(base: BaseDomainSet, registryId: RegistryId) {
-  const { ensDb } = ensApiContext;
+  const { ensDb } = di.context;
   return ensDb
     .select(selectBase(base))
     .from(base)

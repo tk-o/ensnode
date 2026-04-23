@@ -15,7 +15,7 @@ import {
   SWRCache,
 } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { assumeReferralProgramEditionImmutablyClosed } from "@/lib/ensanalytics/referrer-leaderboard/closeout";
 import { getReferrerLeaderboard } from "@/lib/ensanalytics/referrer-leaderboard/get-referrer-leaderboard";
 import { makeLogger } from "@/lib/logger";
@@ -77,7 +77,7 @@ function createEditionLeaderboardBuilder(
       }
     }
 
-    const { indexingStatusCache } = ensApiContext;
+    const { indexingStatusCache } = di.context;
     const indexingStatus = await indexingStatusCache.read();
     if (indexingStatus instanceof Error) {
       logger.error(

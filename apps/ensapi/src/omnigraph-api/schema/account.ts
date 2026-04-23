@@ -2,7 +2,7 @@ import { type ResolveCursorConnectionArgs, resolveCursorConnection } from "@poth
 import { and, count, eq, getTableColumns } from "drizzle-orm";
 import type { Address } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { builder } from "@/omnigraph-api/builder";
 import { orderPaginationBy, paginateBy } from "@/omnigraph-api/lib/connection-helpers";
 import { resolveFindDomains } from "@/omnigraph-api/lib/find-domains/find-domains-resolver";
@@ -30,7 +30,7 @@ import { ResolverPermissionsUserRef } from "@/omnigraph-api/schema/resolver-perm
 
 export const AccountRef = builder.loadableObjectRef("Account", {
   load: (ids: Address[]) => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     return ensDb.query.account.findMany({
       where: (t, { inArray }) => inArray(t.id, ids),
     });
@@ -112,7 +112,7 @@ AccountRef.implement({
         in: t.arg({ type: AccountIdInput }),
       },
       resolve: (parent, args) => {
-        const { ensDb, ensIndexerSchema } = ensApiContext;
+        const { ensDb, ensIndexerSchema } = di.context;
         const scope = and(
           // this user's permissions
           eq(ensIndexerSchema.permissionsUser.user, parent.id),
@@ -149,7 +149,7 @@ AccountRef.implement({
       description: "The Permissions on Registries granted to this Account.",
       type: RegistryPermissionsUserRef,
       resolve: (parent, args) => {
-        const { ensDb, ensIndexerSchema } = ensApiContext;
+        const { ensDb, ensIndexerSchema } = di.context;
         const scope = eq(ensIndexerSchema.permissionsUser.user, parent.id);
         const join = and(
           eq(ensIndexerSchema.permissionsUser.chainId, ensIndexerSchema.registry.chainId),
@@ -187,7 +187,7 @@ AccountRef.implement({
       description: "The Permissions on Resolvers granted to this Account.",
       type: ResolverPermissionsUserRef,
       resolve: (parent, args) => {
-        const { ensDb, ensIndexerSchema } = ensApiContext;
+        const { ensDb, ensIndexerSchema } = di.context;
         const scope = eq(ensIndexerSchema.permissionsUser.user, parent.id);
         const join = and(
           eq(ensIndexerSchema.permissionsUser.chainId, ensIndexerSchema.resolver.chainId),

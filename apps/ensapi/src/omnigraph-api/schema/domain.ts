@@ -8,7 +8,7 @@ import {
   interpretedLabelsToInterpretedName,
 } from "enssdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { withSpanAsync } from "@/lib/instrumentation/auto-span";
 import { builder } from "@/omnigraph-api/builder";
 import {
@@ -53,7 +53,7 @@ const isENSv1Domain = (domain: Domain): domain is ENSv1Domain => "parentId" in d
 
 export const ENSv1DomainRef = builder.loadableObjectRef("ENSv1Domain", {
   load: (ids: ENSv1DomainId[]) => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     return withSpanAsync(tracer, "ENSv1Domain.load", { count: ids.length }, () =>
       ensDb.query.v1Domain.findMany({
         where: (t, { inArray }) => inArray(t.id, ids),
@@ -68,7 +68,7 @@ export const ENSv1DomainRef = builder.loadableObjectRef("ENSv1Domain", {
 
 export const ENSv2DomainRef = builder.loadableObjectRef("ENSv2Domain", {
   load: (ids: ENSv2DomainId[]) => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     return withSpanAsync(tracer, "ENSv2Domain.load", { count: ids.length }, () =>
       ensDb.query.v2Domain.findMany({
         where: (t, { inArray }) => inArray(t.id, ids),
@@ -83,7 +83,7 @@ export const ENSv2DomainRef = builder.loadableObjectRef("ENSv2Domain", {
 
 export const DomainInterfaceRef = builder.loadableInterfaceRef("Domain", {
   load: async (ids: DomainId[]): Promise<(ENSv1Domain | ENSv2Domain)[]> => {
-    const { ensDb } = ensApiContext;
+    const { ensDb } = di.context;
     const [v1Domains, v2Domains] = await Promise.all([
       ensDb.query.v1Domain.findMany({
         where: (t, { inArray }) => inArray(t.id, ids as any), // ignore downcast to ENSv1DomainId
@@ -228,7 +228,7 @@ DomainInterfaceRef.implement({
       description: "All Registrations for a Domain, including the latest Registration.",
       type: RegistrationInterfaceRef,
       resolve: (parent, args) => {
-        const { ensDb, ensIndexerSchema } = ensApiContext;
+        const { ensDb, ensIndexerSchema } = di.context;
         const scope = eq(ensIndexerSchema.registration.domainId, parent.id);
 
         return lazyConnection({
@@ -289,7 +289,7 @@ DomainInterfaceRef.implement({
         where: t.arg({ type: EventsWhereInput }),
       },
       resolve: (parent, args) => {
-        const { ensIndexerSchema } = ensApiContext;
+        const { ensIndexerSchema } = di.context;
         return resolveFindEvents(args, {
           through: {
             table: ensIndexerSchema.domainEvent,
@@ -381,7 +381,7 @@ ENSv2DomainRef.implement({
         where: t.arg({ type: DomainPermissionsWhereInput }),
       },
       resolve: (parent, args) => {
-        const { ensDb, ensIndexerSchema } = ensApiContext;
+        const { ensDb, ensIndexerSchema } = di.context;
         const scope = and(
           // filter by resource === tokenId
           eq(ensIndexerSchema.permissionsUser.resource, parent.tokenId),

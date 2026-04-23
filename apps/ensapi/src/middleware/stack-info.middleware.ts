@@ -1,15 +1,15 @@
 import type { EnsNodeStackInfo } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { factory } from "@/lib/hono-factory";
 import { makeLogger } from "@/lib/logger";
 
 const logger = makeLogger("stack-info.middleware");
 /**
- * Makes the {@link EnsNodeStackInfo} object cached in {@link ensApiContext.stackInfo}.
+ * Makes the {@link EnsNodeStackInfo} object cached in {@link di.context.stackInfo}.
  */
 export const stackInfoMiddleware = factory.createMiddleware(async (c, next) => {
-  const stackInfo = await ensApiContext.stackInfoCache.read();
+  const stackInfo = await di.context.stackInfoCache.read();
 
   // The stack info is critical for the functioning of the ENSApi instance.
   // If it fails to load, we return a 503 response and log the error.
@@ -29,7 +29,7 @@ export const stackInfoMiddleware = factory.createMiddleware(async (c, next) => {
     );
   }
 
-  ensApiContext.stackInfo = stackInfo;
+  di.context.stackInfo = stackInfo;
 
   await next();
 });

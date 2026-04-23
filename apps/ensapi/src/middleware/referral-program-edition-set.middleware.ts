@@ -1,6 +1,6 @@
 import type { ReferralProgramEditionConfigSet } from "@namehash/ens-referrals";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 import { factory, producing } from "@/lib/hono-factory";
 
 /**
@@ -29,7 +29,7 @@ export type ReferralProgramEditionConfigSetMiddlewareVariables = {
 export const referralProgramEditionConfigSetMiddleware = producing(
   ["referralProgramEditionConfigSet"],
   factory.createMiddleware(async (c, next) => {
-    const { referralProgramEditionConfigSetCache } = ensApiContext;
+    const { referralProgramEditionConfigSetCache } = di.context;
 
     const editionConfigSet = await referralProgramEditionConfigSetCache.read();
     c.set("referralProgramEditionConfigSet", editionConfigSet);

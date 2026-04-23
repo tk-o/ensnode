@@ -10,7 +10,7 @@ import {
 
 import { maybeGetENSv2RootRegistryId } from "@ensnode/ensnode-sdk";
 
-import ensApiContext from "@/context";
+import di from "@/di";
 
 const MAX_DEPTH = 16;
 
@@ -20,7 +20,7 @@ const MAX_DEPTH = 16;
  * i.e. reverse traversal of the nametree
  */
 export async function getV1CanonicalPath(domainId: ENSv1DomainId): Promise<CanonicalPath | null> {
-  const { ensDb, ensIndexerSchema } = ensApiContext;
+  const { ensDb, ensIndexerSchema } = di.context;
 
   const result = await ensDb.execute(sql`
     WITH RECURSIVE upward AS (
@@ -72,12 +72,12 @@ export async function getV1CanonicalPath(domainId: ENSv1DomainId): Promise<Canon
  * i.e. reverse traversal of the namegraph via registry_canonical_domains
  */
 export async function getV2CanonicalPath(domainId: ENSv2DomainId): Promise<CanonicalPath | null> {
-  const rootRegistryId = maybeGetENSv2RootRegistryId(ensApiContext.stackInfo.ensIndexer.namespace);
+  const rootRegistryId = maybeGetENSv2RootRegistryId(di.context.stackInfo.ensIndexer.namespace);
 
   // if the ENSv2 Root Registry is not defined, null
   if (!rootRegistryId) return null;
 
-  const { ensDb, ensIndexerSchema } = ensApiContext;
+  const { ensDb, ensIndexerSchema } = di.context;
 
   const result = await ensDb.execute(sql`
     WITH RECURSIVE upward AS (
