@@ -29,8 +29,9 @@ export async function serverCommand(options: ServerCommandOptions): Promise<void
     // console.log is used so it can't be skipped by the logger
     console.log("ENSRainbow public config:");
     console.log(stringifyConfig(publicConfig, { pretty: true }));
+    console.log("ENSRainbow record count:", dbConfig.recordsCount);
 
-    const app = createApi(ensRainbowServer, publicConfig);
+    const app = createApi(ensRainbowServer, publicConfig, dbConfig.recordsCount);
 
     const httpServer = serve({
       fetch: app.fetch,

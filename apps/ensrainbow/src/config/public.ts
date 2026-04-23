@@ -8,6 +8,5 @@ export function buildEnsRainbowPublicConfig(dbConfig: DbConfig): EnsRainbow.ENSR
   return {
     version: packageJson.version,
     labelSet: dbConfig.labelSet,
-    recordsCount: dbConfig.recordsCount,
   };
 }
