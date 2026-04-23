@@ -58,7 +58,6 @@ const serializedEnsIndexerPublicConfig = {
 } satisfies SerializedEnsIndexerPublicConfig;
 
 export const serializedEnsApiPublicConfig = {
-  ensIndexerPublicConfig: serializedEnsIndexerPublicConfig,
   theGraphFallback: {
     canFallback: true,
     url: "https://api.thegraph.com/subgraphs/name/ensdomains/ens",

@@ -1,11 +1,9 @@
-import config from "@/config";
-
 import { type AccountId, DEFAULT_EVM_COIN_TYPE, type Node } from "enssdk";
 
 import type { ResolverRecordsSelection } from "@ensnode/ensnode-sdk";
 import { staticResolverImplementsAddressRecordDefaulting } from "@ensnode/ensnode-sdk/internal";
 
-import { ensDb } from "@/lib/ensdb/singleton";
+import di from "@/di";
 
 const DEFAULT_EVM_COIN_TYPE_BIGINT = BigInt(DEFAULT_EVM_COIN_TYPE);
 
@@ -18,6 +16,7 @@ export async function getRecordsFromIndex<SELECTION extends ResolverRecordsSelec
   node: Node;
   selection: SELECTION;
 }) {
+  const { ensDb } = di.context;
   const row = await ensDb.query.resolverRecords.findFirst({
     where: (t, { and, eq }) =>
       and(
@@ -40,8 +39,9 @@ export async function getRecordsFromIndex<SELECTION extends ResolverRecordsSelec
   // coalesce undefined to null
   if (!row) return null;
 
+  const { namespace } = di.context.stackInfo.ensIndexer;
   const implementsAddressRecordDefaulting = staticResolverImplementsAddressRecordDefaulting(
-    config.namespace,
+    namespace,
     resolver,
   );
 

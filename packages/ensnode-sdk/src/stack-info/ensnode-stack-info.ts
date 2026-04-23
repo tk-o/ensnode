@@ -38,11 +38,13 @@ export interface EnsNodeStackInfo {
 export function buildEnsNodeStackInfo(
   ensApiPublicConfig: EnsApiPublicConfig,
   ensDbPublicConfig: EnsDbPublicConfig,
+  ensIndexerPublicConfig: EnsIndexerPublicConfig,
+  ensRainbowPublicConfig?: EnsRainbowPublicConfig,
 ): EnsNodeStackInfo {
   return {
     ensApi: ensApiPublicConfig,
     ensDb: ensDbPublicConfig,
-    ensIndexer: ensApiPublicConfig.ensIndexerPublicConfig,
-    ensRainbow: ensApiPublicConfig.ensIndexerPublicConfig.ensRainbowPublicConfig,
+    ensIndexer: ensIndexerPublicConfig,
+    ensRainbow: ensRainbowPublicConfig,
   };
 }

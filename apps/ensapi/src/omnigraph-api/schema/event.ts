@@ -1,12 +1,14 @@
-import { ensDb } from "@/lib/ensdb/singleton";
+import di from "@/di";
 import { builder } from "@/omnigraph-api/builder";
 import { getModelId } from "@/omnigraph-api/lib/get-model-id";
 
 export const EventRef = builder.loadableObjectRef("Event", {
-  load: (ids: string[]) =>
-    ensDb.query.event.findMany({
+  load: (ids: string[]) => {
+    const { ensDb } = di.context;
+    return ensDb.query.event.findMany({
       where: (t, { inArray }) => inArray(t.id, ids),
-    }),
+    });
+  },
   toKey: getModelId,
   cacheResolved: true,
   sort: true,

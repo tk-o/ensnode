@@ -9,7 +9,7 @@ import {
   parsePartialInterpretedName,
 } from "enssdk";
 
-import { ensDb, ensIndexerSchema } from "@/lib/ensdb/singleton";
+import di from "@/di";
 
 import { type BaseDomainSet, selectBase } from "./base-domain-set";
 
@@ -34,6 +34,7 @@ const FILTER_BY_NAME_MAX_DEPTH = 8;
  * This is more efficient than starting from all domains and traversing down.
  */
 function v1DomainsByLabelHashPath(labelHashPath: LabelHashPath) {
+  const { ensDb, ensIndexerSchema } = di.context;
   // If no concrete path, return all domains (leaf = head = self)
   // Postgres will optimize this simple subquery when joined
   if (labelHashPath.length === 0) {
@@ -109,6 +110,7 @@ function v1DomainsByLabelHashPath(labelHashPath: LabelHashPath) {
  * For v2, parent relationship is: domain.registryId -> registryCanonicalDomain -> parent domainId
  */
 function v2DomainsByLabelHashPath(labelHashPath: LabelHashPath) {
+  const { ensDb, ensIndexerSchema } = di.context;
   // If no concrete path, return all domains (leaf = head = self)
   // Postgres will optimize this simple subquery when joined
   if (labelHashPath.length === 0) {
@@ -193,6 +195,7 @@ function v2DomainsByLabelHashPath(labelHashPath: LabelHashPath) {
  */
 export function filterByName(base: BaseDomainSet, name?: string | null) {
   const { concrete, partial } = parsePartialInterpretedName(name || "");
+  const { ensDb, ensIndexerSchema } = di.context;
 
   if (concrete.length > FILTER_BY_NAME_MAX_DEPTH) {
     throw new Error(

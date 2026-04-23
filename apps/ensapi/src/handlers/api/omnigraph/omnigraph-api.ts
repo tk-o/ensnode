@@ -1,14 +1,14 @@
-import config from "@/config";
-
 import { hasOmnigraphApiConfigSupport } from "@ensnode/ensnode-sdk";
 
+import di from "@/di";
 import { createApp } from "@/lib/hono-factory";
 
 const app = createApp();
 
 // 503 if prerequisites not met
 app.use(async (c, next) => {
-  const prerequisite = hasOmnigraphApiConfigSupport(config.ensIndexerPublicConfig);
+  const ensIndexerPublicConfig = di.context.stackInfo.ensIndexer;
+  const prerequisite = hasOmnigraphApiConfigSupport(ensIndexerPublicConfig);
   if (!prerequisite.supported) {
     return c.text(`Service Unavailable: ${prerequisite.reason}`, 503);
   }
