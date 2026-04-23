@@ -6,19 +6,10 @@ import {
   validateEnsIndexerPublicConfig,
   validateEnsIndexerVersionInfo,
 } from "@ensnode/ensnode-sdk";
-import type { EnsRainbow } from "@ensnode/ensrainbow-sdk";
 
 import { getEnsIndexerVersion, getPackageVersion } from "@/lib/version-info";
 
 export class PublicConfigBuilder {
-  /**
-   * ENSRainbow Client
-   *
-   * Used to fetch ENSRainbow Public Config, which is part of
-   * the ENSIndexer Public Config.
-   */
-  private ensRainbowClient: EnsRainbow.ApiClient;
-
   /**
    * Immutable ENSIndexer Public Config
    *
@@ -26,13 +17,6 @@ export class PublicConfigBuilder {
    * on the first call to `getPublicConfig()`, and returned as-is on subsequent calls.
    */
   private immutablePublicConfig: EnsIndexerPublicConfig | undefined;
-
-  /**
-   * @param ensRainbowClient ENSRainbow Client instance used to fetch ENSRainbow Public Config
-   */
-  constructor(ensRainbowClient: EnsRainbow.ApiClient) {
-    this.ensRainbowClient = ensRainbowClient;
-  }
 
   /**
    * Get ENSIndexer Public Config
@@ -43,16 +27,12 @@ export class PublicConfigBuilder {
    * @throws if the built ENSIndexer Public Config does not conform to
    *         the expected schema
    */
-  async getPublicConfig(): Promise<EnsIndexerPublicConfig> {
+  getEnsIndexerPublicConfig(): EnsIndexerPublicConfig {
     if (typeof this.immutablePublicConfig === "undefined") {
-      const [versionInfo, ensRainbowPublicConfig] = await Promise.all([
-        this.getEnsIndexerVersionInfo(),
-        this.ensRainbowClient.config(),
-      ]);
+      const versionInfo = this.getEnsIndexerVersionInfo();
 
       this.immutablePublicConfig = validateEnsIndexerPublicConfig({
         ensIndexerSchemaName: config.ensIndexerSchemaName,
-        ensRainbowPublicConfig,
         labelSet: config.labelSet,
         indexedChainIds: config.indexedChainIds,
         isSubgraphCompatible: config.isSubgraphCompatible,
@@ -77,7 +57,7 @@ export class PublicConfigBuilder {
 
     // ENSDb version
     // ENSDb version is always the same as the ENSIndexer version number
-    const ensDbVersion = ensIndexerVersion;
+    const ensDbVersion = getPackageVersion("@ensnode/ensdb-sdk");
 
     return validateEnsIndexerVersionInfo({
       ponder: getPackageVersion("ponder"),

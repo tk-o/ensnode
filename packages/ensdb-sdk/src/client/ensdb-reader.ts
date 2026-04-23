@@ -7,6 +7,7 @@ import {
   type EnsDbPublicConfig,
   type EnsDbVersionInfo,
   type EnsIndexerPublicConfig,
+  type EnsRainbowPublicConfig,
 } from "@ensnode/ensnode-sdk";
 
 import {
@@ -20,9 +21,11 @@ import { parsePgVersionInfo } from "../lib/parse-pg-version-info";
 import { EnsNodeMetadataKeys } from "./ensnode-metadata";
 import type {
   SerializedEnsNodeMetadata,
+  SerializedEnsNodeMetadataEnsDbPublicConfig,
   SerializedEnsNodeMetadataEnsDbVersion,
   SerializedEnsNodeMetadataEnsIndexerIndexingStatus,
   SerializedEnsNodeMetadataEnsIndexerPublicConfig,
+  SerializedEnsNodeMetadataEnsRainbowPublicConfig,
 } from "./serialize/ensnode-metadata";
 
 /**
@@ -143,7 +146,24 @@ export class EnsDbReader<
   }
 
   /**
-   * Get ENSIndexer Public Config
+   * Get {@link EnsDbPublicConfig}
+   *
+   * @returns the existing record, or `undefined`.
+   */
+  async getEnsDbPublicConfig(): Promise<EnsDbPublicConfig | undefined> {
+    const record = await this.getEnsNodeMetadata<SerializedEnsNodeMetadataEnsDbPublicConfig>({
+      key: EnsNodeMetadataKeys.EnsDbPublicConfig,
+    });
+
+    if (!record) {
+      return undefined;
+    }
+
+    return record; // No need to deserialize as EnsDbPublicConfig is already a JSON-serializable plain object
+  }
+
+  /**
+   * Get {@link EnsIndexerPublicConfig}
    *
    * @returns the existing record, or `undefined`.
    */
@@ -157,6 +177,23 @@ export class EnsDbReader<
     }
 
     return deserializeEnsIndexerPublicConfig(record);
+  }
+
+  /**
+   * Get {@link EnsRainbowPublicConfig}
+   *
+   * @returns the existing record, or `undefined`.
+   */
+  async getEnsRainbowPublicConfig(): Promise<EnsRainbowPublicConfig | undefined> {
+    const record = await this.getEnsNodeMetadata<SerializedEnsNodeMetadataEnsRainbowPublicConfig>({
+      key: EnsNodeMetadataKeys.EnsRainbowPublicConfig,
+    });
+
+    if (!record) {
+      return undefined;
+    }
+
+    return record; // No need to deserialize as EnsRainbowPublicConfig is already a JSON-serializable plain object
   }
 
   /**

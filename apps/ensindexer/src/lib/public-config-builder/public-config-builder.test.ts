@@ -4,7 +4,6 @@ import {
   ENSNamespaceIds,
   type EnsIndexerPublicConfig,
   type EnsIndexerVersionInfo,
-  type EnsRainbowPublicConfig,
   PluginName,
 } from "@ensnode/ensnode-sdk";
 import type { EnsRainbow } from "@ensnode/ensrainbow-sdk";
@@ -50,12 +49,6 @@ import {
 import { getEnsIndexerVersion, getPackageVersion } from "@/lib/version-info";
 
 // Test fixtures
-const mockEnsRainbowConfig: EnsRainbowPublicConfig = {
-  version: "1.0.0",
-  labelSet: { labelSetId: "subgraph", highestLabelSetVersion: 0 },
-  recordsCount: 1000,
-};
-
 const mockVersionInfo: EnsIndexerVersionInfo = {
   ponder: "0.9.0",
   ensDb: "1.0.0",
@@ -68,7 +61,6 @@ function createMockPublicConfig(overrides: Partial<EnsIndexerPublicConfig> = {})
   return {
     ensIndexerSchemaName: "ensindexer_0",
     labelSet: { labelSetId: "subgraph", labelSetVersion: 0 },
-    ensRainbowPublicConfig: mockEnsRainbowConfig,
     indexedChainIds: new Set([1, 8453]),
     isSubgraphCompatible: true,
     namespace: ENSNamespaceIds.Mainnet,
@@ -93,21 +85,16 @@ describe("PublicConfigBuilder", () => {
   describe("getPublicConfig() - successful builds", () => {
     it("builds and returns public config on first call", async () => {
       // Arrange
-      const ensRainbowClientMock = {
-        config: vi.fn().mockResolvedValue(mockEnsRainbowConfig),
-      } as unknown as EnsRainbow.ApiClient;
-
       setupStandardMocks();
       const mockPublicConfig = createMockPublicConfig();
       vi.mocked(validateEnsIndexerPublicConfig).mockReturnValue(mockPublicConfig);
 
-      const builder = new PublicConfigBuilder(ensRainbowClientMock);
+      const builder = new PublicConfigBuilder();
 
       // Act
-      const result = await builder.getPublicConfig();
+      const result = builder.getEnsIndexerPublicConfig();
 
       // Assert
-      expect(ensRainbowClientMock.config).toHaveBeenCalledTimes(1);
       expect(getEnsIndexerVersion).toHaveBeenCalledTimes(1);
       expect(getPackageVersion).toHaveBeenCalledWith("ponder");
       expect(getPackageVersion).toHaveBeenCalledWith("@adraffy/ens-normalize");
@@ -121,7 +108,6 @@ describe("PublicConfigBuilder", () => {
 
       expect(validateEnsIndexerPublicConfig).toHaveBeenCalledWith({
         ensIndexerSchemaName: config.ensIndexerSchemaName,
-        ensRainbowPublicConfig: mockEnsRainbowConfig,
         labelSet: config.labelSet,
         indexedChainIds: config.indexedChainIds,
         isSubgraphCompatible: config.isSubgraphCompatible,
@@ -135,23 +121,18 @@ describe("PublicConfigBuilder", () => {
 
     it("caches public config and returns cached version on subsequent calls", async () => {
       // Arrange
-      const ensRainbowClientMock = {
-        config: vi.fn().mockResolvedValue(mockEnsRainbowConfig),
-      } as unknown as EnsRainbow.ApiClient;
-
       setupStandardMocks();
       const mockPublicConfig = createMockPublicConfig();
       vi.mocked(validateEnsIndexerPublicConfig).mockReturnValue(mockPublicConfig);
 
-      const builder = new PublicConfigBuilder(ensRainbowClientMock);
+      const builder = new PublicConfigBuilder();
 
       // Act
-      const result1 = await builder.getPublicConfig();
-      const result2 = await builder.getPublicConfig();
-      const result3 = await builder.getPublicConfig();
+      const result1 = builder.getEnsIndexerPublicConfig();
+      const result2 = builder.getEnsIndexerPublicConfig();
+      const result3 = builder.getEnsIndexerPublicConfig();
 
       // Assert
-      expect(ensRainbowClientMock.config).toHaveBeenCalledTimes(1);
       expect(getEnsIndexerVersion).toHaveBeenCalledTimes(1);
       expect(getPackageVersion).toHaveBeenCalledTimes(2);
       expect(validateEnsIndexerVersionInfo).toHaveBeenCalledTimes(1);
@@ -172,10 +153,6 @@ describe("PublicConfigBuilder", () => {
         indexedChainIds: new Set([1, 8453, 59144]),
       });
 
-      const ensRainbowClientMock = {
-        config: vi.fn().mockResolvedValue(mockEnsRainbowConfig),
-      } as unknown as EnsRainbow.ApiClient;
-
       vi.mocked(getEnsIndexerVersion).mockReturnValue("2.0.0");
       vi.mocked(getPackageVersion).mockReturnValue("1.0.0");
 
@@ -189,10 +166,10 @@ describe("PublicConfigBuilder", () => {
       vi.mocked(validateEnsIndexerVersionInfo).mockReturnValue(customVersionInfo);
       vi.mocked(validateEnsIndexerPublicConfig).mockReturnValue(customConfig);
 
-      const builder = new PublicConfigBuilder(ensRainbowClientMock);
+      const builder = new PublicConfigBuilder();
 
       // Act
-      const result = await builder.getPublicConfig();
+      const result = builder.getEnsIndexerPublicConfig();
 
       // Assert
       expect(result).toBe(customConfig);
@@ -206,23 +183,13 @@ describe("PublicConfigBuilder", () => {
         labelSet: { labelSetId: "custom", labelSetVersion: 1 },
       });
 
-      const customEnsRainbowConfig: EnsRainbowPublicConfig = {
-        version: "1.0.0",
-        labelSet: { labelSetId: "custom", highestLabelSetVersion: 1 },
-        recordsCount: 2000,
-      };
-
-      const ensRainbowClientMock = {
-        config: vi.fn().mockResolvedValue(customEnsRainbowConfig),
-      } as unknown as EnsRainbow.ApiClient;
-
       setupStandardMocks();
       vi.mocked(validateEnsIndexerPublicConfig).mockReturnValue(customConfig);
 
-      const builder = new PublicConfigBuilder(ensRainbowClientMock);
+      const builder = new PublicConfigBuilder();
 
       // Act
-      const result = await builder.getPublicConfig();
+      const result = builder.getEnsIndexerPublicConfig();
 
       // Assert
       expect(result).toBe(customConfig);
@@ -240,19 +207,16 @@ describe("PublicConfigBuilder", () => {
 
       setupStandardMocks();
 
-      const builder = new PublicConfigBuilder(ensRainbowClientMock);
+      const builder = new PublicConfigBuilder();
 
       // Act & Assert
-      await expect(builder.getPublicConfig()).rejects.toThrow(ensRainbowError);
+      expect(() => builder.getEnsIndexerPublicConfig()).toThrow(ensRainbowError);
       expect(ensRainbowClientMock.config).toHaveBeenCalledTimes(1);
       expect(validateEnsIndexerPublicConfig).not.toHaveBeenCalled();
     });
 
     it("throws when version info validation fails", async () => {
-      // Arrange
-      const ensRainbowClientMock = {
-        config: vi.fn().mockResolvedValue(mockEnsRainbowConfig),
-      } as unknown as EnsRainbow.ApiClient;
+      // Arrange;
 
       setupStandardMocks();
 
@@ -261,20 +225,16 @@ describe("PublicConfigBuilder", () => {
         throw validationError;
       });
 
-      const builder = new PublicConfigBuilder(ensRainbowClientMock);
+      const builder = new PublicConfigBuilder();
 
       // Act & Assert
-      await expect(builder.getPublicConfig()).rejects.toThrow(validationError);
+      await expect(builder.getEnsIndexerPublicConfig()).rejects.toThrow(validationError);
       expect(validateEnsIndexerVersionInfo).toHaveBeenCalledTimes(1);
       expect(validateEnsIndexerPublicConfig).not.toHaveBeenCalled();
     });
 
     it("throws when public config validation fails", async () => {
       // Arrange
-      const ensRainbowClientMock = {
-        config: vi.fn().mockResolvedValue(mockEnsRainbowConfig),
-      } as unknown as EnsRainbow.ApiClient;
-
       setupStandardMocks();
 
       const validationError = new Error("Invalid public config: invalid namespace");
@@ -282,74 +242,11 @@ describe("PublicConfigBuilder", () => {
         throw validationError;
       });
 
-      const builder = new PublicConfigBuilder(ensRainbowClientMock);
+      const builder = new PublicConfigBuilder();
 
       // Act & Assert
-      await expect(builder.getPublicConfig()).rejects.toThrow(validationError);
+      expect(() => builder.getEnsIndexerPublicConfig()).toThrow(validationError);
       expect(validateEnsIndexerPublicConfig).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("Caching behavior", () => {
-    it("each builder instance has its own independent cache", async () => {
-      // Arrange - create unique config objects for each builder
-      const config1 = createMockPublicConfig({ ensIndexerSchemaName: "schema1" });
-      const config2 = createMockPublicConfig({ ensIndexerSchemaName: "schema2" });
-
-      let callCount = 0;
-      const ensRainbowClientMock = {
-        config: vi.fn().mockImplementation(() => {
-          callCount++;
-          return Promise.resolve(mockEnsRainbowConfig);
-        }),
-      } as unknown as EnsRainbow.ApiClient;
-
-      setupStandardMocks();
-
-      // Return different configs for each builder instance
-      vi.mocked(validateEnsIndexerPublicConfig).mockImplementation(() => {
-        return callCount === 1 ? config1 : config2;
-      });
-
-      // Act
-      const builder1 = new PublicConfigBuilder(ensRainbowClientMock);
-      const result1 = await builder1.getPublicConfig();
-
-      const builder2 = new PublicConfigBuilder(ensRainbowClientMock);
-      const result2 = await builder2.getPublicConfig();
-
-      // Assert - each builder should have fetched and cached its own config independently
-      expect(ensRainbowClientMock.config).toHaveBeenCalledTimes(2);
-      expect(result1).toBe(config1);
-      expect(result2).toBe(config2);
-      expect(result1).not.toBe(result2);
-      expect(result1.ensIndexerSchemaName).toBe("schema1");
-      expect(result2.ensIndexerSchemaName).toBe("schema2");
-    });
-
-    it("retries building config on subsequent calls after failure", async () => {
-      // Arrange
-      const ensRainbowClientMock = {
-        config: vi.fn().mockRejectedValueOnce(new Error("ENSRainbow down")),
-      } as unknown as EnsRainbow.ApiClient;
-
-      const builder = new PublicConfigBuilder(ensRainbowClientMock);
-
-      // Act & Assert - first call fails
-      await expect(builder.getPublicConfig()).rejects.toThrow("ENSRainbow down");
-
-      // Simulate recovery
-      vi.mocked(ensRainbowClientMock.config).mockResolvedValue(mockEnsRainbowConfig);
-      setupStandardMocks();
-      const mockPublicConfig = createMockPublicConfig();
-      vi.mocked(validateEnsIndexerPublicConfig).mockReturnValue(mockPublicConfig);
-
-      // Second call should succeed
-      const result = await builder.getPublicConfig();
-
-      // Assert
-      expect(ensRainbowClientMock.config).toHaveBeenCalledTimes(2);
-      expect(result).toBe(mockPublicConfig);
     });
   });
 });

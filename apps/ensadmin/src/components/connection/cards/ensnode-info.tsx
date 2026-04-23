@@ -597,7 +597,7 @@ function ENSNodeConfigCardContent({ ensNodeStackInfo }: { ensNodeStackInfo: EnsN
         icon={<ENSRainbowIcon width={24} height={24} />}
         version={
           <p className="text-sm leading-normal font-normal text-muted-foreground">
-            v{ensIndexerPublicConfig.ensRainbowPublicConfig.version}
+            v{ensRainbowPublicConfig.versionInfo.ensRainbow}
           </p>
         }
         docsLink={new URL("https://ensnode.io/ensrainbow")}
@@ -607,8 +607,8 @@ function ENSNodeConfigCardContent({ ensNodeStackInfo }: { ensNodeStackInfo: EnsN
             label="Server LabelSet"
             value={
               <p className={cardItemValueStyles}>
-                {ensIndexerPublicConfig.ensRainbowPublicConfig.labelSet.labelSetId}:
-                {ensIndexerPublicConfig.ensRainbowPublicConfig.labelSet.highestLabelSetVersion}
+                {ensRainbowPublicConfig.labelSet.labelSetId}:
+                {ensRainbowPublicConfig.labelSet.highestLabelSetVersion}
               </p>
             }
             additionalInfo={
@@ -616,25 +616,6 @@ function ENSNodeConfigCardContent({ ensNodeStackInfo }: { ensNodeStackInfo: EnsN
                 The labelset id and highest labelset version offered by the ENSRainbow server.{" "}
                 <ExternalLinkWithIcon
                   href={`https://ensnode.io/ensrainbow/concepts/label-sets-and-versioning`}
-                >
-                  Learn more.
-                </ExternalLinkWithIcon>
-              </p>
-            }
-          />
-
-          <InfoCardItem
-            label="Records Count"
-            value={
-              <p className={cardItemValueStyles}>
-                {ensIndexerPublicConfig.ensRainbowPublicConfig.recordsCount.toLocaleString()}
-              </p>
-            }
-            additionalInfo={
-              <p>
-                The total number of Rainbow Records.{" "}
-                <ExternalLinkWithIcon
-                  href={`https://ensnode.io/ensrainbow/concepts/glossary#rainbow-record`}
                 >
                   Learn more.
                 </ExternalLinkWithIcon>

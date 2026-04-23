@@ -1,7 +1,8 @@
-import type { ensIndexerSchema } from "@/lib/ensdb/singleton";
+import type di from "@/di";
 import { builder } from "@/omnigraph-api/builder";
 
-export const LabelRef = builder.objectRef<typeof ensIndexerSchema.label.$inferSelect>("Label");
+export const LabelRef =
+  builder.objectRef<typeof di.context.ensIndexerSchema.label.$inferSelect>("Label");
 LabelRef.implement({
   description: "Represents a Label within ENS, providing its hash and interpreted representation.",
   fields: (t) => ({

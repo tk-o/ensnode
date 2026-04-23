@@ -156,7 +156,7 @@ describe("EnsDbWriterWorker", () => {
 
       // act & assert
       await expect(worker.run()).rejects.toThrow("Network failure");
-      expect(publicConfigBuilder.getPublicConfig).toHaveBeenCalledTimes(1);
+      expect(publicConfigBuilder.getEnsIndexerPublicConfig).toHaveBeenCalledTimes(1);
       expect(ensDbClient.upsertEnsDbVersion).not.toHaveBeenCalled();
     });
 
@@ -190,7 +190,7 @@ describe("EnsDbWriterWorker", () => {
 
       // assert - both should have been called (concurrent execution via Promise.all)
       expect(ensDbClient.getEnsIndexerPublicConfig).toHaveBeenCalledTimes(1);
-      expect(publicConfigBuilder.getPublicConfig).toHaveBeenCalledTimes(1);
+      expect(publicConfigBuilder.getEnsIndexerPublicConfig).toHaveBeenCalledTimes(1);
 
       // cleanup
       worker.stop();
@@ -209,7 +209,7 @@ describe("EnsDbWriterWorker", () => {
       await worker.run();
 
       // assert - config should be called once (pRetry is mocked)
-      expect(publicConfigBuilder.getPublicConfig).toHaveBeenCalledTimes(1);
+      expect(publicConfigBuilder.getEnsIndexerPublicConfig).toHaveBeenCalledTimes(1);
       expect(ensDbClient.upsertEnsIndexerPublicConfig).toHaveBeenCalledWith(mockPublicConfig);
 
       // cleanup

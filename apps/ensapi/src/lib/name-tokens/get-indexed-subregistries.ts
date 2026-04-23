@@ -17,7 +17,7 @@ import {
  */
 export function getIndexedSubregistries(
   namespaceId: ENSNamespaceId,
-  activePlugins: PluginName[],
+  activePlugins: string[],
 ): Subregistry[] {
   const indexedSubregistries: Subregistry[] = [];
 

@@ -22,6 +22,7 @@ import { logger } from "@/utils/logger";
 export function createApi(
   server: ENSRainbowServer,
   publicConfig: EnsRainbow.ENSRainbowPublicConfig,
+  recordsCount: number,
 ): Hono {
   const api = new Hono();
 
@@ -89,7 +90,7 @@ export function createApi(
   api.get("/v1/labels/count", (c: HonoContext) => {
     const countResponse: EnsRainbow.CountSuccess = {
       status: StatusCode.Success,
-      count: publicConfig.recordsCount,
+      count: recordsCount,
       timestamp: new Date().toISOString(),
     };
     return c.json(countResponse);

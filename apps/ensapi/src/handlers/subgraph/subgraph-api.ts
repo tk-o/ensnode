@@ -1,18 +1,11 @@
-import config from "@/config";
-
 import type { Duration } from "enssdk";
 import { createDocumentationMiddleware } from "ponder-enrich-gql-docs-middleware";
 
-// FIXME: use the import from:
-// import { ensIndexerSchema } from "@/lib/ensdb/singleton";
-// Once the lazy proxy implemented for `ensIndexerSchema` export is improved
-// to support Drizzle ORM in `ponder-subgraph` package.
-import * as ensIndexerSchema from "@ensnode/ensdb-sdk/ensindexer-abstract";
 import { hasSubgraphApiConfigSupport } from "@ensnode/ensnode-sdk";
 import { subgraphGraphQLMiddleware } from "@ensnode/ponder-subgraph";
 
+import di from "@/di";
 import { createApp } from "@/lib/hono-factory";
-import { lazy } from "@/lib/lazy";
 import { makeSubgraphApiDocumentation } from "@/lib/subgraph/api-documentation";
 import { filterSchemaByPrefix } from "@/lib/subgraph/filter-schema-by-prefix";
 import { fixContentLengthMiddleware } from "@/middleware/fix-content-length.middleware";
@@ -23,14 +16,12 @@ import { thegraphFallbackMiddleware } from "@/middleware/thegraph-fallback.middl
 
 const MAX_REALTIME_DISTANCE_TO_RESOLVE: Duration = 10 * 60; // 10 minutes in seconds
 
-// generate a subgraph-specific subset of the schema
-const subgraphSchema = filterSchemaByPrefix("subgraph_", ensIndexerSchema);
-
 const app = createApp();
 
 // 503 if subgraph plugin not available
 app.use(async (c, next) => {
-  const prerequisite = hasSubgraphApiConfigSupport(config.ensIndexerPublicConfig);
+  const ensIndexerPublicConfig = di.context.stackInfo.ensIndexer;
+  const prerequisite = hasSubgraphApiConfigSupport(ensIndexerPublicConfig);
   if (!prerequisite.supported) {
     return c.text(`Service Unavailable: ${prerequisite.reason}`, 503);
   }
@@ -56,53 +47,57 @@ app.use(createDocumentationMiddleware(makeSubgraphApiDocumentation(), { path: "/
 // inject _meta into the hono (and yoga) context for the subgraph middleware
 app.use(subgraphMetaMiddleware);
 
-// lazy() defers construction until first use so that this module can be
-// imported without env vars being present (e.g. during OpenAPI generation).
-const getSubgraphMiddleware = lazy(() =>
+app.use(
   subgraphGraphQLMiddleware({
-    databaseUrl: config.ensDbUrl,
-    databaseSchema: config.ensIndexerSchemaName,
-    schema: subgraphSchema,
-    // describes the polymorphic (interface) relationships in the schema
-    polymorphicConfig: {
-      types: {
-        DomainEvent: [
-          subgraphSchema.transfer,
-          subgraphSchema.newOwner,
-          subgraphSchema.newResolver,
-          subgraphSchema.newTTL,
-          subgraphSchema.wrappedTransfer,
-          subgraphSchema.nameWrapped,
-          subgraphSchema.nameUnwrapped,
-          subgraphSchema.fusesSet,
-          subgraphSchema.expiryExtended,
-        ],
-        RegistrationEvent: [
-          subgraphSchema.nameRegistered,
-          subgraphSchema.nameRenewed,
-          subgraphSchema.nameTransferred,
-        ],
-        ResolverEvent: [
-          subgraphSchema.addrChanged,
-          subgraphSchema.multicoinAddrChanged,
-          subgraphSchema.nameChanged,
-          subgraphSchema.abiChanged,
-          subgraphSchema.pubkeyChanged,
-          subgraphSchema.textChanged,
-          subgraphSchema.contenthashChanged,
-          subgraphSchema.interfaceChanged,
-          subgraphSchema.authorisationChanged,
-          subgraphSchema.versionChanged,
-        ],
-      },
-      fields: {
-        "Domain.events": "DomainEvent",
-        "Registration.events": "RegistrationEvent",
-        "Resolver.events": "ResolverEvent",
-      },
+    getYogaOptions() {
+      // generate a subgraph-specific subset of the schema
+      const subgraphSchema = filterSchemaByPrefix("subgraph_", di.context.ensIndexerSchema);
+
+      return {
+        databaseUrl: di.context.ensApiConfig.ensDbUrl,
+        databaseSchema: di.context.ensApiConfig.ensIndexerSchemaName,
+        schema: subgraphSchema,
+        // describes the polymorphic (interface) relationships in the schema
+        polymorphicConfig: {
+          types: {
+            DomainEvent: [
+              subgraphSchema.transfer,
+              subgraphSchema.newOwner,
+              subgraphSchema.newResolver,
+              subgraphSchema.newTTL,
+              subgraphSchema.wrappedTransfer,
+              subgraphSchema.nameWrapped,
+              subgraphSchema.nameUnwrapped,
+              subgraphSchema.fusesSet,
+              subgraphSchema.expiryExtended,
+            ],
+            RegistrationEvent: [
+              subgraphSchema.nameRegistered,
+              subgraphSchema.nameRenewed,
+              subgraphSchema.nameTransferred,
+            ],
+            ResolverEvent: [
+              subgraphSchema.addrChanged,
+              subgraphSchema.multicoinAddrChanged,
+              subgraphSchema.nameChanged,
+              subgraphSchema.abiChanged,
+              subgraphSchema.pubkeyChanged,
+              subgraphSchema.textChanged,
+              subgraphSchema.contenthashChanged,
+              subgraphSchema.interfaceChanged,
+              subgraphSchema.authorisationChanged,
+              subgraphSchema.versionChanged,
+            ],
+          },
+          fields: {
+            "Domain.events": "DomainEvent",
+            "Registration.events": "RegistrationEvent",
+            "Resolver.events": "ResolverEvent",
+          },
+        },
+      };
     },
   }),
 );
-app.use((c, next) => getSubgraphMiddleware()(c, next));
 
 export default app;

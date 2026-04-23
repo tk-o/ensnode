@@ -1,6 +1,8 @@
 import type {
   SerializedCrossChainIndexingStatusSnapshot,
+  SerializedEnsDbPublicConfig,
   SerializedEnsIndexerPublicConfig,
+  SerializedEnsRainbowPublicConfig,
 } from "@ensnode/ensnode-sdk";
 
 import type {
@@ -17,11 +19,27 @@ import type {
 export type SerializedEnsNodeMetadataEnsDbVersion = EnsNodeMetadataEnsDbVersion;
 
 /**
+ * Serialized representation of {@link EnsNodeMetadataEnsDbPublicConfig}.
+ */
+export interface SerializedEnsNodeMetadataEnsDbPublicConfig {
+  key: typeof EnsNodeMetadataKeys.EnsDbPublicConfig;
+  value: SerializedEnsDbPublicConfig;
+}
+
+/**
  * Serialized representation of {@link EnsNodeMetadataEnsIndexerPublicConfig}.
  */
 export interface SerializedEnsNodeMetadataEnsIndexerPublicConfig {
   key: typeof EnsNodeMetadataKeys.EnsIndexerPublicConfig;
   value: SerializedEnsIndexerPublicConfig;
+}
+
+/**
+ * Serialized representation of {@link EnsNodeMetadataEnsRainbowPublicConfig}.
+ */
+export interface SerializedEnsNodeMetadataEnsRainbowPublicConfig {
+  key: typeof EnsNodeMetadataKeys.EnsRainbowPublicConfig;
+  value: SerializedEnsRainbowPublicConfig;
 }
 
 /**
@@ -37,5 +55,7 @@ export interface SerializedEnsNodeMetadataEnsIndexerIndexingStatus {
  */
 export type SerializedEnsNodeMetadata =
   | SerializedEnsNodeMetadataEnsDbVersion
+  | SerializedEnsNodeMetadataEnsDbPublicConfig
   | SerializedEnsNodeMetadataEnsIndexerPublicConfig
+  | SerializedEnsNodeMetadataEnsRainbowPublicConfig
   | SerializedEnsNodeMetadataEnsIndexerIndexingStatus;

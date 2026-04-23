@@ -1,6 +1,8 @@
 import type {
   CrossChainIndexingStatusSnapshot,
+  EnsDbPublicConfig,
   EnsIndexerPublicConfig,
+  EnsRainbowPublicConfig,
 } from "@ensnode/ensnode-sdk";
 
 /**
@@ -8,7 +10,9 @@ import type {
  */
 export const EnsNodeMetadataKeys = {
   EnsDbVersion: "ensdb_version",
+  EnsDbPublicConfig: "ensdb_public_config",
   EnsIndexerPublicConfig: "ensindexer_public_config",
+  EnsRainbowPublicConfig: "ensrainbow_public_config",
   EnsIndexerIndexingStatus: "ensindexer_indexing_status",
 } as const;
 
@@ -19,9 +23,19 @@ export interface EnsNodeMetadataEnsDbVersion {
   value: string;
 }
 
+export interface EnsNodeMetadataEnsDbPublicConfig {
+  key: typeof EnsNodeMetadataKeys.EnsDbPublicConfig;
+  value: EnsDbPublicConfig;
+}
+
 export interface EnsNodeMetadataEnsIndexerPublicConfig {
   key: typeof EnsNodeMetadataKeys.EnsIndexerPublicConfig;
   value: EnsIndexerPublicConfig;
+}
+
+export interface EnsNodeMetadataEnsRainbowPublicConfig {
+  key: typeof EnsNodeMetadataKeys.EnsRainbowPublicConfig;
+  value: EnsRainbowPublicConfig;
 }
 
 export interface EnsNodeMetadataEnsIndexerIndexingStatus {
@@ -36,5 +50,7 @@ export interface EnsNodeMetadataEnsIndexerIndexingStatus {
  */
 export type EnsNodeMetadata =
   | EnsNodeMetadataEnsDbVersion
+  | EnsNodeMetadataEnsDbPublicConfig
   | EnsNodeMetadataEnsIndexerPublicConfig
+  | EnsNodeMetadataEnsRainbowPublicConfig
   | EnsNodeMetadataEnsIndexerIndexingStatus;

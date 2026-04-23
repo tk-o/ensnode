@@ -1,6 +1,18 @@
 import type { EnsRainbowServerLabelSet } from "./types";
 
 /**
+ * Version info about ENSRainbow and its dependencies.
+ */
+interface EnsRainbowVersionInfo {
+  /**
+   * ENSRainbow service version
+   *
+   * @see https://ghcr.io/namehash/ensnode/ensrainbow
+   */
+  ensRainbow: string;
+}
+
+/**
  * Complete public configuration object for ENSRainbow.
  *
  * Contains all public configuration information about the ENSRainbow service instance,
@@ -8,19 +20,12 @@ import type { EnsRainbowServerLabelSet } from "./types";
  */
 export interface EnsRainbowPublicConfig {
   /**
-   * ENSRainbow service version
-   *
-   * @see https://ghcr.io/namehash/ensnode/ensrainbow
-   */
-  version: string;
-
-  /**
    * The label set reference managed by the ENSRainbow server.
    */
   labelSet: EnsRainbowServerLabelSet;
 
   /**
-   * The total count of records managed by the ENSRainbow service.
+   * Version info about ENSRainbow.
    */
-  recordsCount: number;
+  versionInfo: EnsRainbowVersionInfo;
 }

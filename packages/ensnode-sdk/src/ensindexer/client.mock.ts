@@ -14,14 +14,6 @@ export const configResponseMock = {
   },
   indexedChainIds: [1, 8453, 59144, 10, 42161, 534352],
   ensIndexerSchemaName: "alphaSchema0.31.0",
-  ensRainbowPublicConfig: {
-    version: "0.31.0",
-    labelSet: {
-      labelSetId: "subgraph",
-      highestLabelSetVersion: 0,
-    },
-    recordsCount: 100,
-  },
   isSubgraphCompatible: false,
   namespace: "mainnet",
   plugins: [
