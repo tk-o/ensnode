@@ -103,8 +103,10 @@ const EXAMPLE_ENSINDEXER_PUBLIC_CONFIG = {
 } satisfies SerializedEnsIndexerPublicConfig;
 
 const EXAMPLE_ENSRAINBOW_PUBLIC_CONFIG = {
-  version: "1.9.0",
   labelSet: { labelSetId: "subgraph", highestLabelSetVersion: 0 },
+  versionInfo: {
+    ensRainbow: "1.9.0",
+  },
 } satisfies SerializedEnsRainbowPublicConfig;
 
 const serializedStackInfo = {

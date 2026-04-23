@@ -47,15 +47,21 @@ export function buildEnsNodeStackInfoCache(
       if (cachedResult && !(cachedResult.result instanceof Error)) {
         return cachedResult.result;
       }
-      const ensIndexerPublicConfig = await ensDbClient.getEnsIndexerPublicConfig();
+      const [ensIndexerPublicConfig, ensRainbowPublicConfig] = await Promise.all([
+        ensDbClient.getEnsIndexerPublicConfig(),
+        ensDbClient.getEnsRainbowPublicConfig(),
+      ]);
 
       if (!ensIndexerPublicConfig) {
         throw new Error("EnsIndexerPublicConfig is not available in ENSDb");
       }
 
+      if (!ensRainbowPublicConfig) {
+        throw new Error("EnsRainbowPublicConfig is not available in ENSDb");
+      }
+
       const ensApiPublicConfig = buildEnsApiPublicConfig(ensApiConfig, ensIndexerPublicConfig);
       const ensDbPublicConfig = await ensDbClient.buildEnsDbPublicConfig();
-      const ensRainbowPublicConfig = ensIndexerPublicConfig.ensRainbowPublicConfig;
 
       const stackInfo = buildEnsNodeStackInfo(
         ensApiPublicConfig,

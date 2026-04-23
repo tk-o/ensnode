@@ -12,6 +12,7 @@ import {
   type OmnichainIndexingStatusSnapshot,
   PluginName,
 } from "@ensnode/ensnode-sdk";
+import type { EnsRainbowApiClient } from "@ensnode/ensrainbow-sdk";
 import type { LocalPonderClient } from "@ensnode/ponder-sdk";
 
 import { EnsDbWriterWorker } from "@/lib/ensdb-writer-worker/ensdb-writer-worker";
@@ -20,9 +21,10 @@ import type { PublicConfigBuilder } from "@/lib/public-config-builder";
 
 // Test fixture for EnsRainbowPublicConfig
 export const mockEnsRainbowPublicConfig: EnsRainbowPublicConfig = {
-  version: "1.0.0",
   labelSet: { labelSetId: "subgraph", highestLabelSetVersion: 0 },
-  recordsCount: 1000,
+  versionInfo: {
+    ensRainbow: "1.9.0",
+  },
 };
 
 // Test fixture for EnsIndexerVersionInfo
@@ -37,7 +39,6 @@ export const mockVersionInfo: EnsIndexerVersionInfo = {
 export const mockPublicConfig: EnsIndexerPublicConfig = {
   ensIndexerSchemaName: "ensindexer_0",
   labelSet: { labelSetId: "subgraph", labelSetVersion: 0 },
-  ensRainbowPublicConfig: mockEnsRainbowPublicConfig,
   indexedChainIds: new Set([1, 8453]),
   isSubgraphCompatible: true,
   namespace: ENSNamespaceIds.Mainnet,
@@ -64,6 +65,14 @@ export function baseEnsDbWriter() {
     upsertEnsIndexerPublicConfig: vi.fn().mockResolvedValue(undefined),
     upsertIndexingStatusSnapshot: vi.fn().mockResolvedValue(undefined),
   };
+}
+
+export function createMockEnsRainbowApiClient(
+  resolvedConfig: EnsRainbowPublicConfig = mockEnsRainbowPublicConfig,
+): EnsRainbowApiClient {
+  return {
+    getEnsRainbowPublicConfig: vi.fn().mockResolvedValue(resolvedConfig),
+  } as unknown as EnsRainbowApiClient;
 }
 
 export function createMockPublicConfigBuilder(
@@ -118,12 +127,14 @@ export function createMockLocalPonderClient(
 export function createMockEnsDbWriterWorker(
   overrides: {
     ensDbClient?: EnsDbWriter;
+    ensRainbowClient?: EnsRainbowApiClient;
     publicConfigBuilder?: PublicConfigBuilder;
     indexingStatusBuilder?: IndexingStatusBuilder;
     isInDevMode?: boolean;
   } = {},
 ) {
   const ensDbClient = overrides.ensDbClient ?? createMockEnsDbWriter();
+  const ensRainbowClient = overrides.ensRainbowClient ?? createMockEnsRainbowApiClient();
   const publicConfigBuilder = overrides.publicConfigBuilder ?? createMockPublicConfigBuilder();
   const indexingStatusBuilder =
     overrides.indexingStatusBuilder ?? createMockIndexingStatusBuilder();
@@ -133,6 +144,7 @@ export function createMockEnsDbWriterWorker(
 
   return new EnsDbWriterWorker(
     ensDbClient,
+    ensRainbowClient,
     publicConfigBuilder,
     indexingStatusBuilder,
     localPonderClient,

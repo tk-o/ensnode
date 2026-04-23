@@ -45,11 +45,6 @@ const BASE_ENV = {
 const ENSINDEXER_PUBLIC_CONFIG = {
   namespace: "mainnet",
   ensIndexerSchemaName: "ensindexer_0",
-  ensRainbowPublicConfig: {
-    version: packageJson.version,
-    labelSet: { labelSetId: "subgraph", highestLabelSetVersion: 0 },
-    recordsCount: 100,
-  },
   indexedChainIds: new Set([1]),
   isSubgraphCompatible: false,
   labelSet: { labelSetId: "subgraph", labelSetVersion: 0 },

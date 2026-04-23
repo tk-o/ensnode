@@ -2,13 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import {
-  buildEnsNodeStackInfo,
-  deserializeEnsApiPublicConfig,
-  deserializeEnsIndexerPublicConfig,
-  type EnsDbPublicConfig,
-  SerializedENSApiPublicConfig,
-} from "@ensnode/ensnode-sdk";
+import { deserializeEnsNodeStackInfo, type EnsNodeStackInfo } from "@ensnode/ensnode-sdk";
 
 import {
   ENSNodeConfigInfoView,
@@ -17,12 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-import mockDataJson from "./data.json" with { type: "json" };
-
-const mockConfigData = mockDataJson as unknown as Record<string, SerializedENSApiPublicConfig>;
+import { mockSerializedEnsNodeStackInfo } from "./data";
 
 type LoadingVariant = "Loading" | "Loading Error";
-type ConfigVariant = keyof typeof mockConfigData | LoadingVariant;
+type ConfigVariant = keyof typeof mockSerializedEnsNodeStackInfo | LoadingVariant;
 
 const DEFAULT_VARIANT = "Alpha Mainnet";
 export default function MockConfigPage() {
@@ -42,29 +34,12 @@ export default function MockConfigPage() {
 
       default:
         try {
-          const ensApiPublicConfig = deserializeEnsApiPublicConfig(mockConfigData[selectedConfig]);
-          const ensIndexerPublicConfig = deserializeEnsIndexerPublicConfig(
-            mockConfigData[selectedConfig],
-          );
-          const ensRainbowPublicConfig = ensIndexerPublicConfig.ensRainbowPublicConfig;
-          const ensDbPublicConfig = {
-            versionInfo: {
-              postgresql: "18.1",
-            },
-          } satisfies EnsDbPublicConfig;
-          return {
-            ensNodeStackInfo: buildEnsNodeStackInfo(
-              ensApiPublicConfig,
-              ensDbPublicConfig,
-              ensIndexerPublicConfig,
-              ensRainbowPublicConfig,
-            ),
-          } satisfies ENSNodeConfigInfoViewProps;
+          const serializedData = mockSerializedEnsNodeStackInfo[selectedConfig];
+          const ensNodeStackInfo = deserializeEnsNodeStackInfo(serializedData);
+          return { ensNodeStackInfo } satisfies ENSNodeConfigInfoViewProps;
         } catch (error) {
           const errorMessage =
-            error instanceof Error
-              ? error.message
-              : "Unknown ENSIndexerPublicConfig deserialization error";
+            error instanceof Error ? error.message : "Unknown deserialization error";
           return {
             error: {
               title: "Deserialization Error",
@@ -85,16 +60,18 @@ export default function MockConfigPage() {
 
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {[...Object.keys(mockConfigData), "Loading", "Loading Error"].map((variant) => (
-              <Button
-                key={variant}
-                variant={selectedConfig === variant ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedConfig(variant as ConfigVariant)}
-              >
-                {variant}
-              </Button>
-            ))}
+            {[...Object.keys(mockSerializedEnsNodeStackInfo), "Loading", "Loading Error"].map(
+              (variant) => (
+                <Button
+                  key={variant}
+                  variant={selectedConfig === variant ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedConfig(variant as ConfigVariant)}
+                >
+                  {variant}
+                </Button>
+              ),
+            )}
           </div>
         </CardContent>
       </Card>

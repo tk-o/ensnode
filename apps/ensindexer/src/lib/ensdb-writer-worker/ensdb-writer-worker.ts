@@ -11,6 +11,7 @@ import {
   type OmnichainIndexingStatusSnapshot,
   validateEnsIndexerPublicConfigCompatibility,
 } from "@ensnode/ensnode-sdk";
+import type { EnsRainbowApiClient } from "@ensnode/ensrainbow-sdk";
 import type { LocalPonderClient } from "@ensnode/ponder-sdk";
 
 import type { IndexingStatusBuilder } from "@/lib/indexing-status-builder/indexing-status-builder";
@@ -43,6 +44,11 @@ export class EnsDbWriterWorker {
   private ensDbClient: EnsDbWriter;
 
   /**
+   * ENSRainbow Client instance used to fetch {@link EnsRainbowPublicConfig}.
+   */
+  private ensRainbowClient: EnsRainbowApiClient;
+
+  /**
    * Indexing Status Builder instance used by the worker to read ENSIndexer Indexing Status.
    */
   private indexingStatusBuilder: IndexingStatusBuilder;
@@ -61,17 +67,20 @@ export class EnsDbWriterWorker {
 
   /**
    * @param ensDbClient ENSDb Writer instance used by the worker to interact with ENSDb.
+   * @param ensRainbowClient ENSRainbow Client instance used to fetch ENSRainbow Public Config.
    * @param publicConfigBuilder ENSIndexer Public Config Builder instance used by the worker to read ENSIndexer Public Config.
    * @param indexingStatusBuilder Indexing Status Builder instance used by the worker to read ENSIndexer Indexing Status.
    * @param localPonderClient Local Ponder Client instance, used to get local Ponder app command.
    */
   constructor(
     ensDbClient: EnsDbWriter,
+    ensRainbowClient: EnsRainbowApiClient,
     publicConfigBuilder: PublicConfigBuilder,
     indexingStatusBuilder: IndexingStatusBuilder,
     localPonderClient: LocalPonderClient,
   ) {
     this.ensDbClient = ensDbClient;
+    this.ensRainbowClient = ensRainbowClient;
     this.publicConfigBuilder = publicConfigBuilder;
     this.indexingStatusBuilder = indexingStatusBuilder;
     this.localPonderClient = localPonderClient;
@@ -100,16 +109,40 @@ export class EnsDbWriterWorker {
     // Fetch data required for task 1 and task 2.
     const inMemoryConfig = await this.getValidatedEnsIndexerPublicConfig();
 
-    // Task 1: upsert ENSDb version into ENSDb.
-    logger.debug({ msg: "Upserting ENSDb version", module: "EnsDbWriterWorker" });
-    await this.ensDbClient.upsertEnsDbVersion(inMemoryConfig.versionInfo.ensDb);
+    // Task 1: upsert ENSDb public config into ENSDb.
+    const ensDbPublicConfig = await this.ensDbClient.buildEnsDbPublicConfig();
+    logger.debug({ msg: "Upserting ENSDb public config", module: "EnsDbWriterWorker" });
+    await this.ensDbClient.upsertEnsDbPublicConfig(ensDbPublicConfig);
+
     logger.info({
-      msg: "Upserted ENSDb version",
+      msg: "Upserted ENSDb public config",
       ensDbVersion: inMemoryConfig.versionInfo.ensDb,
       module: "EnsDbWriterWorker",
     });
 
-    // Task 2: upsert of EnsIndexerPublicConfig into ENSDb.
+    // Task 2: upsert ENSRainbow public config into ENSDb.
+    const ensRainbowPublicConfig = await pRetry(() => this.ensRainbowClient.config(), {
+      retries: 3,
+      onFailedAttempt: ({ attemptNumber, retriesLeft }) => {
+        logger.warn({
+          msg: "ENSRainbow public config fetch attempt failed",
+          attempt: attemptNumber,
+          retriesLeft,
+          module: "EnsDbWriterWorker",
+        });
+      },
+    });
+    console.log("ensRainbowPublicConfig", ensRainbowPublicConfig);
+    logger.debug({ msg: "Upserting ENSRainbow public config", module: "EnsDbWriterWorker" });
+    await this.ensDbClient.upsertEnsRainbowPublicConfig(ensRainbowPublicConfig);
+
+    logger.info({
+      msg: "Upserted ENSRainbow public config",
+      ensRainbowVersion: ensRainbowPublicConfig.versionInfo.ensRainbow,
+      module: "EnsDbWriterWorker",
+    });
+
+    // Task 3: upsert of EnsIndexerPublicConfig into ENSDb.
     logger.debug({
       msg: "Upserting ENSIndexer public config",
       module: "EnsDbWriterWorker",
@@ -120,7 +153,7 @@ export class EnsDbWriterWorker {
       module: "EnsDbWriterWorker",
     });
 
-    // Task 3: recurring upsert of Indexing Status Snapshot into ENSDb.
+    // Task 4: recurring upsert of Indexing Status Snapshot into ENSDb.
     this.indexingStatusInterval = setInterval(
       () => this.upsertIndexingStatusSnapshot(),
       secondsToMilliseconds(INDEXING_STATUS_RECORD_UPDATE_INTERVAL),
@@ -180,26 +213,11 @@ export class EnsDbWriterWorker {
       module: "EnsDbWriterWorker",
     });
 
-    const inMemoryConfigPromise = pRetry(() => this.publicConfigBuilder.getPublicConfig(), {
-      retries: configFetchRetries,
-      onFailedAttempt: ({ attemptNumber, retriesLeft }) => {
-        logger.warn({
-          msg: "Config fetch attempt failed",
-          attempt: attemptNumber,
-          retriesLeft,
-          module: "EnsDbWriterWorker",
-        });
-      },
-    });
-
+    const inMemoryConfig = this.publicConfigBuilder.getEnsIndexerPublicConfig();
     let storedConfig: EnsIndexerPublicConfig | undefined;
-    let inMemoryConfig: EnsIndexerPublicConfig;
 
     try {
-      [storedConfig, inMemoryConfig] = await Promise.all([
-        this.ensDbClient.getEnsIndexerPublicConfig(),
-        inMemoryConfigPromise,
-      ]);
+      storedConfig = await this.ensDbClient.getEnsIndexerPublicConfig();
       logger.info({
         msg: "Fetched ENSIndexer public config",
         module: "EnsDbWriterWorker",

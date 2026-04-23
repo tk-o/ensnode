@@ -67,10 +67,12 @@ const serializedEnsDbPublicConfig = {
 } satisfies SerializedEnsDbPublicConfig;
 
 const serializedEnsRainbowPublicConfig = {
-  version: "0.34.0",
   labelSet: {
     labelSetId: "subgraph",
     highestLabelSetVersion: 0,
+  },
+  versionInfo: {
+    ensRainbow: "0.34.0",
   },
 } satisfies SerializedEnsRainbowPublicConfig;
 

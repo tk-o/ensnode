@@ -2,7 +2,9 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import {
   type CrossChainIndexingStatusSnapshot,
+  type EnsDbPublicConfig,
   type EnsIndexerPublicConfig,
+  type EnsRainbowPublicConfig,
   serializeCrossChainIndexingStatusSnapshot,
   serializeEnsIndexerPublicConfig,
 } from "@ensnode/ensnode-sdk";
@@ -46,7 +48,19 @@ export class EnsDbWriter extends EnsDbReader {
   }
 
   /**
-   * Upsert ENSIndexer Public Config
+   * Upsert {@link EnsDbPublicConfig}
+   *
+   * @throws when upsert operation failed.
+   */
+  async upsertEnsDbPublicConfig(ensDbPublicConfig: EnsDbPublicConfig): Promise<void> {
+    await this.upsertEnsNodeMetadata({
+      key: EnsNodeMetadataKeys.EnsDbPublicConfig,
+      value: ensDbPublicConfig, // No need to serialize as EnsDbPublicConfig is already a JSON-serializable plain object
+    });
+  }
+
+  /**
+   * Upsert {@link EnsIndexerPublicConfig}
    *
    * @throws when upsert operation failed.
    */
@@ -56,6 +70,20 @@ export class EnsDbWriter extends EnsDbReader {
     await this.upsertEnsNodeMetadata({
       key: EnsNodeMetadataKeys.EnsIndexerPublicConfig,
       value: serializeEnsIndexerPublicConfig(ensIndexerPublicConfig),
+    });
+  }
+
+  /**
+   * Upsert {@link EnsRainbowPublicConfig}
+   *
+   * @throws when upsert operation failed.
+   */
+  async upsertEnsRainbowPublicConfig(
+    ensRainbowPublicConfig: EnsRainbowPublicConfig,
+  ): Promise<void> {
+    await this.upsertEnsNodeMetadata({
+      key: EnsNodeMetadataKeys.EnsRainbowPublicConfig,
+      value: ensRainbowPublicConfig, // No need to serialize as EnsRainbowPublicConfig is already a JSON-serializable plain object
     });
   }
 

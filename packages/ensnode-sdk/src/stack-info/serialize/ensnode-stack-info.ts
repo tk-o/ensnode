@@ -12,7 +12,7 @@ export interface SerializedEnsNodeStackInfo {
   ensApi: SerializedEnsApiPublicConfig;
   ensDb: SerializedEnsDbPublicConfig;
   ensIndexer: SerializedEnsIndexerPublicConfig;
-  ensRainbow?: SerializedEnsRainbowPublicConfig;
+  ensRainbow: SerializedEnsRainbowPublicConfig;
 }
 
 /**
