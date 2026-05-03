@@ -42,10 +42,18 @@ function SubdomainLink({ data }: { data: FragmentOf<typeof DomainFragment> }) {
 
   return (
     <li>
-      <Link to={`/domain/${domain.name}`}>{domain.name}</Link> ({domain.__typename})
+      {domain.name ? (
+        <Link to={`/domain/${domain.name}`}>{domain.name}</Link>
+      ) : (
+        <em>non-canonical domain</em>
+      )}{" "}
+      ({domain.__typename})
       <span>
         {" "}
-        — Owner <code>{domain.owner?.address ?? "none"}</code>
+        — Owner{" "}
+        <code>
+          {domain.owner?.address ?? (domain.__typename === "ENSv2Domain" ? "Reserved" : "0x0")}
+        </code>
       </span>
     </li>
   );
@@ -72,7 +80,9 @@ function RenderDomain({ name }: { name: InterpretedName }) {
   return (
     <div>
       <h2>{domain.name ?? name}</h2>
-      <p>Owner: {domain.owner?.address ?? "none"}</p>
+      <p>
+        Owner: {domain.owner?.address ?? (domain.__typename === "ENSv2Domain" ? "Reserved" : "0x0")}
+      </p>
       <p>Version: {domain.__typename}</p>
 
       {parentName && (

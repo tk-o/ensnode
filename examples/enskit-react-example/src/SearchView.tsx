@@ -2,6 +2,8 @@ import { graphql, useOmnigraphQuery } from "enskit/react/omnigraph";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 
+// `canonical: true` guarantees `node.name` is non-null on every result, so the link
+// target / label below can use it directly without a fallback.
 const DomainsByNameQuery = graphql(`
   query DomainsByName($name: String!, $first: Int!, $after: String) {
     domains(where: { name: $name, canonical: true }, first: $first, after: $after) {
@@ -74,7 +76,7 @@ export function SearchView() {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="tryingagain.eth"
+        placeholder="vitalik.eth"
       />
 
       {query.length === 0 ? (
@@ -88,7 +90,7 @@ export function SearchView() {
             {data?.domains?.edges.map((edge) => (
               <li key={edge.node.id}>
                 ({edge.node.__typename === "ENSv1Domain" ? "v1" : "v2"}){" "}
-                <Link to={`/domain/${edge.node.name}`}>{edge.node.name ?? edge.node.id}</Link>
+                <Link to={`/domain/${edge.node.name}`}>{edge.node.name}</Link>
               </li>
             ))}
           </ul>
