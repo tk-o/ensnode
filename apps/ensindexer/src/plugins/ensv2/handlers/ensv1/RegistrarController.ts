@@ -20,6 +20,7 @@ import {
   ensIndexerSchema,
   type IndexingEngineContext,
 } from "@/lib/indexing-engines/ponder";
+import { logger } from "@/lib/logger";
 import { getManagedName } from "@/lib/managed-names";
 import { namespaceContract } from "@/lib/plugin-helpers";
 import type { EventWithArgs } from "@/lib/ponder-helpers";
@@ -41,14 +42,20 @@ export default function () {
     }>;
   }) {
     const { labelHash, baseCost: base, premium, referrer } = event.args;
-    const label = event.args.label ? asLiteralLabel(event.args.label) : undefined;
-
-    // Invariant: If emitted, label must align with labelHash
-    if (label !== undefined && labelHash !== labelhashLiteralLabel(label)) {
-      throw new Error(
-        `Invariant(RegistrarController:NameRegistered): Emitted label '${label}' does not labelhash to emitted labelHash '${labelHash}'.`,
-      );
+    // If emitted, the label arg should round-trip to the emitted labelHash. ABI-decoding
+    // substitutes U+FFFD for non-UTF-8 bytes (some legacy contracts emit raw bytes in `string`
+    // event args), and the original bytes can't be recovered post-decode. When that happens we
+    // treat the label as unemitted and fall through to the heal path; the labelHash is canonical
+    // (bytes32) so the registration still indexes correctly under an unknown label.
+    const rawLabel = event.args.label ? asLiteralLabel(event.args.label) : undefined;
+    const labelMatchesHash =
+      rawLabel !== undefined && labelhashLiteralLabel(rawLabel) === labelHash;
+    if (rawLabel !== undefined && !labelMatchesHash) {
+      logger.warn({
+        msg: `RegistrarController:NameRegistered label/labelHash mismatch (non-UTF-8 bytes?): label='${rawLabel}' labelHash='${labelHash}' — treating label as unemitted`,
+      });
     }
+    const label = labelMatchesHash ? rawLabel : undefined;
 
     const controller = getThisAccountId(context, event);
     const { node: managedNode, registry } = getManagedName(controller);
@@ -63,7 +70,7 @@ export default function () {
       );
     }
 
-    // if the contract emitted a healed label, ensure that it is indexed
+    // if the contract emitted a (verified) healed label, ensure that it is indexed
     if (label !== undefined) {
       await ensureLabel(context, label);
     } else {
@@ -97,16 +104,19 @@ export default function () {
     }>;
   }) {
     const { labelHash, baseCost: base, premium, referrer } = event.args;
-    const label = event.args.label ? asLiteralLabel(event.args.label) : undefined;
-
-    // Invariant: If emitted, label must align with labelHash
-    if (label !== undefined && labelHash !== labelhashLiteralLabel(label)) {
-      throw new Error(
-        `Invariant(RegistrarController:NameRegistered): Emitted label '${label}' does not labelhash to emitted labelHash '${labelHash}'.`,
-      );
+    // See note on RegistrarController:NameRegistered above for why this guards against
+    // labelhash-mismatch (non-UTF-8 byte sequences in `string` event args) rather than throwing.
+    const rawLabel = event.args.label ? asLiteralLabel(event.args.label) : undefined;
+    const labelMatchesHash =
+      rawLabel !== undefined && labelhashLiteralLabel(rawLabel) === labelHash;
+    if (rawLabel !== undefined && !labelMatchesHash) {
+      logger.warn({
+        msg: `RegistrarController:NameRenewed label/labelHash mismatch (non-UTF-8 bytes?): label='${rawLabel}' labelHash='${labelHash}' — treating label as unemitted`,
+      });
     }
+    const label = labelMatchesHash ? rawLabel : undefined;
 
-    // if the contract emitted a healed label, ensure that it is indexed
+    // if the contract emitted a (verified) healed label, ensure that it is indexed
     if (label !== undefined) {
       await ensureLabel(context, label);
     } else {
