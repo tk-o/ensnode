@@ -1,9 +1,9 @@
 import { asInterpretedName, toNormalizedAddress } from "enssdk";
 
 import { DatasourceNames, ENSNamespaceIds } from "@ensnode/datasources";
+import { accounts } from "@ensnode/datasources/devnet";
 
 import { maybeGetDatasourceContract } from "../shared/datasource-contract";
-import { DevnetAccounts } from "../shared/devnet-accounts";
 import type { NamespaceSpecificValue } from "../shared/namespace-specific-value";
 
 const SEPOLIA_V2_V2_ETH_REGISTRY = maybeGetDatasourceContract(
@@ -193,7 +193,7 @@ query AccountDomains(
 }`,
     variables: {
       default: { address: VITALIK_ADDRESS },
-      [ENSNamespaceIds.EnsTestEnv]: { address: DevnetAccounts.owner.address },
+      [ENSNamespaceIds.EnsTestEnv]: { address: accounts.owner.address },
       [ENSNamespaceIds.SepoliaV2]: { address: SEPOLIA_V2_USER_ADDRESS },
     },
   },
@@ -212,7 +212,7 @@ query AccountEvents(
 }`,
     variables: {
       default: { address: VITALIK_ADDRESS },
-      [ENSNamespaceIds.EnsTestEnv]: { address: DevnetAccounts.deployer.address },
+      [ENSNamespaceIds.EnsTestEnv]: { address: accounts.deployer.address },
       [ENSNamespaceIds.SepoliaV2]: { address: SEPOLIA_V2_USER_ADDRESS },
     },
   },
@@ -296,7 +296,7 @@ query PermissionsByUser($address: Address!) {
   }
 }`,
     variables: {
-      default: { address: DevnetAccounts.deployer.address },
+      default: { address: accounts.deployer.address },
       [ENSNamespaceIds.SepoliaV2]: { address: SEPOLIA_V2_USER_ADDRESS },
     },
   },
@@ -322,7 +322,7 @@ query AccountResolverPermissions($address: Address!) {
   }
 }`,
     variables: {
-      default: { address: DevnetAccounts.deployer.address },
+      default: { address: accounts.deployer.address },
       [ENSNamespaceIds.SepoliaV2]: { address: SEPOLIA_V2_USER_ADDRESS },
     },
   },
