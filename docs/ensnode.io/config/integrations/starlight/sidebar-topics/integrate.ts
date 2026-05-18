@@ -132,7 +132,7 @@ export const integrateSidebarTopic = {
           link: "/docs/integrate/integration-options/omnigraph-graphql-api",
         },
         {
-          label: "ENSDb (PostgreSQL)",
+          label: "ENSDb Integration Quickstart",
           link: "/docs/integrate/integration-options/ensdb",
         },
         {
@@ -142,6 +142,14 @@ export const integrateSidebarTopic = {
         {
           label: "ensskills (AI agents)",
           link: "/docs/integrate/integration-options/ensskills",
+        },
+        {
+          label: "ensdb-cli (Snapshots)",
+          link: "/docs/integrate/integration-options/ensdb-cli",
+        },
+        {
+          label: "ENSEngine (webhooks)",
+          link: "/docs/integrate/integration-options/ensengine",
         },
       ],
     },

@@ -186,5 +186,10 @@ export const servicesSidebarTopic = {
         },
       ],
     },
+    {
+      label: "ENSEngine",
+      collapsed: true,
+      items: [{ label: "Overview", link: "/docs/services/ensengine" }],
+    },
   ],
 };
