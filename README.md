@@ -27,6 +27,18 @@ The easiest way to get started is through the new **ENS Omnigraph API** — the 
 - 🚀 **Quickstart:** [ensnode.io/docs/integrate](https://ensnode.io/docs/integrate)
 - 💬 **Telegram:** [t.me/ensnode](https://t.me/ensnode)
 
+## Join the ENS ecosystem that's already building on ENSNode
+
+<!-- FEATURED ENSNODE INTEGRATORS -->
+<p align="center">
+  <a href="https://ensnode.io/docs/integrate">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/ensnode-integrators-dark.svg">
+      <img alt="Featured ENSNode integrators" src=".github/assets/ensnode-integrators-light.svg" width="1217">
+    </picture>
+  </a>
+</p>
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
