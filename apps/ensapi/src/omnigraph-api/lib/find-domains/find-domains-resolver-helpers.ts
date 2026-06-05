@@ -20,10 +20,22 @@ function getOrderColumn(orderBy: typeof DomainsOrderBy.$inferType): SQL {
     case "DEPTH":
       return sql`${ensIndexerSchema.domain.canonicalDepth}`;
     case "REGISTRATION_TIMESTAMP":
-      return sql`${ensIndexerSchema.registration.start}`;
+      return sql`${ensIndexerSchema.domain.__latestRegistrationStart}`;
     case "REGISTRATION_EXPIRY":
-      return sql`${ensIndexerSchema.registration.expiry}`;
+      return sql`${ensIndexerSchema.domain.__latestRegistrationExpiry}`;
   }
+}
+
+/**
+ * Whether the ORDER BY for this column needs an explicit NULLS LAST clause.
+ *
+ * The registration sort columns (`Domain.__latestRegistration*`) materialize an infinity sentinel
+ * (see `REGISTRATION_SORT_SENTINEL`) in place of an absent value, so they're NOT NULL — there are no
+ * NULLs to sort last, and a plain `(registry_id, <col>, id)` composite serves both directions.
+ * NAME / DEPTH columns are nullable and keep NULLS LAST.
+ */
+export function shouldUseNullsLast(orderBy: typeof DomainsOrderBy.$inferType): boolean {
+  return orderBy === "NAME" || orderBy === "DEPTH";
 }
 
 /**
@@ -67,7 +79,9 @@ export function cursorFilter(
   const idCmp = sql`${ensIndexerSchema.domain.id} ${op} ${cursor.id}`;
 
   // NULL cursor values need explicit handling because Postgres tuple comparison with NULL yields
-  // NULL/unknown. With NULLS LAST ordering, non-NULL values come before NULL values.
+  // NULL/unknown. Reached only for NAME/DEPTH (whose columns are nullable, NULLS LAST); registration
+  // sort columns are sentinel-backed NOT NULL, so their cursor value is never null. With NULLS LAST,
+  // non-NULL values come before NULL values.
   if (cursor.value === null) {
     return direction === "after"
       ? sql`(${orderColumn} IS NULL AND ${idCmp})`
@@ -84,6 +98,7 @@ export function cursorFilter(
         return sql`${cursor.value}::int`;
       case "REGISTRATION_TIMESTAMP":
       case "REGISTRATION_EXPIRY":
+        // ponder bigints are numeric(78,0)
         return sql`${cursor.value}::numeric(78,0)`;
     }
   })();
@@ -110,11 +125,13 @@ export function orderFindDomains(
   const effectiveDesc = isEffectiveDesc(orderDir, inverted);
   const orderColumn = getOrderColumn(orderBy);
 
-  // Always use NULLS LAST so unregistered domains (NULL registration fields)
-  // appear at the end regardless of sort direction
-  const primaryOrder = effectiveDesc
-    ? sql`${orderColumn} DESC NULLS LAST`
-    : sql`${orderColumn} ASC NULLS LAST`;
+  const primaryOrder = shouldUseNullsLast(orderBy)
+    ? effectiveDesc
+      ? sql`${orderColumn} DESC NULLS LAST`
+      : sql`${orderColumn} ASC NULLS LAST`
+    : effectiveDesc
+      ? sql`${orderColumn} DESC`
+      : sql`${orderColumn} ASC`;
 
   const { ensIndexerSchema } = di.context;
   // Always include id as tiebreaker for stable ordering
