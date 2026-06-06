@@ -268,6 +268,39 @@ Variables:
 ```graphql
 query DomainByName($name: InterpretedName!) {
   domain(by: { name: $name }) {
+    canonical {
+      name {
+        beautified
+      }
+    }
+    owner {
+      address
+    }
+    resolve {
+      profile {
+        description
+        addresses {
+          ethereum
+        }
+      }
+    }
+  }
+}
+```
+
+Variables:
+
+```json
+{
+  "name": "eth"
+}
+```
+
+### domain-by-name-type-condition
+
+```graphql
+query DomainByName($name: InterpretedName!) {
+  domain(by: { name: $name }) {
     __typename
     id
     label {
@@ -388,13 +421,62 @@ query DomainRecords($name: InterpretedName!) {
     }
     resolve {
       records {
-        addresses(coinTypes: [60]) {
+        addresses(coinTypes: [60, 2147483658, 501]) {
           coinType
           address
         }
-        texts(keys: ["description"]) {
+        texts(keys: ["description", "avatar", "url", "com.github", "com.twitter"]) {
           key
           value
+        }
+        contenthash
+      }
+    }
+  }
+}
+```
+
+Variables:
+
+```json
+{
+  "name": "gregskril.eth"
+}
+```
+
+### domain-profile
+
+```graphql
+query DomainProfile($name: InterpretedName!) {
+  domain(by: { name: $name }) {
+    resolve {
+      profile {
+        description
+        avatar {
+          httpUrl
+        }
+        addresses {
+          ethereum
+          base
+          solana
+          bitcoin
+          rootstock
+        }
+        socials {
+          github {
+            handle
+            httpUrl
+          }
+          twitter {
+            handle
+            httpUrl
+          }
+        }
+        website {
+          httpUrl
+        }
+        header {
+          httpUrl
         }
       }
     }
@@ -406,7 +488,7 @@ Variables:
 
 ```json
 {
-  "name": "vitalik.eth"
+  "name": "gregskril.eth"
 }
 ```
 
@@ -421,7 +503,7 @@ query DomainSubdomains($name: InterpretedName!) {
         beautified
       }
     }
-    subdomains(first: 10) {
+    subdomains(first: 10, order: { by: NAME, dir: ASC }) {
       edges {
         node {
           canonical {
@@ -584,25 +666,25 @@ Variables:
 }
 ```
 
-### account-primary-names
+### account-primary-name
 
 ```graphql
-query AccountPrimaryNames($address: Address!) {
+query AccountPrimaryName($address: Address!) {
   account(by: { address: $address }) {
     address
     resolve {
-      primaryNames(where: { chainNames: [ETHEREUM, BASE] }) {
-        coinType
-        chainName
+      primaryName(by: { chainName: ETHEREUM }) {
         name {
           interpreted
           beautified
         }
         resolve {
-          records {
-            addresses(coinTypes: [60]) {
-              coinType
-              address
+          profile {
+            description
+            socials {
+              twitter {
+                httpUrl
+              }
             }
           }
         }
@@ -790,36 +872,10 @@ query DomainResolver($name: InterpretedName!) {
   domain(by: { name: $name }) {
     resolver {
       assigned {
-        records {
-          edges {
-            node {
-              node
-              keys
-              coinTypes
-            }
-          }
+        contract {
+          address
         }
-        permissions {
-          resources {
-            edges {
-              node {
-                resource
-                users {
-                  edges {
-                    node {
-                      user {
-                        address
-                      }
-                      roles
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        events {
-          totalCount
+        events(first: 5) {
           edges {
             node {
               topics
@@ -895,41 +951,36 @@ Variables:
 
 ```graphql
 query Namegraph {
-  root {
-    id
-    domains {
+  domain(by: { name: "eth" }) {
+    registry {
+      id
+      contract {
+        chainId
+        address
+      }
+    }
+    parent {
+      id
+    }
+    subregistry {
+      domains {
+        edges {
+          node {
+            canonical {
+              name {
+                beautified
+              }
+            }
+          }
+        }
+      }
+    }
+    subdomains {
       edges {
         node {
           canonical {
             name {
-              interpreted
               beautified
-            }
-          }
-
-          subdomains {
-            edges {
-              node {
-                canonical {
-                  name {
-                    interpreted
-                    beautified
-                  }
-                }
-
-                subdomains {
-                  edges {
-                    node {
-                      canonical {
-                        name {
-                          interpreted
-                          beautified
-                        }
-                      }
-                    }
-                  }
-                }
-              }
             }
           }
         }
@@ -989,30 +1040,33 @@ Variables:
 {}
 ```
 
-### domain-profile
+### accelerate-resolve
 
 ```graphql
-query DomainProfile($name: InterpretedName!) {
-  domain(by: { name: $name }) {
-    resolve {
-      profile {
-        description
-        avatar {
-          httpUrl
+query AccelerateResolve($address: Address!) {
+  account(by: { address: $address }) {
+    address
+    resolve(accelerate: true) {
+      trace
+      acceleration {
+        requested
+        attempted
+      }
+      primaryName(by: { chainName: ETHEREUM }) {
+        name {
+          interpreted
+          beautified
         }
-        addresses {
-          ethereum
-        }
-        socials {
-          github {
-            handle
-            httpUrl
+        resolve {
+          trace
+          acceleration {
+            requested
+            attempted
+          }
+          profile {
+            description
           }
         }
-        website {
-          httpUrl
-        }
-        email
       }
     }
   }
@@ -1023,7 +1077,7 @@ Variables:
 
 ```json
 {
-  "name": "vitalik.eth"
+  "address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045"
 }
 ```
 
