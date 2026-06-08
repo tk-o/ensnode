@@ -91,10 +91,10 @@ _Represents a Domain, i.e. an individual Label within the ENS namegraph. It may 
 - id: DomainId! — A unique and stable reference to this Domain.
 - label: Label! — The Label associated with this Domain in the ENS Namegraph.
 - owner: Account — If this is an ENSv1Domain, this is the effective owner of the Domain (derived from the Registry, the Registrar, or the NameWrapper, in that order). If this is an ENSv2Domain, this is the on-chain owner address (the HCA account address if used).
-- parent: Domain — The Domain that this Domain's parent Registry declares as its Canonical Domain, if any. Follows a single unidirectional pointer (`Registry.canonicalDomainId`) and does NOT enforce bidirectional canonical-edge agreement: a non-canonical Domain may have a non-null `parent`, and a canonical Domain's `parent` may itself be non-canonical. Null when the parent Registry does not declare a Canonical Domain.
+- parent: Domain — The Domain that this Domain's parent Registry declares as its Canonical Domain, if any. Follows a single unidirectional pointer (`Registry.canonicalDomainId`) and does NOT enforce bidirectional canonical-edge agreement: a non-canonical Domain may have a non-null `parent`, and a canonical Domain's `parent` may itself be non-canonical. Null when the parent Registry does not declare a Canonical Domain. For an UnindexedDomain (which has no Registry of its own), this reflects the wildcard-bearing ancestor's Registry — see `Domain.registry`.
 - registration: Registration — The latest Registration for this Domain, if exists.
 - registrations(after: String, before: String, first: Int, last: Int): DomainRegistrationsConnection — All Registrations for a Domain, including the latest Registration.
-- registry: Registry! — The Registry under which this Domain exists.
+- registry: Registry! — The Registry under which this Domain exists. For an UnindexedDomain — a resolvable-but-unindexed Domain that has no Registry of its own — this is instead the Registry that manages the ancestor Domain bearing the wildcard Resolver (the same Registry encoded in its `id`).
 - resolve(accelerate: Boolean): ForwardResolve! — Resolve protocol-level data for this Domain.
 - resolver: DomainResolver! — Resolver relationship metadata for this Domain.
 - subdomains(after: String, before: String, first: Int, last: Int, order: DomainsOrderInput, where: SubdomainsWhereInput): DomainSubdomainsConnection — All Domains that are direct descendants of this Domain in the namegraph. Ordered by the `order` argument (default: NAME, ASC). When ordering by REGISTRATION_TIMESTAMP or REGISTRATION_EXPIRY, Domains lacking that value — no Registration for REGISTRATION_TIMESTAMP; no Registration or a never-expiring one (treated as +∞) for REGISTRATION_EXPIRY — sort last when `dir: ASC` and first when `dir: DESC`.
@@ -129,6 +129,7 @@ _A Resolver represents a Resolver contract on-chain._
 - bridged: Registry — If Resolver is a Bridged Resolver, the Registry to which it Bridges resolution.
 - contract: AccountId! — Contract metadata for this Resolver.
 - events(after: String, before: String, first: Int, last: Int, where: EventsWhereInput): ResolverEventsConnection — All Events associated with this Resolver.
+- extended: Boolean! — Whether this Resolver implements ENSIP-10 wildcard resolution (`IExtendedResolver`, interfaceId `0x9061b923`), determined via a single cached `supportsInterface` RPC the first time the Resolver is observed.
 - id: ResolverId! — A unique reference to this Resolver.
 - permissions: Permissions — Permissions granted by this Resolver.
 - records(after: String, before: String, first: Int, last: Int): ResolverRecordsConnection — ResolverRecords issued by this Resolver.
@@ -139,7 +140,7 @@ _A Resolver represents a Resolver contract on-chain._
 _Metadata describing this Domain's relationship to its Resolver(s)._
 
 - assigned: Resolver — The Resolver that this Domain has assigned, if any. NOTE that this is the Domain's _assigned_ Resolver, _not_ its _effective_ Resolver, which can only be determined by following ENS Forward Resolution and ENSIP-10. Do NOT use this Domain-Resolver relationship in isolation to resolve records, that operation is NOT ENS Forward Resolution.
-- effective: Resolver — The Resolver that ENS Forward Resolution (ENSIP-10) lands on for this Domain — i.e. its _effective_ Resolver, identified by walking the name hierarchy within the Domain's Registry. Null when no active Resolver exists or the Domain is not in the canonical nametree.
+- effective: Resolver — The Resolver that ENS Forward Resolution (ENSIP-10) lands on for this Domain — i.e. its _effective_ Resolver. Null when no active Resolver exists or the Domain is not in the Canonical Nametree.
 
 #### Registry
 
@@ -207,7 +208,7 @@ _An ENSIP-19 primary name for an Account on a specific coin type._
 
 Run `npx enscli ensnode omnigraph schema <Type>` for fields of:
 
-`AccelerationStatus`, `AccountId`, `BaseRegistrarRegistration`, `CanonicalName`, `DomainProfile`, `ENSv1Domain`, `ENSv1Registry`, `ENSv1VirtualRegistry`, `ENSv2Domain`, `ENSv2Registry`, `ENSv2RegistryRegistration`, `ENSv2RegistryReservation`, `Event`, `Label`, `NameWrapperRegistration`, `PageInfo`, `PermissionsResource`, `PermissionsUser`, `ProfileAddresses`, `ProfileAvatar`, `ProfileHeader`, `ProfileSocialAccount`, `ProfileSocials`, `ProfileWebsite`, `RegistryPermissionsUser`, `Renewal`, `ResolvedAbiRecord`, `ResolvedAddressRecord`, `ResolvedInterfaceRecord`, `ResolvedPubkeyRecord`, `ResolvedRawTextRecord`, `ResolverPermissionsUser`, `ResolverRecords`, `ThreeDNSRegistration`, `WrappedBaseRegistrarRegistration`
+`AccelerationStatus`, `AccountId`, `BaseRegistrarRegistration`, `CanonicalName`, `DomainProfile`, `ENSv1Domain`, `ENSv1Registry`, `ENSv1VirtualRegistry`, `ENSv2Domain`, `ENSv2Registry`, `ENSv2RegistryRegistration`, `ENSv2RegistryReservation`, `Event`, `Label`, `NameWrapperRegistration`, `PageInfo`, `PermissionsResource`, `PermissionsUser`, `ProfileAddresses`, `ProfileAvatar`, `ProfileHeader`, `ProfileSocialAccount`, `ProfileSocials`, `ProfileWebsite`, `RegistryPermissionsUser`, `Renewal`, `ResolvedAbiRecord`, `ResolvedAddressRecord`, `ResolvedInterfaceRecord`, `ResolvedPubkeyRecord`, `ResolvedRawTextRecord`, `ResolverPermissionsUser`, `ResolverRecords`, `ThreeDNSRegistration`, `UnindexedDomain`, `WrappedBaseRegistrarRegistration`
 
 <!-- AUTOGEN:SCHEMA end -->
 
