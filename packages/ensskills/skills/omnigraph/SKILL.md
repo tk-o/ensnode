@@ -1180,8 +1180,8 @@ Variables:
 query AccelerateResolve($address: Address!) {
   account(by: { address: $address }) {
     address
-    resolve(accelerate: true) {
-      trace
+    # resolve is automatically accelerated. To disable, resolve(accelerate: false)
+    resolve {
       acceleration {
         requested
         attempted
@@ -1192,7 +1192,6 @@ query AccelerateResolve($address: Address!) {
           beautified
         }
         resolve {
-          trace
           acceleration {
             requested
             attempted

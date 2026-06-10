@@ -94,7 +94,7 @@ export const GRAPHQL_API_EXAMPLE_QUERIES: GraphqlApiExampleQuery[] = [
         name { interpreted beautified }
         resolve {
           # If the account has a primary name on Ethereum (mainnet),
-          # forward resolve the interpreted ENS profile of that name in the same query!.
+          # forward resolve the interpreted ENS profile of that name in the same query!
           profile {
             description
             avatar { httpUrl }
@@ -857,23 +857,14 @@ query GetEthDomains {
 query AccelerateResolve($address: Address!) {
   account(by: { address: $address }) {
     address
-    resolve(accelerate: true) {
-      trace
-      acceleration {
-        requested
-        attempted
-      }
+    # resolve is automatically accelerated. To disable, resolve(accelerate: false)
+    resolve {
+      acceleration { requested attempted }
       primaryName(by: { chainName: ETHEREUM }) {
         name { interpreted beautified }
         resolve {
-          trace
-          acceleration {
-            requested
-            attempted
-          }
-          profile {
-            description
-          }
+          acceleration { requested attempted }
+          profile { description }
         }
       }
     }
