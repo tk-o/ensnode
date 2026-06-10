@@ -44,6 +44,8 @@ const VITALIK_NAME = asInterpretedName("vitalik.eth");
 
 const GREG_NAME = asInterpretedName("gregskril.eth");
 
+const GREG_ADDRESS = toNormalizedAddress("0x179a862703a4adfb29896552df9e307980d19285");
+
 // an offchain (CCIP-Read) name: resolvable but unindexed, so it surfaces as an UnindexedDomain
 const OFFCHAIN_NAME = asInterpretedName("patricio.onpoap.eth");
 
@@ -335,6 +337,50 @@ query DomainProfile($name: InterpretedName!) {
     variables: { default: { name: GREG_NAME } },
   },
 
+  {
+    id: "domain-profile-and-records",
+    query: `
+query DomainProfileAndRecords($name: InterpretedName!) {
+  domain(by: { name: $name }) {
+    resolve {
+      profile {
+        avatar {
+          httpUrl
+        }
+        addresses {
+          ethereum
+          solana
+        }
+        socials {
+          github {
+            handle
+            httpUrl
+          }
+          twitter {
+            handle
+            httpUrl
+          }
+        }
+        website {
+          httpUrl
+        }
+      }
+      records {
+        addresses(coinTypes: [60, 501]) {
+          coinType
+          address
+        }
+        texts(keys: ["avatar", "com.twitter", "com.github", "url"]) {
+          key
+          value
+        }
+      }
+    }
+  }
+}`,
+    variables: { default: { name: GREG_NAME } },
+  },
+
   ////////////////////////////////////
   // Offchain Name (UnindexedDomain)
   ////////////////////////////////////
@@ -500,9 +546,34 @@ query AccountDomains(
   // Account Primary Names
   /////////////////////////
   {
-    id: "account-primary-name",
+    id: "account-primary-names",
     query: `
-query AccountPrimaryName($address: Address!) {
+query AccountPrimaryNames($address: Address!) {
+  account(by: { address: $address }) {
+    address
+    resolve {
+      onePrimaryName: primaryName(by: { chainName: OPTIMISM }) {
+        chainName
+        name { interpreted beautified }
+      }
+
+      twoPrimaryNames: primaryNames(where: { chainNames: [ETHEREUM, BASE] }) {
+        chainName
+        name { interpreted beautified }
+      }
+    }
+  }
+}`,
+    variables: {
+      default: { address: GREG_ADDRESS },
+      [ENSNamespaceIds.EnsTestEnv]: { address: accounts.owner.address },
+      [ENSNamespaceIds.SepoliaV2]: { address: SEPOLIA_V2_ACCOUNT },
+    },
+  },
+  {
+    id: "account-primary-name-records",
+    query: `
+query AccountPrimaryNameRecords($address: Address!) {
   account(by: { address: $address }) {
     address
     resolve {
