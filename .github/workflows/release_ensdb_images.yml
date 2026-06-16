@@ -1,0 +1,86 @@
+# Release ENSDb Docker Images
+#
+# Builds and publishes the ENSDb primary and replica Docker images to the
+# GitHub Container Registry (ghcr.io/namehash/ensnode/ensdb-primary and
+# ghcr.io/namehash/ensnode/ensdb-replica).
+#
+# Triggers:
+# - Pushes to main that touch the ENSDb image definitions
+# - Pushes of tags matching `ensdb/v*` (e.g. `ensdb/v1.2.3`)
+# - Manual workflow_dispatch
+#
+# Published tags:
+# - On main: `latest`, branch name, and short SHA
+# - On `ensdb/v*` tag: semver version, branch name, and short SHA
+
+name: Release ENSDb Docker Images
+
+permissions:
+  contents: read
+  packages: write
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "ensdb/v*"
+    paths:
+      - "docker/ensdb/**"
+      - ".github/workflows/release_ensdb_images.yml"
+      - ".github/actions/build_docker_image/**"
+  workflow_dispatch:
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  build-and-push:
+    name: Build & Push ${{ matrix.image }}
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: ensdb-primary
+            dockerfile: docker/ensdb/primary/Dockerfile
+          - image: ensdb-replica
+            dockerfile: docker/ensdb/replica/Dockerfile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Generate image tags
+        id: tags
+        run: |
+          TAGS="type=ref,event=branch"
+          TAGS="${TAGS}
+          type=sha"
+
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            TAGS="${TAGS}
+          type=raw,value=latest"
+          fi
+
+          if [[ "${{ github.ref }}" == refs/tags/ensdb/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#ensdb/v}"
+            TAGS="${TAGS}
+          type=semver,pattern={{version}},value=${VERSION}"
+          fi
+
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$TAGS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "Generated tags for ${{ matrix.image }}:"
+          echo "$TAGS"
+
+      - name: Build & Push
+        uses: ./.github/actions/build_docker_image
+        with:
+          image: ghcr.io/${{ github.repository }}/${{ matrix.image }}
+          dockerfile: ${{ matrix.dockerfile }}
+          registry_user: ${{ github.actor }}
+          registry_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: ${{ steps.tags.outputs.tags }}
