@@ -4,14 +4,12 @@
 # GitHub Container Registry (ghcr.io/namehash/ensnode/ensdb-primary and
 # ghcr.io/namehash/ensnode/ensdb-replica).
 #
-# Triggers:
-# - Pushes to main that touch the ENSDb image definitions
-# - Pushes of tags matching `ensdb/v*` (e.g. `ensdb/v1.2.3`)
-# - Manual workflow_dispatch
+# Trigger:
+# - Manual workflow_dispatch only. Run this workflow from the main branch to
+#   build and publish the latest ENSDb images.
 #
 # Published tags:
 # - On main: `latest`, branch name, and short SHA
-# - On `ensdb/v*` tag: semver version, branch name, and short SHA
 
 name: Release ENSDb Docker Images
 
@@ -20,29 +18,44 @@ permissions:
   packages: write
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "ensdb/v*"
-    paths:
-      - "docker/ensdb/**"
-      - ".github/workflows/release_ensdb_images.yml"
   workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  test:
+    name: Test ENSDb replication
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run ENSDb replication smoke tests
+        run: |
+          cd docker/ensdb
+          docker compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from test
+
+      - name: Clean up test environment
+        if: always()
+        run: |
+          cd docker/ensdb
+          docker compose -f docker-compose.test.yml down --volumes
+
   build-and-push:
     name: Build & Push ${{ matrix.image }}
+    needs: test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           - image: ensdb-primary
+            context: docker/ensdb/primary
             dockerfile: docker/ensdb/primary/Dockerfile
           - image: ensdb-replica
+            context: docker/ensdb/replica
             dockerfile: docker/ensdb/replica/Dockerfile
 
     steps:
@@ -98,7 +111,7 @@ jobs:
       - name: Build & Push
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true

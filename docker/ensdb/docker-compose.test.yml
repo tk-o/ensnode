@@ -1,0 +1,82 @@
+services:
+  ensdb-primary:
+    build:
+      context: ./primary
+      dockerfile: Dockerfile
+    container_name: ensdb-primary
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      REPLICATOR_PASSWORD: replicator-password-change-me
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ensdb-test
+    ports:
+      - "5432:5432"
+    volumes:
+      - ensdb-primary-data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "listen_addresses=*"]
+
+  ensdb-replica:
+    build:
+      context: ./replica
+      dockerfile: Dockerfile
+    container_name: ensdb-replica
+    depends_on:
+      ensdb-primary:
+        condition: service_healthy
+    environment:
+      PRIMARY_HOST: ensdb-primary
+      PRIMARY_PORT: 5432
+      REPLICATOR_USER: replicator
+      REPLICATOR_PASSWORD: replicator-password-change-me
+      REPLICA_SSLMODE: prefer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - ensdb-test
+    ports:
+      - "5433:5432"
+    volumes:
+      - ensdb-replica-data:/var/lib/postgresql/data
+
+  test:
+    image: postgres:17
+    container_name: ensdb-test
+    depends_on:
+      ensdb-replica:
+        condition: service_healthy
+    environment:
+      PRIMARY_HOST: ensdb-primary
+      PRIMARY_PORT: 5432
+      PRIMARY_USER: postgres
+      PRIMARY_PASSWORD: postgres
+      PRIMARY_DB: postgres
+      REPLICA_HOST: ensdb-replica
+      REPLICA_PORT: 5432
+      REPLICA_USER: postgres
+      REPLICA_PASSWORD: postgres
+      REPLICA_DB: postgres
+    volumes:
+      - ./test-replication.sh:/usr/local/bin/test-replication.sh:ro
+    networks:
+      - ensdb-test
+    command: ["/usr/local/bin/test-replication.sh"]
+
+networks:
+  ensdb-test:
+
+volumes:
+  ensdb-primary-data:
+  ensdb-replica-data:
