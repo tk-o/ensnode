@@ -9,11 +9,16 @@ set -e
 PRIMARY_HOST="${PRIMARY_HOST:-}"
 PRIMARY_PORT="${PRIMARY_PORT:-5432}"
 REPLICATOR_USER="${REPLICATOR_USER:-replicator}"
-REPLICATOR_PASSWORD="${REPLICATOR_PASSWORD:-replicator}"
+REPLICATOR_PASSWORD="${REPLICATOR_PASSWORD:-}"
 REPLICA_SSLMODE="${REPLICA_SSLMODE:-require}"
 
 if [ -z "$PRIMARY_HOST" ]; then
     echo "ERROR: PRIMARY_HOST must be set to the primary PostgreSQL hostname."
+    exit 1
+fi
+
+if [ -z "$REPLICATOR_PASSWORD" ]; then
+    echo "ERROR: REPLICATOR_PASSWORD must be set to the replicator user's password."
     exit 1
 fi
 
@@ -37,7 +42,11 @@ if [ -z "$(ls -A "$PGDATA" 2>/dev/null)" ]; then
     export PGPASSWORD="$REPLICATOR_PASSWORD"
     export PGSSLMODE="$REPLICA_SSLMODE"
 
-    gosu postgres pg_basebackup \
+    # Retry pg_basebackup in case the primary is accepting connections but the
+    # replicator role has not finished being created yet.
+    BASEBACKUP_RETRIES=0
+    MAX_BASEBACKUP_RETRIES=12
+    until gosu postgres pg_basebackup \
         -h "$PRIMARY_HOST" \
         -p "$PRIMARY_PORT" \
         -U "$REPLICATOR_USER" \
@@ -45,10 +54,21 @@ if [ -z "$(ls -A "$PGDATA" 2>/dev/null)" ]; then
         -Fp \
         -Xs \
         -P \
-        -R \
-        -W
+        -R; do
+        BASEBACKUP_RETRIES=$((BASEBACKUP_RETRIES + 1))
+        if [ "$BASEBACKUP_RETRIES" -ge "$MAX_BASEBACKUP_RETRIES" ]; then
+            echo "ERROR: pg_basebackup failed after ${MAX_BASEBACKUP_RETRIES} attempts"
+            exit 1
+        fi
+        echo "ENSDB replica: pg_basebackup failed, retrying in 5s... (${BASEBACKUP_RETRIES}/${MAX_BASEBACKUP_RETRIES})"
+        sleep 5
+    done
 
     echo "ENSDB replica: pg_basebackup complete"
+
+    # Defence-in-depth: enforce read-only transactions on the replica. A hot
+    # standby already rejects writes, but this catches any edge cases.
+    gosu postgres sh -c "echo 'default_transaction_read_only = on' >> \"\$PGDATA/postgresql.auto.conf\""
 else
     echo "ENSDB replica: existing PGDATA found, skipping pg_basebackup"
 fi

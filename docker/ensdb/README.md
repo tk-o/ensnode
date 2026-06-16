@@ -15,7 +15,7 @@ private.
 ### Primary environment variables
 
 - `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` — standard Postgres credentials.
-- `REPLICATOR_PASSWORD` — password for the dedicated replication user (`replicator` by default).
+- `REPLICATOR_PASSWORD` — password for the dedicated replication user. Required; no default.
 - `WAL_LEVEL`, `MAX_WAL_SENDERS`, `MAX_REPLICATION_SLOTS`, `HOT_STANDBY`, `WAL_KEEP_SIZE` — replication tunables (sensible defaults are baked in).
 
 ### Replica environment variables
@@ -23,7 +23,7 @@ private.
 - `PRIMARY_HOST` — hostname of the primary service (required).
 - `PRIMARY_PORT` — primary port (default `5432`).
 - `REPLICATOR_USER` — must match the primary's replication user (default `replicator`).
-- `REPLICATOR_PASSWORD` — must match `REPLICATOR_PASSWORD` on the primary.
+- `REPLICATOR_PASSWORD` — must match `REPLICATOR_PASSWORD` on the primary. Required; no default.
 - `REPLICA_SSLMODE` — libpq SSL mode for `pg_basebackup` and streaming (default `require`).
 
 ### Important caveats

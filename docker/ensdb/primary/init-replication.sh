@@ -14,7 +14,12 @@ HOT_STANDBY="${HOT_STANDBY:-on}"
 WAL_KEEP_SIZE="${WAL_KEEP_SIZE:-1GB}"
 MAX_SLOT_WAL_KEEP_SIZE="${MAX_SLOT_WAL_KEEP_SIZE:-1GB}"
 REPLICATOR_USER="${REPLICATOR_USER:-replicator}"
-REPLICATOR_PASSWORD="${REPLICATOR_PASSWORD:-replicator}"
+REPLICATOR_PASSWORD="${REPLICATOR_PASSWORD:-}"
+
+if [ -z "$REPLICATOR_PASSWORD" ]; then
+    echo "ERROR: REPLICATOR_PASSWORD must be set to the replicator user's password."
+    exit 1
+fi
 
 echo "ENSDB primary: configuring replication (user=${REPLICATOR_USER}, wal_level=${WAL_LEVEL})"
 
