@@ -36,7 +36,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   build-and-push:
     name: Build & Push ${{ matrix.image }}
-    runs-on: blacksmith-4vcpu-ubuntu-2204
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
