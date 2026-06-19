@@ -67,9 +67,12 @@ export default function () {
           const record = await context.ensDb.find(ensIndexerSchema.efpListRecords, { id });
           // Ops for a (chain, contract, slot) are indexed in on-chain order, so a tag with no record
           // means the record is not in the list: removed earlier, or (anomalously) never added.
-          // Either way there is no row to tag; warn rather than drop it silently.
+          // Either way there is no row to tag; this is an expected on-chain condition, so debug
+          // log it just in case.
           if (!record) {
-            logger.warn({ msg: `EFP ADD_TAG references absent record ${id} (tag "${tagOp.tag}")` });
+            logger.debug({
+              msg: `EFP ADD_TAG references absent record ${id} (tag "${tagOp.tag}")`,
+            });
             return;
           }
           // A record's tags are a set, so skip a tag it already carries.
@@ -85,8 +88,9 @@ export default function () {
           if (!tagOp) return;
           const id = listRecordId(chainId, contractAddress, slot, tagOp.record);
           const record = await context.ensDb.find(ensIndexerSchema.efpListRecords, { id });
+          // As with ADD_TAG, this is an expected on-chain condition, so debug log it just in case.
           if (!record) {
-            logger.warn({
+            logger.debug({
               msg: `EFP REMOVE_TAG references absent record ${id} (tag "${tagOp.tag}")`,
             });
             return;
