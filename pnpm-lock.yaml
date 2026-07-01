@@ -534,6 +534,9 @@ importers:
       '@ensnode/ensdb-sdk':
         specifier: workspace:*
         version: link:../../packages/ensdb-sdk
+      '@ensnode/ensdb-writer':
+        specifier: workspace:*
+        version: link:../../packages/ensdb-writer
       '@ensnode/ensnode-sdk':
         specifier: workspace:*
         version: link:../../packages/ensnode-sdk
@@ -1110,6 +1113,61 @@ importers:
       drizzle-kit:
         specifier: 0.31.10
         version: 0.31.10
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.41.0(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0(patch_hash=4b2adeefaf7c22f9987d0a125d69cab900719bec7ed7636648bea6947107033a))(@types/pg@8.16.0)(kysely@0.28.17)(pg@8.16.3)
+      ponder:
+        specifier: 'catalog:'
+        version: 0.16.6(patch_hash=07ce9ff0276cbbcf8d5b7a93d4109d50575d5b305099e06eb2e0c19953f1eab9)(@opentelemetry/api@1.9.0(patch_hash=4b2adeefaf7c22f9987d0a125d69cab900719bec7ed7636648bea6947107033a))(@types/node@24.10.9)(@types/pg@8.16.0)(hono@4.12.25)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.22.3)(typescript@5.9.3)(viem@2.50.3(typescript@5.9.3)(zod@4.3.6))(yaml@2.8.3)(zod@4.3.6)
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.12)(tsx@4.22.3)(typescript@5.9.3)(yaml@2.8.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      viem:
+        specifier: 'catalog:'
+        version: 2.50.3(typescript@5.9.3)(zod@4.3.6)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.8(@opentelemetry/api@1.9.0(patch_hash=4b2adeefaf7c22f9987d0a125d69cab900719bec7ed7636648bea6947107033a))(@types/node@24.10.9)(jsdom@27.0.1(postcss@8.5.12))(vite@7.3.5(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.8.3))
+
+  packages/ensdb-writer:
+    dependencies:
+      '@ensdomains/ensjs':
+        specifier: ^4.0.2
+        version: 4.0.2(typescript@5.9.3)(viem@2.50.3(typescript@5.9.3)(zod@4.3.6))(zod@4.3.6)
+      '@ensnode/datasources':
+        specifier: workspace:*
+        version: link:../datasources
+      '@ensnode/ensdb-sdk':
+        specifier: workspace:*
+        version: link:../ensdb-sdk
+      '@ensnode/ensnode-sdk':
+        specifier: workspace:*
+        version: link:../ensnode-sdk
+      '@ensnode/ensrainbow-sdk':
+        specifier: workspace:*
+        version: link:../ensrainbow-sdk
+      dns-packet:
+        specifier: ^5.6.1
+        version: 5.6.1
+      enssdk:
+        specifier: workspace:*
+        version: link:../enssdk
+      p-retry:
+        specifier: 'catalog:'
+        version: 7.1.1
+    devDependencies:
+      '@ensnode/shared-configs':
+        specifier: workspace:*
+        version: link:../shared-configs
+      '@types/dns-packet':
+        specifier: ^5.6.5
+        version: 5.6.5
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.9
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.41.0(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0(patch_hash=4b2adeefaf7c22f9987d0a125d69cab900719bec7ed7636648bea6947107033a))(@types/pg@8.16.0)(kysely@0.28.17)(pg@8.16.3)
@@ -10984,7 +11042,7 @@ snapshots:
   '@babel/types@7.29.0':
     dependencies:
       '@babel/helper-string-parser': 7.27.1
-      '@babel/helper-validator-identifier': 7.28.5
+      '@babel/helper-validator-identifier': 7.29.7
 
   '@babel/types@7.29.7':
     dependencies:
