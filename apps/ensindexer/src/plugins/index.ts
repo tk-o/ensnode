@@ -1,6 +1,5 @@
+import type { MergedTypes } from "@ensnode/ensdb-writer/lib-helpers";
 import type { PluginName } from "@ensnode/ensnode-sdk";
-
-import type { MergedTypes } from "@/lib/lib-helpers";
 
 import efpPlugin from "./efp/plugin";
 import protocolAccelerationPlugin from "./protocol-acceleration/plugin";

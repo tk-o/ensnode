@@ -1,0 +1,70 @@
+import {
+  type Address,
+  type ChainId,
+  type LabelHash,
+  makeENSv1DomainId,
+  makeSubdomainNode,
+  type Node,
+  type NormalizedAddress,
+} from "enssdk";
+
+import { DatasourceNames, type ENSNamespaceId, maybeGetDatasource } from "@ensnode/datasources";
+import { PluginName } from "@ensnode/ensnode-sdk";
+
+import type { IndexingEngineAdapter } from "../../../adapter";
+import { getThisAccountId } from "../../../lib/get-this-account-id";
+import { namespaceContract } from "../../../lib/namespace-contract";
+import { ensureDomainResolverRelation } from "../../../lib/protocol-acceleration/domain-resolver-relationship-db-helpers";
+import type { EventWithArgs, IndexingEngineContext } from "../../../types";
+
+function buildThreeDNSResolverByChainId(namespace: ENSNamespaceId): Record<ChainId, Address> {
+  return [DatasourceNames.ThreeDNSBase, DatasourceNames.ThreeDNSOptimism]
+    .map((datasourceName) => maybeGetDatasource(namespace, datasourceName))
+    .filter((ds) => !!ds)
+    .reduce(
+      (memo, datasource) => ({
+        ...memo,
+        // each ThreeDNS* Datasource defines a 'Resolver' ContractConfig with a single Address
+        [datasource.chain.id]: datasource.contracts.Resolver?.address as Address,
+      }),
+      {},
+    );
+}
+
+/**
+ * Handler functions for ThreeDNSToken contracts in the Protocol Acceleration plugin.
+ * - indexes Node-Resolver Relationships for all nodes registred in ThreeDNSToken
+ */
+export default function (adapter: IndexingEngineAdapter) {
+  adapter.on(
+    namespaceContract(PluginName.ProtocolAcceleration, "ThreeDNSToken:NewOwner"),
+    async ({
+      context,
+      event,
+    }: {
+      context: IndexingEngineContext;
+      event: EventWithArgs<{
+        // NOTE: `node` event arg represents a `Node` that is the _parent_ of the node the NewOwner event is about
+        node: Node;
+        // NOTE: `label` event arg represents a `LabelHash` for the sub-node under `node`
+        label: LabelHash;
+        owner: NormalizedAddress;
+      }>;
+    }) => {
+      const { label: labelHash, node: parentNode } = event.args;
+      const registry = getThisAccountId(context, event);
+      const node = makeSubdomainNode(labelHash, parentNode);
+      const domainId = makeENSv1DomainId(registry, node);
+
+      // all ThreeDNSToken nodes have a hardcoded resolver
+      const resolver = buildThreeDNSResolverByChainId(context.namespace)[context.chain.id];
+      if (!resolver) {
+        throw new Error(
+          `Invariant: ThreeDNSToken ${event.log.address} on chain ${context.chain.id} doesn't have an associated Resolver?`,
+        );
+      }
+
+      await ensureDomainResolverRelation(context, registry, domainId, resolver);
+    },
+  );
+}

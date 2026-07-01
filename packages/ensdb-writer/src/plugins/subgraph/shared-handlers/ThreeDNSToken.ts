@@ -1,0 +1,341 @@
+import {
+  type Address,
+  asInterpretedLabel,
+  constructSubInterpretedName,
+  type DNSEncodedLiteralName,
+  type DNSEncodedName,
+  type DurationBigInt,
+  decodeDNSEncodedLiteralName,
+  encodeLabelHash,
+  type InterpretedLabel,
+  type InterpretedName,
+  interpretedLabelsToInterpretedName,
+  isNormalizedLabel,
+  type LabelHash,
+  labelhashLiteralLabel,
+  literalLabelToInterpretedLabel,
+  makeSubdomainNode,
+  type Node,
+  type NormalizedAddress,
+  type UnixTimestampBigInt,
+} from "enssdk";
+import { isAddressEqual, zeroAddress, zeroHash } from "viem";
+
+import { labelByLabelHash } from "../../../lib/graphnode-helpers";
+import { parseLabelAndNameFromOnChainMetadata } from "../../../lib/json-metadata";
+import {
+  sharedEventValues,
+  upsertAccount,
+  upsertDomain,
+  upsertRegistration,
+  upsertResolver,
+} from "../../../lib/subgraph/db-helpers";
+import { makeRegistrationId, makeResolverId } from "../../../lib/subgraph/ids";
+import { recursivelyRemoveEmptyDomainFromParentSubdomainCount } from "../../../lib/subgraph/subgraph-helpers";
+import { getThreeDNSTokenId } from "../../../lib/threedns-helpers";
+import { ensIndexerSchema } from "../../../schema";
+import type { EventWithArgs, IndexingEngineContext } from "../../../types";
+
+/**
+ * Gets the `uri` for a given tokenId using the relevant ThreeDNSToken from `context`
+ */
+const getUriForTokenId = async (
+  context: IndexingEngineContext,
+  tokenId: bigint,
+): Promise<string> => {
+  // ThreeDNSToken is chain-specific in ponder multi-chain usage
+  // https://ponder.sh/docs/indexing/read-contracts#multiple-chains
+  // biome-ignore lint/style/noNonNullAssertion: the ThreeDNS plugin always configures this contract
+  const threeDNSTokenContract = context.contracts["threedns/ThreeDNSToken"]!;
+
+  return context.client.readContract({
+    abi: threeDNSTokenContract.abi,
+    // biome-ignore lint/style/noNonNullAssertion: NetworkConfig#address is `Address | Address[] | undefined`, but we know this is a single address
+    address: threeDNSTokenContract.address! as Address,
+    functionName: "uri",
+    args: [tokenId],
+  }) as Promise<string>;
+};
+
+/**
+ * Decodes ThreeDNSToken's emitted DNS-Encoded Name `fqdn` into an Interpreted Name and its first
+ * Interpreted Label.
+ */
+function decodeFQDN(fqdn: DNSEncodedLiteralName): {
+  labelHash: LabelHash;
+  label: InterpretedLabel;
+  name: InterpretedName;
+} {
+  // Invariant: ThreeDNS always emits a decodable DNS Packet (`decodeDNSEncodedLiteralName` throws)
+  // https://github.com/3dns-xyz/contracts/blob/44937318ae26cc036982e8c6a496cd82ebdc2b12/src/regcontrol/modules/types/Registry.sol#L298
+  const literalLabels = decodeDNSEncodedLiteralName(fqdn);
+
+  // Invariant: ThreeDNSToken doesn't try to register the root node
+  if (literalLabels.length === 0) {
+    throw new Error(
+      `Invariant: ThreeDNSToken emitted ${fqdn} that decoded to root node (empty string).`,
+    );
+  }
+
+  // Invariant: ThreeDNSToken only emits normalized labels
+  // https://github.com/3dns-xyz/contracts/blob/44937318ae26cc036982e8c6a496cd82ebdc2b12/src/regcontrol/modules/types/Registry.sol#L298
+  if (!literalLabels.every(isNormalizedLabel)) {
+    throw new Error(
+      `Invariant: ThreeDNSToken emitted ${fqdn} that included some unnormalized labels: [${literalLabels.join(", ")}].`,
+    );
+  }
+
+  // due the invariant above, we know that all of the labels are normalized (and therefore Interpreted Labels)
+  const interpretedLabels = literalLabels.map(asInterpretedLabel);
+
+  return {
+    // biome-ignore lint/style/noNonNullAssertion: ok due to length invariant above
+    labelHash: labelhashLiteralLabel(literalLabels[0]!),
+    // biome-ignore lint/style/noNonNullAssertion: ok due to length invariant above
+    label: interpretedLabels[0]!,
+    name: interpretedLabelsToInterpretedName(interpretedLabels),
+  };
+}
+
+/**
+ * In ThreeDNS, NewOwner is emitted when a (sub)domain is created. This includes TLDs, 2LDs, and
+ * >2LDs. For 2LDs, however, RegistrationCreated is always emitted, and it's emitted first, so
+ * this function must upsert a Domain that may have been created in `handleRegistrationCreated`.
+ *
+ * Finally, NewOwner can be emitted for the same Domain across chains — ThreeDNS allows registrations of
+ * .xyz TLDs, for example, on both Optimism and Base, so this function must be idempotent along
+ * that dimension as well.
+ */
+export async function handleNewOwner({
+  context,
+  event,
+}: {
+  context: IndexingEngineContext;
+  event: EventWithArgs<{
+    // NOTE: `node` event arg represents a `Node` that is the _parent_ of the node the NewOwner event is about
+    node: Node;
+    // NOTE: `label` event arg represents a `LabelHash` for the sub-node under `node`
+    label: LabelHash;
+    owner: NormalizedAddress;
+  }>;
+}) {
+  const { label: labelHash, node: parentNode, owner } = event.args;
+
+  await upsertAccount(context, owner);
+
+  // the domain in question is a subdomain of `parentNode`
+  const node = makeSubdomainNode(labelHash, parentNode);
+  let domain = await context.ensDb.find(ensIndexerSchema.subgraph_domain, { id: node });
+
+  // biome-ignore lint/style/noNonNullAssertion: the ThreeDNS plugin always configures this contract and its address is a single address
+  const resolverAddress = context.contracts["threedns/Resolver"]!.address! as Address;
+
+  // in ThreeDNS there's a hard-coded Resolver that all domains use
+  // so upsert the resolver record and link Domain.resolverId below
+  const resolverId = makeResolverId(
+    context.isSubgraphCompatible,
+    context.chain.id,
+    resolverAddress,
+    node,
+  );
+  await upsertResolver(context, {
+    id: resolverId,
+    address: resolverAddress,
+    domainId: node,
+  });
+
+  if (domain) {
+    // if the domain already exists, this is just an update of the owner record
+    domain = await context.ensDb
+      .update(ensIndexerSchema.subgraph_domain, { id: node })
+      .set({ ownerId: owner });
+  } else {
+    // otherwise create the domain
+    domain = await context.ensDb.insert(ensIndexerSchema.subgraph_domain).values({
+      id: node,
+      ownerId: owner,
+      parentId: parentNode,
+      createdAt: event.block.timestamp,
+      labelhash: labelHash,
+
+      // NOTE: threedns has no concept of registry migration, so domains indexed by this plugin
+      // are always considered 'migrated'
+      isMigrated: true,
+    });
+
+    // and increment parent subdomainCount
+    await context.ensDb
+      .update(ensIndexerSchema.subgraph_domain, { id: parentNode })
+      .set((row) => ({ subdomainCount: row.subdomainCount + 1 }));
+  }
+
+  // if the domain doesn't yet have a name, attempt to construct it here
+  // NOTE: for threedns this occurs on non-2LD `NewOwner` events, as a 2LD registration will
+  // always emit `RegistrationCreated`, including Domain's `name`, before this `NewOwner` event
+  // is indexed.
+  if (domain.name === null) {
+    const parent = await context.ensDb.find(ensIndexerSchema.subgraph_domain, { id: parentNode });
+
+    // 1. attempt metadata retrieval
+    const tokenId = getThreeDNSTokenId(node);
+    const uri = await getUriForTokenId(context, tokenId);
+    let [healedLabel] = parseLabelAndNameFromOnChainMetadata(uri);
+
+    // 2. attempt to heal the label associated with labelHash via ENSRainbow
+    if (healedLabel === null) {
+      healedLabel = await labelByLabelHash(context, labelHash);
+    }
+
+    // Interpret the `healedLabel` Literal Label into an Interpreted Label
+    // see https://ensnode.io/docs/reference/terminology#literal-label
+    // see https://ensnode.io/docs/reference/terminology#interpreted-label
+    const interpretedLabel = asInterpretedLabel(
+      healedLabel !== null
+        ? literalLabelToInterpretedLabel(healedLabel)
+        : encodeLabelHash(labelHash),
+    );
+
+    // to construct `Domain.name` use the parent's Name and the Interpreted Label
+    // NOTE: for a TLD, the parent is null, so we just use the Label value as is
+    const interpretedName = constructSubInterpretedName(
+      interpretedLabel,
+      parent?.name as InterpretedName | undefined,
+    );
+
+    await context.ensDb
+      .update(ensIndexerSchema.subgraph_domain, { id: node })
+      .set({ name: interpretedName, labelName: interpretedLabel });
+  }
+
+  // log DomainEvent
+  await context.ensDb.insert(ensIndexerSchema.subgraph_newOwner).values({
+    ...sharedEventValues(context, event),
+    parentDomainId: parentNode,
+    domainId: node,
+    ownerId: owner,
+  });
+}
+
+export async function handleTransfer({
+  context,
+  event,
+}: {
+  context: IndexingEngineContext;
+  event: EventWithArgs<{ node: Node; owner: NormalizedAddress }>;
+}) {
+  const { node, owner } = event.args;
+
+  await upsertAccount(context, owner);
+
+  // update owner (Domain is guaranteed to exist because NewOwner fires before Transfer)
+  await context.ensDb
+    .update(ensIndexerSchema.subgraph_domain, { id: node })
+    .set({ ownerId: owner });
+
+  // garbage collect newly 'empty' domain iff necessary
+  if (isAddressEqual(owner, zeroAddress)) {
+    await recursivelyRemoveEmptyDomainFromParentSubdomainCount(context, node);
+  }
+
+  // log DomainEvent
+  await context.ensDb.insert(ensIndexerSchema.subgraph_transfer).values({
+    ...sharedEventValues(context, event),
+    domainId: node,
+    ownerId: owner,
+  });
+}
+
+export async function handleRegistrationCreated({
+  context,
+  event,
+}: {
+  context: IndexingEngineContext;
+  event: EventWithArgs<{
+    // NOTE: `node` event arg represents a `Node` that is the domain this registration is about
+    node: Node;
+    // NOTE: `tld` event arg represents a `Node` that is the parent of `node`
+    tld: Node;
+    fqdn: DNSEncodedName;
+    registrant: NormalizedAddress;
+    controlBitmap: number;
+    expiry: UnixTimestampBigInt;
+  }>;
+}) {
+  const { node, tld, fqdn, registrant, expiry } = event.args;
+
+  await upsertAccount(context, registrant);
+
+  // NOTE: ThreeDNSToken emits a DNS-Encoded LiteralName, so we cast the DNSEncodedName as such
+  const { labelHash, label, name } = decodeFQDN(fqdn as DNSEncodedLiteralName);
+
+  // Invariant: ThreeDNSToken only emits RegistrationCreated for TLDs or 2LDs
+  if (name.split(".").length >= 3) {
+    console.table({ ...event.args, tx: event.transaction.hash });
+    throw new Error(`Invariant: >2LD emitted RegistrationCreated: ${name}`);
+  }
+
+  // NOTE: we use upsert because RegistrationCreated can be emitted for the same domain upon
+  // expiry and re-registration (example: delv.box)
+  // 1st Registration: https://optimistic.etherscan.io/tx/0x16f31ccd9ce71b0e8f2068233b0aaa5739f48a23841ff5f813518afa144ee95e#eventlog
+  // 2nd Registration: https://optimistic.etherscan.io/tx/0xcb0f17d98f86c44fed46b77e9528e153991cb03bd51723b3dbda43ff12039b2a#eventlog
+  await upsertDomain(context, {
+    id: node,
+    parentId: tld,
+    ownerId: registrant,
+    registrantId: registrant,
+    createdAt: event.block.timestamp,
+    labelhash: labelHash,
+    expiryDate: expiry,
+
+    // include its decoded label/name
+    labelName: label,
+    name,
+  });
+
+  // upsert a Registration entity
+  const registrationId = makeRegistrationId(context.isSubgraphCompatible, labelHash, node);
+  await upsertRegistration(context, {
+    id: registrationId,
+    domainId: node,
+    registrationDate: event.block.timestamp,
+    expiryDate: expiry,
+    registrantId: registrant,
+    labelName: label,
+  });
+
+  // log RegistrationEvent
+  await context.ensDb.insert(ensIndexerSchema.subgraph_nameRegistered).values({
+    ...sharedEventValues(context, event),
+    registrationId,
+    registrantId: registrant,
+    expiryDate: expiry,
+  });
+}
+
+export async function handleRegistrationExtended({
+  context,
+  event,
+}: {
+  context: IndexingEngineContext;
+  event: EventWithArgs<{ node: Node; duration: DurationBigInt; newExpiry: UnixTimestampBigInt }>;
+}) {
+  const { node, newExpiry } = event.args;
+
+  // update domain expiry date
+  await context.ensDb
+    .update(ensIndexerSchema.subgraph_domain, { id: node })
+    .set({ expiryDate: newExpiry });
+
+  // udpate registration expiry date
+  const registrationId = makeRegistrationId(context.isSubgraphCompatible, zeroHash, node);
+  await context.ensDb
+    .update(ensIndexerSchema.subgraph_registration, { id: registrationId })
+    .set({ expiryDate: newExpiry });
+
+  // log RegistratioEvent
+  await context.ensDb.insert(ensIndexerSchema.subgraph_nameRenewed).values({
+    ...sharedEventValues(context, event),
+    registrationId,
+    expiryDate: newExpiry,
+  });
+}
