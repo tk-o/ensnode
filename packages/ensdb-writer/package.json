@@ -1,0 +1,121 @@
+{
+  "name": "@ensnode/ensdb-writer",
+  "version": "1.16.0",
+  "type": "module",
+  "description": "Engine-agnostic ENSDb indexing handlers and helpers",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/namehash/ensnode.git",
+    "directory": "packages/ensdb-writer"
+  },
+  "homepage": "https://github.com/namehash/ensnode/tree/main/packages/ensdb-writer",
+  "keywords": [
+    "ENS",
+    "ENSNode",
+    "ENSDb",
+    "indexer"
+  ],
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./adapter": "./src/adapter.ts",
+    "./schema": "./src/schema.ts",
+    "./plugins/efp": "./src/plugins/efp/event-handlers.ts",
+    "./plugins/protocol-acceleration": "./src/plugins/protocol-acceleration/event-handlers.ts",
+    "./plugins/protocol-acceleration/node-migration": "./src/plugins/protocol-acceleration/handlers/node-migration.ts",
+    "./plugins/registrars": "./src/plugins/registrars/event-handlers.ts",
+    "./plugins/tokenscope": "./src/plugins/tokenscope/event-handlers.ts",
+    "./plugins/unigraph": "./src/plugins/unigraph/event-handlers.ts",
+    "./plugins/subgraph": "./src/plugins/subgraph/plugins/subgraph/event-handlers.ts",
+    "./plugins/basenames": "./src/plugins/subgraph/plugins/basenames/event-handlers.ts",
+    "./plugins/lineanames": "./src/plugins/subgraph/plugins/lineanames/event-handlers.ts",
+    "./plugins/threedns": "./src/plugins/subgraph/plugins/threedns/event-handlers.ts",
+    "./lib-helpers": "./src/lib/lib-helpers.ts"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "import": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index"
+        },
+        "require": {
+          "types": "./dist/index.d.cts",
+          "default": "./dist/index.cjs"
+        }
+      },
+      "./types": {
+        "import": {
+          "types": "./dist/types.d.ts",
+          "default": "./dist/types"
+        },
+        "require": {
+          "types": "./dist/types.d.cts",
+          "default": "./dist/types.cjs"
+        }
+      },
+      "./adapter": {
+        "import": {
+          "types": "./dist/adapter.d.ts",
+          "default": "./dist/adapter"
+        },
+        "require": {
+          "types": "./dist/adapter.d.cts",
+          "default": "./dist/adapter.cjs"
+        }
+      },
+      "./schema": {
+        "import": {
+          "types": "./dist/schema.d.ts",
+          "default": "./dist/schema"
+        },
+        "require": {
+          "types": "./dist/schema.d.cts",
+          "default": "./dist/schema.cjs"
+        }
+      }
+    },
+    "main": "./dist/index.cjs",
+    "module": "./dist/index",
+    "types": "./dist/index.d.ts"
+  },
+  "scripts": {
+    "prepublish": "tsup",
+    "lint": "biome check --write .",
+    "lint:ci": "biome ci",
+    "test": "vitest",
+    "typecheck": "tsgo --noEmit"
+  },
+  "peerDependencies": {
+    "drizzle-orm": "catalog:",
+    "ponder": "catalog:",
+    "viem": "catalog:"
+  },
+  "dependencies": {
+    "@ensdomains/ensjs": "^4.0.2",
+    "@ensnode/datasources": "workspace:*",
+    "@ensnode/ensdb-sdk": "workspace:*",
+    "@ensnode/ensnode-sdk": "workspace:*",
+    "@ensnode/ensrainbow-sdk": "workspace:*",
+    "dns-packet": "^5.6.1",
+    "enssdk": "workspace:*",
+    "p-retry": "catalog:"
+  },
+  "devDependencies": {
+    "@ensnode/shared-configs": "workspace:*",
+    "@types/dns-packet": "^5.6.5",
+    "@types/node": "catalog:",
+    "drizzle-orm": "catalog:",
+    "ponder": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "viem": "catalog:",
+    "vitest": "catalog:"
+  }
+}

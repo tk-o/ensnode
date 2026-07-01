@@ -1,0 +1,126 @@
+import { type Address, stringifyAssetId } from "enssdk";
+import { zeroAddress } from "viem";
+
+import {
+  type DomainAssetId,
+  formatNFTTransferEventMetadata,
+  getNFTTransferType,
+  NFTMintStatuses,
+  type NFTTransferEventMetadata,
+  NFTTransferTypes,
+} from "@ensnode/ensnode-sdk";
+
+import { upsertAccount } from "../../../lib/subgraph/db-helpers";
+import { ensIndexerSchema } from "../../../schema";
+import type { IndexingEngineContext } from "../../../types";
+
+export const handleERC1155Transfer = async (
+  context: IndexingEngineContext,
+  from: Address,
+  to: Address,
+  allowMintedRemint: boolean,
+  nft: DomainAssetId,
+  amount: bigint,
+  metadata: NFTTransferEventMetadata,
+): Promise<void> => {
+  // Sanity Check: ERC1155 contract must transfer exactly 1 item
+  if (amount !== 1n) {
+    throw new Error(
+      `Error: ERC1155 transfer single value must be 1, got ${amount}\n${formatNFTTransferEventMetadata(metadata)}`,
+    );
+  }
+
+  // handle it as a normal nft transfer
+  await handleNFTTransfer(context, from, to, allowMintedRemint, nft, metadata);
+};
+
+export const handleNFTTransfer = async (
+  context: IndexingEngineContext,
+  from: Address,
+  to: Address,
+  allowMintedRemint: boolean,
+  nft: DomainAssetId,
+  metadata: NFTTransferEventMetadata,
+): Promise<void> => {
+  const assetIdString = stringifyAssetId(nft);
+
+  // get the previously indexed record for the assetId (if it exists)
+  const previous = await context.ensDb.find(ensIndexerSchema.nameTokens, { id: assetIdString });
+  const transferType = getNFTTransferType(from, to, allowMintedRemint, metadata, previous?.owner);
+
+  switch (transferType) {
+    case NFTTransferTypes.Mint:
+      // mint status transition from unindexed -> minted
+      // insert the record of the nft that has been minted for the first time
+      await upsertAccount(context, to);
+      await context.ensDb.insert(ensIndexerSchema.nameTokens).values({
+        id: assetIdString,
+        chainId: nft.contract.chainId,
+        contractAddress: nft.contract.address,
+        tokenId: nft.tokenId,
+        assetNamespace: nft.assetNamespace,
+        domainId: nft.domainId,
+        owner: to,
+        mintStatus: NFTMintStatuses.Minted,
+      });
+      break;
+
+    case NFTTransferTypes.MintBurn:
+      // mint status transition from unindexed -> burned
+      // insert the record of the nft that has been minted for the first time
+      // ... but minted to the zeroAddress and therefore we should initialize
+      // it's state as burned
+      // TODO: should we remove this upsertAccount call with the zeroAddress?
+      await upsertAccount(context, zeroAddress);
+      await context.ensDb.insert(ensIndexerSchema.nameTokens).values({
+        id: assetIdString,
+        chainId: nft.contract.chainId,
+        contractAddress: nft.contract.address,
+        tokenId: nft.tokenId,
+        assetNamespace: nft.assetNamespace,
+        domainId: nft.domainId,
+        owner: zeroAddress,
+        mintStatus: NFTMintStatuses.Burned,
+      });
+      break;
+
+    case NFTTransferTypes.Remint:
+      // mint status transition from burned -> minted
+      // update the mint status and owner of the previously indexed nft
+      await upsertAccount(context, to);
+      await context.ensDb.update(ensIndexerSchema.nameTokens, { id: assetIdString }).set({
+        owner: to,
+        mintStatus: NFTMintStatuses.Minted,
+      });
+      break;
+
+    case NFTTransferTypes.Burn:
+    // the indexed state transition for a minted-remint-burn is the same as a burn
+    case NFTTransferTypes.MintedRemintBurn:
+      // mint status transition from minted -> burned
+      // update the mint status and owner of the previously indexed nft
+      // TODO: should we remove this upsertAccount call with the zeroAddress?
+      await upsertAccount(context, zeroAddress);
+      await context.ensDb.update(ensIndexerSchema.nameTokens, { id: assetIdString }).set({
+        owner: zeroAddress,
+        mintStatus: NFTMintStatuses.Burned,
+      });
+      break;
+
+    case NFTTransferTypes.Transfer:
+    // the indexed state transition for a minted-remint is the same as a transfer
+    case NFTTransferTypes.MintedRemint:
+      // mint status remains minted (no change)
+      // update owner of the previously indexed nft
+      await upsertAccount(context, to);
+      await context.ensDb.update(ensIndexerSchema.nameTokens, { id: assetIdString }).set({
+        owner: to,
+      });
+      break;
+
+    case NFTTransferTypes.SelfTransfer:
+    case NFTTransferTypes.RemintBurn:
+      // no indexed state changes needed for previously indexed NFTs upon SelfTransfer or RemintBurn
+      break;
+  }
+};

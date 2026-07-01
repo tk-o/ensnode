@@ -1,8 +1,9 @@
 import { vi } from "vitest";
 
+import { deepClone } from "@ensnode/ensdb-writer/lib-helpers";
+
 import { buildConfigFromEnvironment } from "@/config/config.schema";
 import type { ENSIndexerConfig } from "@/config/types";
-import { deepClone } from "@/lib/lib-helpers";
 
 // default, non-exported mock configuration template
 const _defaultMockConfig = buildConfigFromEnvironment({

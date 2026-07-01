@@ -1,56 +1,57 @@
 /**
  * This file is loaded by ponder as part of ponder dev & ponder start. In here we conditionally
- * execute each enabled plugin's handler functions in order to
+ * execute each enabled plugin's handler functions in order to register the plugin's event handlers.
  */
 
 import config from "@/config";
 
+import attach_BasenamesHandlers from "@ensnode/ensdb-writer/plugins/basenames";
+import attach_EFPHandlers from "@ensnode/ensdb-writer/plugins/efp";
+import attach_LineanamesHandlers from "@ensnode/ensdb-writer/plugins/lineanames";
+import attach_protocolAccelerationHandlers from "@ensnode/ensdb-writer/plugins/protocol-acceleration";
+import attach_NodeMigrationHandlers from "@ensnode/ensdb-writer/plugins/protocol-acceleration/node-migration";
+import attach_RegistrarsHandlers from "@ensnode/ensdb-writer/plugins/registrars";
+import attach_SubgraphHandlers from "@ensnode/ensdb-writer/plugins/subgraph";
+import attach_ThreeDNSHandlers from "@ensnode/ensdb-writer/plugins/threedns";
+import attach_TokenscopeHandlers from "@ensnode/ensdb-writer/plugins/tokenscope";
+import attach_UnigraphHandlers from "@ensnode/ensdb-writer/plugins/unigraph";
 import { PluginName } from "@ensnode/ensnode-sdk";
 
-import attach_EFPHandlers from "@/plugins/efp/event-handlers";
-import attach_protocolAccelerationHandlers from "@/plugins/protocol-acceleration/event-handlers";
-import attach_NodeMigrationHandlers from "@/plugins/protocol-acceleration/handlers/node-migration";
-import attach_RegistrarsHandlers from "@/plugins/registrars/event-handlers";
-import attach_BasenamesHandlers from "@/plugins/subgraph/plugins/basenames/event-handlers";
-import attach_LineanamesHandlers from "@/plugins/subgraph/plugins/lineanames/event-handlers";
-import attach_SubgraphHandlers from "@/plugins/subgraph/plugins/subgraph/event-handlers";
-import attach_ThreeDNSHandlers from "@/plugins/subgraph/plugins/threedns/event-handlers";
-import attach_TokenscopeHandlers from "@/plugins/tokenscope/event-handlers";
-import attach_UnigraphHandlers from "@/plugins/unigraph/event-handlers";
+import { ponderAdapter } from "@/lib/indexing-engines/ponder";
 
 // Subgraph Plugin
 if (config.plugins.includes(PluginName.Subgraph)) {
-  attach_SubgraphHandlers();
+  attach_SubgraphHandlers(ponderAdapter);
 }
 
 // Basenames Plugin
 if (config.plugins.includes(PluginName.Basenames)) {
-  attach_BasenamesHandlers();
+  attach_BasenamesHandlers(ponderAdapter);
 }
 
 // Lineanames Plugin
 if (config.plugins.includes(PluginName.Lineanames)) {
-  attach_LineanamesHandlers();
+  attach_LineanamesHandlers(ponderAdapter);
 }
 
 // ThreeDNS Plugin
 if (config.plugins.includes(PluginName.ThreeDNS)) {
-  attach_ThreeDNSHandlers();
+  attach_ThreeDNSHandlers(ponderAdapter);
 }
 
 // Registrars Plugin
 if (config.plugins.includes(PluginName.Registrars)) {
-  attach_RegistrarsHandlers();
+  attach_RegistrarsHandlers(ponderAdapter);
 }
 
 // TokenScope Plugin
 if (config.plugins.includes(PluginName.TokenScope)) {
-  attach_TokenscopeHandlers();
+  attach_TokenscopeHandlers(ponderAdapter);
 }
 
 // EFP Plugin
 if (config.plugins.includes(PluginName.EFP)) {
-  attach_EFPHandlers();
+  attach_EFPHandlers(ponderAdapter);
 }
 
 // IMPORTANT: the order of these attach_*() calls does NOT control the order Ponder dispatches
@@ -75,13 +76,13 @@ if (config.plugins.includes(PluginName.EFP)) {
 // and Unigraph plugins to avoid this ordering concern.
 
 if (config.plugins.includes(PluginName.ProtocolAcceleration)) {
-  attach_NodeMigrationHandlers();
+  attach_NodeMigrationHandlers(ponderAdapter);
 }
 
 if (config.plugins.includes(PluginName.Unigraph)) {
-  attach_UnigraphHandlers();
+  attach_UnigraphHandlers(ponderAdapter);
 }
 
 if (config.plugins.includes(PluginName.ProtocolAcceleration)) {
-  attach_protocolAccelerationHandlers();
+  attach_protocolAccelerationHandlers(ponderAdapter);
 }

@@ -25,6 +25,7 @@
     "@ensdomains/ensjs": "^4.0.2",
     "@ensnode/datasources": "workspace:*",
     "@ensnode/ensdb-sdk": "workspace:*",
+    "@ensnode/ensdb-writer": "workspace:*",
     "@ensnode/ensnode-sdk": "workspace:*",
     "@ensnode/ensrainbow-sdk": "workspace:*",
     "@ensnode/ponder-sdk": "workspace:*",
